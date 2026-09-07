@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { db, pool } from "../config/database.js";
 import {
   tenants,
@@ -39,101 +40,155 @@ export async function runDatabaseSeed() {
     const pinHash = await bcrypt.hash("1234", 10);
 
     // 1. Seed Tenant
-    const [demoTenant] = await db
-      .insert(tenants)
-      .values({
-        name: "BeverageCorp Manufacturing Global Ltd",
-        slug: "beverage-corp",
-        plan: "ENTERPRISE",
-        status: "ACTIVE",
-      })
-      .returning();
+    let [demoTenant] = await db.select().from(tenants).where(eq(tenants.slug, "beverage-corp")).limit(1);
+    if (!demoTenant) {
+      [demoTenant] = await db
+        .insert(tenants)
+        .values({
+          name: "BeverageCorp Manufacturing Global Ltd",
+          slug: "beverage-corp",
+          plan: "ENTERPRISE",
+          status: "ACTIVE",
+        })
+        .returning();
+    }
 
-    console.log(`✅ Tenant created: ${demoTenant.name}`);
+    console.log(`✅ Tenant ready: ${demoTenant.name}`);
 
     // 2. Seed Plants
-    const [indorePlant] = await db
-      .insert(plants)
-      .values({
-        tenantId: demoTenant.id,
-        code: "INDORE-01",
-        name: "Indore Mega Bottling & Canning Facility",
-        city: "Indore",
-        state: "Madhya Pradesh",
-        country: "India",
-        timezone: "Asia/Kolkata",
-      })
-      .returning();
+    let [indorePlant] = await db.select().from(plants).where(eq(plants.code, "INDORE-01")).limit(1);
+    if (!indorePlant) {
+      [indorePlant] = await db
+        .insert(plants)
+        .values({
+          tenantId: demoTenant.id,
+          code: "INDORE-01",
+          name: "Indore Mega Bottling & Canning Facility",
+          city: "Indore",
+          state: "Madhya Pradesh",
+          country: "India",
+          timezone: "Asia/Kolkata",
+        })
+        .returning();
+    }
 
-    const [punePlant] = await db
-      .insert(plants)
-      .values({
-        tenantId: demoTenant.id,
-        code: "PUNE-02",
-        name: "Pune Blending & Packaging Plant",
-        city: "Pune",
-        state: "Maharashtra",
-        country: "India",
-        timezone: "Asia/Kolkata",
-      })
-      .returning();
+    let [punePlant] = await db.select().from(plants).where(eq(plants.code, "PUNE-02")).limit(1);
+    if (!punePlant) {
+      [punePlant] = await db
+        .insert(plants)
+        .values({
+          tenantId: demoTenant.id,
+          code: "PUNE-02",
+          name: "Pune Blending & Packaging Plant",
+          city: "Pune",
+          state: "Maharashtra",
+          country: "India",
+          timezone: "Asia/Kolkata",
+        })
+        .returning();
+    }
 
-    console.log(`✅ Plants created: ${indorePlant.name}, ${punePlant.name}`);
+    console.log(`✅ Plants ready: ${indorePlant.name}, ${punePlant.name}`);
 
-    // 3. Seed Users
-    const [plantManager] = await db
-      .insert(users)
-      .values({
-        tenantId: demoTenant.id,
-        email: "alexander.vance@maintenx.com",
-        passwordHash,
-        firstName: "Alexander",
-        lastName: "Vance",
-        digitalSignaturePinHash: pinHash,
-        status: "ACTIVE",
-      })
-      .returning();
+    // 3. Seed All 12 System Roles
+    const roleDefinitions = [
+      { code: "master_admin", name: "Master Admin", description: "Platform Chief Administrator & SuperAdmin" },
+      { code: "admin", name: "System Administrator", description: "Indore IT & System Configuration Administrator" },
+      { code: "planner", name: "Planner / Scheduler", description: "Lead Production & Demand Scheduler" },
+      { code: "warehouse", name: "Warehouse / Receiver", description: "Warehouse, Receiving & Logistics Manager" },
+      { code: "maintenance", name: "Maintenance", description: "Senior Reliability Technician & Maintenance Lead" },
+      { code: "supervisor", name: "Operations Supervisor", description: "Shift Operations & Workforce Supervisor" },
+      { code: "line_lead", name: "Line Lead", description: "Line Lead - Packaging & Bottling" },
+      { code: "operator", name: "Line Operator", description: "Certified HMI Line Operator" },
+      { code: "quality", name: "Quality / QA", description: "Quality Assurance & Food Safety Lead" },
+      { code: "ci_engineer", name: "CI / Engineering", description: "Continuous Improvement & RCA Engineer" },
+      { code: "plant_manager", name: "Plant Manager", description: "Indore Plant Director & Operations Lead" },
+      { code: "executive", name: "Executive", description: "Chief Operating Officer & Enterprise Executive" },
+    ];
 
-    const [planner] = await db
-      .insert(users)
-      .values({
-        tenantId: demoTenant.id,
-        email: "planner@maintenx.com",
-        passwordHash,
-        firstName: "Elena",
-        lastName: "Rostova",
-        digitalSignaturePinHash: pinHash,
-        status: "ACTIVE",
-      })
-      .returning();
+    const seededRoles: Record<string, any> = {};
+    for (const r of roleDefinitions) {
+      let [existingRole] = await db.select().from(roles).where(eq(roles.code, r.code)).limit(1);
+      if (!existingRole) {
+        [existingRole] = await db
+          .insert(roles)
+          .values({
+            tenantId: demoTenant.id,
+            code: r.code,
+            name: r.name,
+            description: r.description,
+            isSystem: true,
+          })
+          .returning();
+      }
+      seededRoles[r.code] = existingRole;
+    }
+    console.log(`✅ 12 System Roles ready`);
 
-    const [qaLead] = await db
-      .insert(users)
-      .values({
-        tenantId: demoTenant.id,
-        email: "qa@maintenx.com",
-        passwordHash,
-        firstName: "Dr. Rachel",
-        lastName: "Thorne",
-        digitalSignaturePinHash: pinHash,
-        status: "ACTIVE",
-      })
-      .returning();
+    // 3b. Seed Users for All 12 Roles
+    const userDefinitions = [
+      { email: "plant.manager@maintenx.com", firstName: "Arthur", lastName: "Sterling", roleCode: "plant_manager" },
+      { email: "alexander.vance@maintenx.com", firstName: "Alexander", lastName: "Vance", roleCode: "plant_manager" },
+      { email: "admin@maintenx.com", firstName: "Alexander", lastName: "Vance", roleCode: "admin" },
+      { email: "planner@maintenx.com", firstName: "Elena", lastName: "Rostova", roleCode: "planner" },
+      { email: "warehouse@maintenx.com", firstName: "Carlos", lastName: "Mendez", roleCode: "warehouse" },
+      { email: "maintenance@maintenx.com", firstName: "Dave", lastName: "Miller", roleCode: "maintenance" },
+      { email: "supervisor@maintenx.com", firstName: "Sarah", lastName: "Jenkins", roleCode: "supervisor" },
+      { email: "linelead@maintenx.com", firstName: "Devang", lastName: "Patel", roleCode: "line_lead" },
+      { email: "operator@maintenx.com", firstName: "Marcus", lastName: "Chen", roleCode: "operator" },
+      { email: "qa@maintenx.com", firstName: "Dr. Rachel", lastName: "Thorne", roleCode: "quality" },
+      { email: "quality@maintenx.com", firstName: "Dr. Rachel", lastName: "Thorne", roleCode: "quality" },
+      { email: "ci@maintenx.com", firstName: "Viktor", lastName: "Hayes", roleCode: "ci_engineer" },
+      { email: "executive@maintenx.com", firstName: "Victoria", lastName: "Sterling", roleCode: "executive" },
+      { email: "master@maintenx.com", firstName: "Elena", lastName: "Vance", roleCode: "master_admin", isMasterAdmin: true },
+    ];
 
-    const [operator] = await db
-      .insert(users)
-      .values({
-        tenantId: demoTenant.id,
-        email: "operator@maintenx.com",
-        passwordHash,
-        firstName: "Marcus",
-        lastName: "Chen",
-        digitalSignaturePinHash: pinHash,
-        status: "ACTIVE",
-      })
-      .returning();
+    const seededUsers: Record<string, any> = {};
+    for (const u of userDefinitions) {
+      let [existingUser] = await db.select().from(users).where(eq(users.email, u.email)).limit(1);
+      if (!existingUser) {
+        [existingUser] = await db
+          .insert(users)
+          .values({
+            tenantId: demoTenant.id,
+            email: u.email,
+            passwordHash,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            digitalSignaturePinHash: pinHash,
+            isMasterAdmin: u.isMasterAdmin || false,
+            status: "ACTIVE",
+          })
+          .returning();
+      } else {
+        // Update password & pin
+        await db.update(users).set({ passwordHash, digitalSignaturePinHash: pinHash }).where(eq(users.id, existingUser.id));
+      }
 
-    console.log(`✅ Users created: Plant Manager, Planner, QA Lead, Operator`);
+      seededUsers[u.email] = existingUser;
+
+      // Map to userRoles
+      const roleObj = seededRoles[u.roleCode];
+      if (roleObj) {
+        const [existingUserRole] = await db.select().from(userRoles).where(eq(userRoles.userId, existingUser.id)).limit(1);
+        if (!existingUserRole) {
+          await db.insert(userRoles).values({
+            userId: existingUser.id,
+            roleId: roleObj.id,
+            plantId: indorePlant.id,
+          });
+        } else {
+          await db.update(userRoles).set({ roleId: roleObj.id }).where(eq(userRoles.userId, existingUser.id));
+        }
+      }
+    }
+
+    const plantManager = seededUsers["plant.manager@maintenx.com"] || seededUsers["alexander.vance@maintenx.com"];
+    const planner = seededUsers["planner@maintenx.com"];
+    const qaLead = seededUsers["qa@maintenx.com"];
+    const operator = seededUsers["operator@maintenx.com"];
+
+    console.log(`✅ 14 Users configured and mapped to their respective roles`);
 
     // 4. Seed Product Families & SKUs
     const [beverageFamily] = await db

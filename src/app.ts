@@ -16,6 +16,7 @@ import { warehouseRoutes } from "./modules/warehouse/warehouse.routes.js";
 import { traceabilityRoutes } from "./modules/traceability/traceability.routes.js";
 import { maintenanceRoutes } from "./modules/maintenance/maintenance.routes.js";
 import { dashboardsRoutes } from "./modules/dashboards/dashboards.routes.js";
+import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
 
@@ -48,6 +49,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // 4. API v1 Domain Routes
   await app.register(authRoutes, { prefix: "/api/v1/auth" });
+  await app.register(adminRoutes, { prefix: "/api/v1/admin" });
   await app.register(masterDataRoutes, { prefix: "/api/v1/master-data" });
   await app.register(planningRoutes, { prefix: "/api/v1/planning" });
   await app.register(productionRoutes, { prefix: "/api/v1/production" });

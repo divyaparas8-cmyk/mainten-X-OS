@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
-const tenants_js_1 = require("./tenants.js");
+const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     description: (0, pg_core_1.text)("description"),
@@ -14,7 +14,7 @@ exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
 });
 exports.skus = (0, pg_core_1.pgTable)("skus", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     skuCode: (0, pg_core_1.varchar)("sku_code", { length: 100 }).notNull(), // e.g. "SKU-5001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "500ml Sparkling Citrus Soda"
     category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(), // "FINISHED_GOODS", "RAW_MATERIAL", "PACKAGING"
@@ -31,7 +31,7 @@ exports.skus = (0, pg_core_1.pgTable)("skus", {
 });
 exports.boms = (0, pg_core_1.pgTable)("boms", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
     version: (0, pg_core_1.varchar)("version", { length: 50 }).default("v1.0").notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
@@ -55,8 +55,8 @@ exports.bomItems = (0, pg_core_1.pgTable)("bom_items", {
 });
 exports.workCenters = (0, pg_core_1.pgTable)("work_centers", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(), // "WC-01"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "Formulation & Batching Bay"
     category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(), // "PROCESSING", "PACKAGING", "UTILITIES"
@@ -67,8 +67,8 @@ exports.workCenters = (0, pg_core_1.pgTable)("work_centers", {
 });
 exports.productionLines = (0, pg_core_1.pgTable)("production_lines", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     workCenterId: (0, pg_core_1.uuid)("work_center_id").references(() => exports.workCenters.id, { onDelete: "set null" }),
     code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(), // "LINE-1"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "High-Speed Bottling Line 1"
@@ -80,8 +80,8 @@ exports.productionLines = (0, pg_core_1.pgTable)("production_lines", {
 });
 exports.shifts = (0, pg_core_1.pgTable)("shifts", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(), // "SHIFT_A"
     name: (0, pg_core_1.varchar)("name", { length: 100 }).notNull(), // "Morning Shift A"
     startTime: (0, pg_core_1.varchar)("start_time", { length: 10 }).notNull(), // "06:00"
@@ -90,8 +90,8 @@ exports.shifts = (0, pg_core_1.pgTable)("shifts", {
 });
 exports.assets = (0, pg_core_1.pgTable)("assets", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     lineId: (0, pg_core_1.uuid)("line_id").references(() => exports.productionLines.id, { onDelete: "set null" }),
     assetCode: (0, pg_core_1.varchar)("asset_code", { length: 100 }).notNull(), // "FM-001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "Rotary Filling Machine"
@@ -109,8 +109,8 @@ exports.assets = (0, pg_core_1.pgTable)("assets", {
 });
 exports.staff = (0, pg_core_1.pgTable)("staff", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     employeeCode: (0, pg_core_1.varchar)("employee_code", { length: 50 }).notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     designation: (0, pg_core_1.varchar)("designation", { length: 100 }).notNull(),
@@ -122,7 +122,7 @@ exports.staff = (0, pg_core_1.pgTable)("staff", {
 });
 exports.qualitySpecs = (0, pg_core_1.pgTable)("quality_specs", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
     parameterName: (0, pg_core_1.varchar)("parameter_name", { length: 150 }).notNull(), // "Pasteurization Temperature"
     targetValue: (0, pg_core_1.numeric)("target_value", { precision: 10, scale: 3 }).notNull(),

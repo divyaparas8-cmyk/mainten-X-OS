@@ -72,6 +72,98 @@ export declare class MasterDataController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    getOperations(request: FastifyRequest<{
+        Querystring: {
+            department?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createOperation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateOperation(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteOperation(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getRoutings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createRouting(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateRouting(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteRouting(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getProductFamilies(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createProductFamily(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateProductFamily(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteProductFamily(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getUoms(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createUom(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateUom(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteUom(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getPackConfigs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createPackConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updatePackConfig(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deletePackConfig(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getLineTargets(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createLineTarget(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateLineTarget(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteLineTarget(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getChangeoverRules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createChangeoverRule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateChangeoverRule(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteChangeoverRule(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getSanitationClasses(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSanitationClass(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getAllergenRules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAllergenRule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSkus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createSku(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getBoms(request: FastifyRequest, reply: FastifyReply): Promise<never>;

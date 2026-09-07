@@ -130,6 +130,204 @@ export class MasterDataController {
   }
 
   // ==========================================
+  // OPERATIONS
+  // ==========================================
+  async getOperations(request: FastifyRequest<{ Querystring: { department?: string } }>, reply: FastifyReply) {
+    const data = await masterDataService.listOperations(request.user?.tenantId, request.query.department);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createOperation(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createOperation(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Operation registered successfully"));
+  }
+
+  async updateOperation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateOperation(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Operation updated successfully"));
+  }
+
+  async deleteOperation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteOperation(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Operation deleted successfully"));
+  }
+
+  // ==========================================
+  // ROUTINGS
+  // ==========================================
+  async getRoutings(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listRoutings(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createRouting(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createRouting(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Routing master registered successfully"));
+  }
+
+  async updateRouting(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateRouting(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Routing updated successfully"));
+  }
+
+  async deleteRouting(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteRouting(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Routing deleted successfully"));
+  }
+
+  // ==========================================
+  // PRODUCT FAMILIES
+  // ==========================================
+  async getProductFamilies(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listProductFamilies(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createProductFamily(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createProductFamily(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Product family created successfully"));
+  }
+
+  async updateProductFamily(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateProductFamily(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Product family updated successfully"));
+  }
+
+  async deleteProductFamily(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteProductFamily(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Product family deleted successfully"));
+  }
+
+  // ==========================================
+  // UOMS
+  // ==========================================
+  async getUoms(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listUoms(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createUom(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createUom(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "UOM registered successfully"));
+  }
+
+  async updateUom(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateUom(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "UOM updated successfully"));
+  }
+
+  async deleteUom(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteUom(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "UOM deleted successfully"));
+  }
+
+  // ==========================================
+  // PACK CONFIGS
+  // ==========================================
+  async getPackConfigs(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listPackConfigs(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createPackConfig(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createPackConfig(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Packaging configuration created successfully"));
+  }
+
+  async updatePackConfig(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updatePackConfig(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Packaging configuration updated successfully"));
+  }
+
+  async deletePackConfig(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deletePackConfig(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Packaging configuration deleted successfully"));
+  }
+
+  // ==========================================
+  // LINE TARGETS
+  // ==========================================
+  async getLineTargets(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listLineTargets(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createLineTarget(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createLineTarget(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Line target created successfully"));
+  }
+
+  async updateLineTarget(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateLineTarget(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Line target updated successfully"));
+  }
+
+  async deleteLineTarget(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteLineTarget(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Line target deleted successfully"));
+  }
+
+  // ==========================================
+  // CHANGEOVER MATRIX
+  // ==========================================
+  async getChangeoverRules(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listChangeoverRules(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createChangeoverRule(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createChangeoverRule(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Changeover matrix rule created successfully"));
+  }
+
+  async updateChangeoverRule(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateChangeoverRule(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Changeover rule updated successfully"));
+  }
+
+  async deleteChangeoverRule(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteChangeoverRule(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Changeover rule deleted successfully"));
+  }
+
+  // ==========================================
+  // SANITATION & ALLERGENS
+  // ==========================================
+  async getSanitationClasses(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listSanitationClasses(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createSanitationClass(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createSanitationClass(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Sanitation class created successfully"));
+  }
+
+  async getAllergenRules(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listAllergenRules(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createAllergenRule(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createAllergenRule(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Allergen matrix rule created successfully"));
+  }
+
+  // ==========================================
   // SKUs, BOMs, ASSETS, STAFF, SPECS
   // ==========================================
   async getSkus(request: FastifyRequest, reply: FastifyReply) {
@@ -138,8 +336,7 @@ export class MasterDataController {
   }
 
   async createSku(request: FastifyRequest, reply: FastifyReply) {
-    const input = createSkuSchema.parse(request.body);
-    const data = await masterDataService.createSku(request.user?.tenantId, input);
+    const data = await masterDataService.createSku(request.user?.tenantId, request.body);
     return reply.status(201).send(formatSuccess(data, "SKU created successfully"));
   }
 

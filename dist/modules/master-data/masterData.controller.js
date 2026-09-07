@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.masterDataController = exports.MasterDataController = void 0;
 const masterData_service_js_1 = require("./masterData.service.js");
-const masterData_schema_js_1 = require("./masterData.schema.js");
 const responseFormatter_js_1 = require("../../shared/utils/responseFormatter.js");
 class MasterDataController {
     // ==========================================
@@ -111,6 +110,172 @@ class MasterDataController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Work center cell deleted successfully"));
     }
     // ==========================================
+    // OPERATIONS
+    // ==========================================
+    async getOperations(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listOperations(request.user?.tenantId, request.query.department);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createOperation(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createOperation(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Operation registered successfully"));
+    }
+    async updateOperation(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateOperation(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Operation updated successfully"));
+    }
+    async deleteOperation(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteOperation(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Operation deleted successfully"));
+    }
+    // ==========================================
+    // ROUTINGS
+    // ==========================================
+    async getRoutings(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listRoutings(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createRouting(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createRouting(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Routing master registered successfully"));
+    }
+    async updateRouting(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateRouting(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Routing updated successfully"));
+    }
+    async deleteRouting(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteRouting(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Routing deleted successfully"));
+    }
+    // ==========================================
+    // PRODUCT FAMILIES
+    // ==========================================
+    async getProductFamilies(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listProductFamilies(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createProductFamily(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createProductFamily(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Product family created successfully"));
+    }
+    async updateProductFamily(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateProductFamily(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Product family updated successfully"));
+    }
+    async deleteProductFamily(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteProductFamily(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Product family deleted successfully"));
+    }
+    // ==========================================
+    // UOMS
+    // ==========================================
+    async getUoms(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listUoms(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createUom(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createUom(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "UOM registered successfully"));
+    }
+    async updateUom(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateUom(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "UOM updated successfully"));
+    }
+    async deleteUom(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteUom(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "UOM deleted successfully"));
+    }
+    // ==========================================
+    // PACK CONFIGS
+    // ==========================================
+    async getPackConfigs(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listPackConfigs(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createPackConfig(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createPackConfig(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Packaging configuration created successfully"));
+    }
+    async updatePackConfig(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updatePackConfig(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Packaging configuration updated successfully"));
+    }
+    async deletePackConfig(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deletePackConfig(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Packaging configuration deleted successfully"));
+    }
+    // ==========================================
+    // LINE TARGETS
+    // ==========================================
+    async getLineTargets(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listLineTargets(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createLineTarget(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createLineTarget(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Line target created successfully"));
+    }
+    async updateLineTarget(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateLineTarget(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Line target updated successfully"));
+    }
+    async deleteLineTarget(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteLineTarget(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Line target deleted successfully"));
+    }
+    // ==========================================
+    // CHANGEOVER MATRIX
+    // ==========================================
+    async getChangeoverRules(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listChangeoverRules(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createChangeoverRule(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createChangeoverRule(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Changeover matrix rule created successfully"));
+    }
+    async updateChangeoverRule(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateChangeoverRule(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Changeover rule updated successfully"));
+    }
+    async deleteChangeoverRule(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteChangeoverRule(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Changeover rule deleted successfully"));
+    }
+    // ==========================================
+    // SANITATION & ALLERGENS
+    // ==========================================
+    async getSanitationClasses(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listSanitationClasses(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createSanitationClass(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createSanitationClass(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Sanitation class created successfully"));
+    }
+    async getAllergenRules(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listAllergenRules(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createAllergenRule(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createAllergenRule(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Allergen matrix rule created successfully"));
+    }
+    // ==========================================
     // SKUs, BOMs, ASSETS, STAFF, SPECS
     // ==========================================
     async getSkus(request, reply) {
@@ -118,8 +283,7 @@ class MasterDataController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createSku(request, reply) {
-        const input = masterData_schema_js_1.createSkuSchema.parse(request.body);
-        const data = await masterData_service_js_1.masterDataService.createSku(request.user?.tenantId, input);
+        const data = await masterData_service_js_1.masterDataService.createSku(request.user?.tenantId, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "SKU created successfully"));
     }
     async getBoms(request, reply) {

@@ -1,0 +1,105 @@
+import { RecordCcpCheckInput, QaBatchReleaseInput, CreateQualityHoldInput } from "./quality.schema.js";
+export declare class QualityService {
+    listCcpChecks(tenantId: string, plantId?: string): Promise<{
+        status: string;
+        id: string;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        lineId: string;
+        targetValue: string;
+        notes: string | null;
+        batchId: string;
+        operatorId: string;
+        verifiedBy: string | null;
+        ccpCode: string;
+        ccpName: string;
+        actualValue: string;
+        criticalLimitMin: string | null;
+        criticalLimitMax: string | null;
+        checkedAt: Date;
+    }[]>;
+    recordCcpCheck(tenantId: string, plantId: string, input: RecordCcpCheckInput, userId: string): Promise<{
+        status: string;
+        id: string;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        lineId: string;
+        targetValue: string;
+        notes: string | null;
+        batchId: string;
+        operatorId: string;
+        verifiedBy: string | null;
+        ccpCode: string;
+        ccpName: string;
+        actualValue: string;
+        criticalLimitMin: string | null;
+        criticalLimitMax: string | null;
+        checkedAt: Date;
+    }>;
+    listQaReleaseQueue(tenantId: string): Promise<{
+        status: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        skuId: string;
+        productionOrderId: string;
+        batchNumber: string;
+        recipeVersion: string;
+        tankNumber: string | null;
+        targetVolume: string;
+        actualVolume: string | null;
+        currentStep: number;
+        progressPercent: number;
+        startedAt: Date | null;
+        completedAt: Date | null;
+        ccpChecks: never;
+        sku: never;
+        steps: never;
+    }[]>;
+    authorizeBatchRelease(tenantId: string, plantId: string, input: QaBatchReleaseInput, userId: string, ipAddress?: string): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        comments: string | null;
+        batchId: string;
+        disposition: string;
+        dispositionBy: string;
+        digitalSignaturePinUsed: boolean;
+        certificateOfAnalysisUrl: string | null;
+        coaMetadata: unknown;
+        releasedAt: Date;
+    }>;
+    listQualityHolds(tenantId: string): Promise<{
+        status: string;
+        id: string;
+        tenantId: string;
+        plantId: string;
+        batchId: string | null;
+        releasedAt: Date | null;
+        lotNumber: string;
+        reason: string;
+        severity: string | null;
+        holdBy: string;
+        holdAt: Date;
+    }[]>;
+    createQualityHold(tenantId: string, plantId: string, input: CreateQualityHoldInput, userId: string): Promise<{
+        status: string;
+        id: string;
+        tenantId: string;
+        plantId: string;
+        batchId: string | null;
+        releasedAt: Date | null;
+        lotNumber: string;
+        reason: string;
+        severity: string | null;
+        holdBy: string;
+        holdAt: Date;
+    }>;
+}
+export declare const qualityService: QualityService;
+//# sourceMappingURL=quality.service.d.ts.map

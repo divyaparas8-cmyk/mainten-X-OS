@@ -75,7 +75,55 @@ export class AdminController {
     const logs = await adminService.getActivityLogs(user?.tenantId, query);
     return reply.status(200).send(logs);
   }
+
+  // Roles & Permissions
+  async getRoles(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const roles = await adminService.getRoles(user?.tenantId);
+    return reply.status(200).send(roles);
+  }
+
+  async createRole(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const newRole = await adminService.createRole(user?.tenantId, body);
+    return reply.status(201).send(newRole);
+  }
+
+  async getPermissionMatrix(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const matrix = await adminService.getPermissionMatrix(user?.tenantId);
+    return reply.status(200).send(matrix);
+  }
+
+  async updatePermissionMatrix(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const result = await adminService.updatePermissionMatrix(user?.tenantId, body);
+    return reply.status(200).send(result);
+  }
+
+  async testPermissionAccess(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const result = await adminService.testPermissionAccess(body);
+    return reply.status(200).send(result);
+  }
+
+  async updateUserRoleMapping(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { userId } = request.params as { userId: string };
+    const { role } = (request.body as any) || {};
+    const result = await adminService.updateUserRoleMapping(user?.tenantId, userId, role);
+    return reply.status(200).send(result);
+  }
+
+  async getApprovalRules(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const rules = await adminService.getApprovalRules(user?.tenantId);
+    return reply.status(200).send(rules);
+  }
 }
 
 export const adminController = new AdminController();
+
 

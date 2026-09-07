@@ -138,5 +138,84 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     adminController.getActivityLogs.bind(adminController)
   );
+
+  // Roles & Permissions Governance
+  fastify.get(
+    "/roles",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get All Enterprise RBAC Roles & Assigned Counts",
+      },
+    },
+    adminController.getRoles.bind(adminController)
+  );
+
+  fastify.post(
+    "/roles",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create New Custom Enterprise RBAC Role",
+      },
+    },
+    adminController.createRole.bind(adminController)
+  );
+
+  fastify.get(
+    "/permissions/matrix",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Granular RBAC Permissions Matrix Configuration",
+      },
+    },
+    adminController.getPermissionMatrix.bind(adminController)
+  );
+
+  fastify.post(
+    "/permissions/matrix",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Save & Synchronize RBAC Permissions Matrix Configuration",
+      },
+    },
+    adminController.updatePermissionMatrix.bind(adminController)
+  );
+
+  fastify.post(
+    "/permissions/test",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Simulate & Test Action Permission Access",
+      },
+    },
+    adminController.testPermissionAccess.bind(adminController)
+  );
+
+  fastify.put(
+    "/users/:userId/role",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Reassign User Account to Role in Registry",
+      },
+    },
+    adminController.updateUserRoleMapping.bind(adminController)
+  );
+
+  fastify.get(
+    "/approval-rules",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Electronic Approval Governance Rules",
+      },
+    },
+    adminController.getApprovalRules.bind(adminController)
+  );
 }
+
 

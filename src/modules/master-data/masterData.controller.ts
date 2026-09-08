@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { masterDataService } from "./masterData.service.js";
-import { createSkuSchema } from "./masterData.schema.js";
+import { createSkuSchema, createRoutingSchema, updateRoutingSchema } from "./masterData.schema.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
 
 export class MasterDataController {
@@ -162,15 +162,31 @@ export class MasterDataController {
     return reply.send(formatSuccess(data));
   }
 
+  async getRoutingById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.getRoutingById(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data));
+  }
+
   async createRouting(request: FastifyRequest, reply: FastifyReply) {
-    const data = await masterDataService.createRouting(request.user?.tenantId, request.body);
+    const body = (request.body || {}) as Record<string, any>;
+    const validated = createRoutingSchema.partial({ skuId: true }).parse(body);
+    const data = await masterDataService.createRouting(request.user?.tenantId, { ...body, ...validated });
     return reply.status(201).send(formatSuccess(data, "Routing master registered successfully"));
   }
 
   async updateRouting(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const { id } = request.params;
-    const data = await masterDataService.updateRouting(request.user?.tenantId, id, request.body);
+    const body = (request.body || {}) as Record<string, any>;
+    const validated = updateRoutingSchema.parse(body);
+    const data = await masterDataService.updateRouting(request.user?.tenantId, id, { ...body, ...validated });
     return reply.send(formatSuccess(data, "Routing updated successfully"));
+  }
+
+  async updateRoutingStatus(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateRoutingStatus(request.user?.tenantId, id, request.body as any);
+    return reply.send(formatSuccess(data, "Routing status updated successfully"));
   }
 
   async deleteRouting(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {

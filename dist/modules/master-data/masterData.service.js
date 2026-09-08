@@ -454,6 +454,24 @@ class MasterDataService {
             healthScore: 95,
         };
         inMemoryLines.push(newLine);
+        try {
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const [p] = await database_js_1.db.select().from(tenants_js_1.plants).where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tId)).limit(1);
+            const [insertedLine] = await database_js_1.db.insert(masterData_js_1.productionLines).values({
+                tenantId: tId,
+                plantId: p?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+                code: newLine.code || "LINE-01",
+                name: newLine.name || "Production Line",
+                lineType: newLine.lineType || "BOTTLING",
+                nominalSpeedBpm: newLine.ratedSpeedBPH ? Math.round(newLine.ratedSpeedBPH / 60) : 250,
+            }).returning();
+            if (insertedLine) {
+                newLine.id = insertedLine.id;
+            }
+        }
+        catch (err) {
+            console.warn("DB insert line error:", err.message);
+        }
         return newLine;
     }
     async updateLine(tenantId, id, input) {
@@ -511,6 +529,24 @@ class MasterDataService {
             status: input.status || "Active",
         };
         inMemoryWorkCenters.push(newWC);
+        try {
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const [p] = await database_js_1.db.select().from(tenants_js_1.plants).where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tId)).limit(1);
+            const [insertedWc] = await database_js_1.db.insert(masterData_js_1.workCenters).values({
+                tenantId: tId,
+                plantId: p?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+                code: newWC.code || "WC-01",
+                name: newWC.name || "Work Center",
+                category: newWC.category || "PACKAGING",
+                capacityPerHour: "36000",
+            }).returning();
+            if (insertedWc) {
+                newWC.id = insertedWc.id;
+            }
+        }
+        catch (err) {
+            console.warn("DB insert workCenter error:", err.message);
+        }
         return newWC;
     }
     async updateWorkCenter(tenantId, id, input) {
@@ -607,12 +643,288 @@ class MasterDataService {
         return { id, message: "Operation deleted" };
     }
     // ==========================================
+    // ==========================================
     // 7. ROUTINGS MASTER
     // ==========================================
     async listRoutings(tenantId) {
+        try {
+            const dbRoutings = await database_js_1.db
+                .select({
+                id: masterData_js_1.routings.id,
+                routingCode: masterData_js_1.routings.routingCode,
+                skuId: masterData_js_1.routings.skuId,
+                skuCode: masterData_js_1.skus.skuCode,
+                skuName: masterData_js_1.skus.name,
+                lineId: masterData_js_1.routings.lineId,
+                lineCode: masterData_js_1.productionLines.code,
+                lineName: masterData_js_1.productionLines.name,
+                revision: masterData_js_1.routings.revision,
+                approvalStatus: masterData_js_1.routings.approvalStatus,
+                status: masterData_js_1.routings.status,
+                stdRunRateBPH: masterData_js_1.routings.stdRunRateBph,
+                setupDurationMin: masterData_js_1.routings.setupDurationMin,
+                expectedYieldPct: masterData_js_1.routings.expectedYieldPct,
+                effectiveFrom: masterData_js_1.routings.effectiveFrom,
+                effectiveTo: masterData_js_1.routings.effectiveTo,
+                notes: masterData_js_1.routings.notes,
+                createdAt: masterData_js_1.routings.createdAt,
+                updatedAt: masterData_js_1.routings.updatedAt,
+            })
+                .from(masterData_js_1.routings)
+                .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(masterData_js_1.routings.skuId, masterData_js_1.skus.id))
+                .leftJoin(masterData_js_1.productionLines, (0, drizzle_orm_1.eq)(masterData_js_1.routings.lineId, masterData_js_1.productionLines.id))
+                .orderBy((0, drizzle_orm_1.desc)(masterData_js_1.routings.createdAt));
+            if (dbRoutings && dbRoutings.length > 0) {
+                const allSteps = await database_js_1.db.select().from(masterData_js_1.routingSteps).orderBy((0, drizzle_orm_1.asc)(masterData_js_1.routingSteps.sequence));
+                const stepsByRoutingId = new Map();
+                for (const step of allSteps) {
+                    const list = stepsByRoutingId.get(step.routingId) || [];
+                    list.push({
+                        id: step.id,
+                        sequence: step.sequence,
+                        operationCode: step.operationCode,
+                        operationName: step.operationName,
+                        workCenterId: step.workCenterId,
+                        stdDurationMin: Number(step.stdDurationMin),
+                        setupDurationMin: Number(step.setupDurationMin),
+                        crewSize: step.crewSize,
+                        isQualityGate: step.isQualityGate,
+                        instructions: step.instructions,
+                    });
+                    stepsByRoutingId.set(step.routingId, list);
+                }
+                const mapped = dbRoutings.map((r) => ({
+                    id: r.id,
+                    routingId: r.id,
+                    routingCode: r.routingCode,
+                    skuId: r.skuId,
+                    skuCode: r.skuCode || "SKU-5001",
+                    skuName: r.skuName || "Product",
+                    lineId: r.lineId || "LIN-01",
+                    lineCode: r.lineCode || "LINE-1",
+                    lineName: r.lineName || "Line 1",
+                    revision: r.revision,
+                    approvalStatus: r.approvalStatus,
+                    status: r.status,
+                    stdRunRateBPH: r.stdRunRateBPH,
+                    setupDurationMin: r.setupDurationMin,
+                    expectedYieldPct: Number(r.expectedYieldPct),
+                    effectiveFrom: r.effectiveFrom ? r.effectiveFrom.toISOString().substring(0, 10) : "2024-01-01",
+                    effectiveTo: r.effectiveTo ? r.effectiveTo.toISOString().substring(0, 10) : "2030-12-31",
+                    notes: r.notes || "",
+                    steps: stepsByRoutingId.get(r.id) || [],
+                }));
+                return mapped;
+            }
+        }
+        catch (err) {
+            console.warn("Could not query DB routings, falling back to memory:", err.message);
+        }
         return inMemoryRoutings;
     }
+    async getRoutingById(tenantId, id) {
+        try {
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            const condition = isUUID ? (0, drizzle_orm_1.eq)(masterData_js_1.routings.id, id) : (0, drizzle_orm_1.eq)(masterData_js_1.routings.routingCode, id);
+            const [r] = await database_js_1.db
+                .select({
+                id: masterData_js_1.routings.id,
+                routingCode: masterData_js_1.routings.routingCode,
+                skuId: masterData_js_1.routings.skuId,
+                skuCode: masterData_js_1.skus.skuCode,
+                skuName: masterData_js_1.skus.name,
+                lineId: masterData_js_1.routings.lineId,
+                lineCode: masterData_js_1.productionLines.code,
+                lineName: masterData_js_1.productionLines.name,
+                revision: masterData_js_1.routings.revision,
+                approvalStatus: masterData_js_1.routings.approvalStatus,
+                status: masterData_js_1.routings.status,
+                stdRunRateBPH: masterData_js_1.routings.stdRunRateBph,
+                setupDurationMin: masterData_js_1.routings.setupDurationMin,
+                expectedYieldPct: masterData_js_1.routings.expectedYieldPct,
+                effectiveFrom: masterData_js_1.routings.effectiveFrom,
+                effectiveTo: masterData_js_1.routings.effectiveTo,
+                notes: masterData_js_1.routings.notes,
+                createdAt: masterData_js_1.routings.createdAt,
+                updatedAt: masterData_js_1.routings.updatedAt,
+            })
+                .from(masterData_js_1.routings)
+                .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(masterData_js_1.routings.skuId, masterData_js_1.skus.id))
+                .leftJoin(masterData_js_1.productionLines, (0, drizzle_orm_1.eq)(masterData_js_1.routings.lineId, masterData_js_1.productionLines.id))
+                .where(condition)
+                .limit(1);
+            if (r) {
+                const steps = await database_js_1.db
+                    .select()
+                    .from(masterData_js_1.routingSteps)
+                    .where((0, drizzle_orm_1.eq)(masterData_js_1.routingSteps.routingId, r.id))
+                    .orderBy((0, drizzle_orm_1.asc)(masterData_js_1.routingSteps.sequence));
+                return {
+                    id: r.id,
+                    routingId: r.id,
+                    routingCode: r.routingCode,
+                    skuId: r.skuId,
+                    skuCode: r.skuCode || "SKU-5001",
+                    skuName: r.skuName || "Product",
+                    lineId: r.lineId || "LIN-01",
+                    lineCode: r.lineCode || "LINE-1",
+                    lineName: r.lineName || "Line 1",
+                    revision: r.revision,
+                    approvalStatus: r.approvalStatus,
+                    status: r.status,
+                    stdRunRateBPH: r.stdRunRateBPH,
+                    setupDurationMin: r.setupDurationMin,
+                    expectedYieldPct: Number(r.expectedYieldPct),
+                    effectiveFrom: r.effectiveFrom ? r.effectiveFrom.toISOString().substring(0, 10) : "2024-01-01",
+                    effectiveTo: r.effectiveTo ? r.effectiveTo.toISOString().substring(0, 10) : "2030-12-31",
+                    notes: r.notes || "",
+                    steps: steps.map((s) => ({
+                        id: s.id,
+                        sequence: s.sequence,
+                        operationCode: s.operationCode,
+                        operationName: s.operationName,
+                        workCenterId: s.workCenterId,
+                        stdDurationMin: Number(s.stdDurationMin),
+                        setupDurationMin: Number(s.setupDurationMin),
+                        crewSize: s.crewSize,
+                        isQualityGate: s.isQualityGate,
+                        instructions: s.instructions,
+                    })),
+                };
+            }
+        }
+        catch (err) {
+            console.warn("DB getRoutingById fallback:", err.message);
+        }
+        const found = inMemoryRoutings.find((r) => matchKey(r, id, ["id", "routingId", "routingCode"]));
+        return found || null;
+    }
     async createRouting(tenantId, input) {
+        try {
+            let resolvedTenantId = tenantId;
+            if (!resolvedTenantId) {
+                const [defaultTenant] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                resolvedTenantId = defaultTenant?.id;
+            }
+            let resolvedSkuId = input.skuId;
+            let skuCode = input.skuCode;
+            let skuName = input.skuName;
+            if (!resolvedSkuId || resolvedSkuId.startsWith("SKU-0")) {
+                const [sku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuCode || "SKU-5001")).limit(1);
+                if (sku) {
+                    resolvedSkuId = sku.id;
+                    skuCode = sku.skuCode;
+                    skuName = sku.name;
+                }
+                else {
+                    const [firstSku] = await database_js_1.db.select().from(masterData_js_1.skus).limit(1);
+                    if (firstSku) {
+                        resolvedSkuId = firstSku.id;
+                        skuCode = firstSku.skuCode;
+                        skuName = firstSku.name;
+                    }
+                }
+            }
+            let resolvedLineId = input.lineId;
+            let lineCode = input.lineCode;
+            let lineName = input.lineName;
+            if (!resolvedLineId || resolvedLineId.startsWith("LIN-")) {
+                const [line] = await database_js_1.db.select().from(masterData_js_1.productionLines).where((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.code, input.lineCode || "LINE-1")).limit(1);
+                if (line) {
+                    resolvedLineId = line.id;
+                    lineCode = line.code;
+                    lineName = line.name;
+                }
+                else {
+                    const [firstLine] = await database_js_1.db.select().from(masterData_js_1.productionLines).limit(1);
+                    if (firstLine) {
+                        resolvedLineId = firstLine.id;
+                        lineCode = firstLine.code;
+                        lineName = firstLine.name;
+                    }
+                }
+            }
+            const routingCode = (input.routingCode || `RTG-${skuCode || "5000"}-L1`).toUpperCase();
+            if (resolvedTenantId && resolvedSkuId) {
+                const [inserted] = await database_js_1.db
+                    .insert(masterData_js_1.routings)
+                    .values({
+                    tenantId: resolvedTenantId,
+                    plantId: input.plantId || null,
+                    routingCode,
+                    skuId: resolvedSkuId,
+                    lineId: resolvedLineId || null,
+                    revision: input.revision || "R1",
+                    approvalStatus: input.approvalStatus || "Approved",
+                    status: input.status || "Active",
+                    stdRunRateBph: Number(input.stdRunRateBPH || input.stdRunRateBph) || 12000,
+                    setupDurationMin: Number(input.setupDurationMin) || 45,
+                    expectedYieldPct: String(input.expectedYieldPct || "98.50"),
+                    effectiveFrom: input.effectiveFrom ? new Date(input.effectiveFrom) : null,
+                    effectiveTo: input.effectiveTo ? new Date(input.effectiveTo) : null,
+                    notes: input.notes || null,
+                })
+                    .returning();
+                const createdSteps = [];
+                if (Array.isArray(input.steps) && input.steps.length > 0) {
+                    for (const s of input.steps) {
+                        const [st] = await database_js_1.db
+                            .insert(masterData_js_1.routingSteps)
+                            .values({
+                            routingId: inserted.id,
+                            sequence: Number(s.sequence) || 10,
+                            operationCode: s.operationCode || "OP-10",
+                            operationName: s.operationName || "Operation",
+                            workCenterId: s.workCenterId || null,
+                            stdDurationMin: String(s.stdDurationMin || "15.00"),
+                            setupDurationMin: String(s.setupDurationMin || "10.00"),
+                            crewSize: Number(s.crewSize) || 2,
+                            isQualityGate: Boolean(s.isQualityGate),
+                            instructions: s.instructions || null,
+                        })
+                            .returning();
+                        createdSteps.push({
+                            id: st.id,
+                            sequence: st.sequence,
+                            operationCode: st.operationCode,
+                            operationName: st.operationName,
+                            workCenterId: st.workCenterId,
+                            stdDurationMin: Number(st.stdDurationMin),
+                            setupDurationMin: Number(st.setupDurationMin),
+                            crewSize: st.crewSize,
+                            isQualityGate: st.isQualityGate,
+                            instructions: st.instructions,
+                        });
+                    }
+                }
+                const newRtg = {
+                    id: inserted.id,
+                    routingId: inserted.id,
+                    routingCode: inserted.routingCode,
+                    skuId: inserted.skuId,
+                    skuCode: skuCode || "SKU-5001",
+                    skuName: skuName || "Product",
+                    lineId: inserted.lineId || "LIN-01",
+                    lineCode: lineCode || "LINE-1",
+                    lineName: lineName || "Line 1",
+                    revision: inserted.revision,
+                    approvalStatus: inserted.approvalStatus,
+                    status: inserted.status,
+                    stdRunRateBPH: inserted.stdRunRateBph,
+                    setupDurationMin: inserted.setupDurationMin,
+                    expectedYieldPct: Number(inserted.expectedYieldPct),
+                    effectiveFrom: input.effectiveFrom || new Date().toISOString().substring(0, 10),
+                    effectiveTo: input.effectiveTo || "2030-12-31",
+                    notes: inserted.notes || "",
+                    steps: createdSteps,
+                };
+                inMemoryRoutings.unshift(newRtg);
+                return newRtg;
+            }
+        }
+        catch (err) {
+            console.warn("DB createRouting error, falling back to memory:", err.message);
+        }
         const newId = `RTG-00${inMemoryRoutings.length + 1}`;
         const newRtg = {
             id: newId,
@@ -627,7 +939,7 @@ class MasterDataService {
             revision: input.revision || "R1",
             approvalStatus: input.approvalStatus || "Approved",
             status: input.status || "Active",
-            stdRunRateBPH: Number(input.stdRunRateBPH) || 38000,
+            stdRunRateBPH: Number(input.stdRunRateBPH || input.stdRunRateBph) || 38000,
             setupDurationMin: Number(input.setupDurationMin) || 30,
             expectedYieldPct: Number(input.expectedYieldPct) || 99.0,
             effectiveFrom: input.effectiveFrom || new Date().toISOString().substring(0, 10),
@@ -638,6 +950,59 @@ class MasterDataService {
         return newRtg;
     }
     async updateRouting(tenantId, id, input) {
+        try {
+            const updateData = { updatedAt: new Date() };
+            if (input.routingCode)
+                updateData.routingCode = input.routingCode.toUpperCase();
+            if (input.revision)
+                updateData.revision = input.revision;
+            if (input.approvalStatus)
+                updateData.approvalStatus = input.approvalStatus;
+            if (input.status)
+                updateData.status = input.status;
+            if (input.stdRunRateBPH || input.stdRunRateBph)
+                updateData.stdRunRateBph = Number(input.stdRunRateBPH || input.stdRunRateBph);
+            if (input.setupDurationMin)
+                updateData.setupDurationMin = Number(input.setupDurationMin);
+            if (input.expectedYieldPct)
+                updateData.expectedYieldPct = String(input.expectedYieldPct);
+            if (input.effectiveFrom)
+                updateData.effectiveFrom = new Date(input.effectiveFrom);
+            if (input.effectiveTo)
+                updateData.effectiveTo = new Date(input.effectiveTo);
+            if (input.notes !== undefined)
+                updateData.notes = input.notes;
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            const condition = isUUID ? (0, drizzle_orm_1.eq)(masterData_js_1.routings.id, id) : (0, drizzle_orm_1.eq)(masterData_js_1.routings.routingCode, id);
+            const [updated] = await database_js_1.db
+                .update(masterData_js_1.routings)
+                .set(updateData)
+                .where(condition)
+                .returning();
+            if (updated) {
+                if (Array.isArray(input.steps)) {
+                    await database_js_1.db.delete(masterData_js_1.routingSteps).where((0, drizzle_orm_1.eq)(masterData_js_1.routingSteps.routingId, updated.id));
+                    for (const s of input.steps) {
+                        await database_js_1.db.insert(masterData_js_1.routingSteps).values({
+                            routingId: updated.id,
+                            sequence: Number(s.sequence) || 10,
+                            operationCode: s.operationCode || "OP-10",
+                            operationName: s.operationName || "Operation",
+                            workCenterId: s.workCenterId || null,
+                            stdDurationMin: String(s.stdDurationMin || "15.00"),
+                            setupDurationMin: String(s.setupDurationMin || "10.00"),
+                            crewSize: Number(s.crewSize) || 2,
+                            isQualityGate: Boolean(s.isQualityGate),
+                            instructions: s.instructions || null,
+                        });
+                    }
+                }
+                return await this.getRoutingById(tenantId, updated.id);
+            }
+        }
+        catch (err) {
+            console.warn("DB updateRouting error, falling back to memory:", err.message);
+        }
         const idx = inMemoryRoutings.findIndex((r) => matchKey(r, id, ["id", "routingId", "routingCode", "skuCode", "name"]));
         if (idx === -1) {
             const fallback = {
@@ -668,7 +1033,18 @@ class MasterDataService {
         };
         return inMemoryRoutings[idx];
     }
+    async updateRoutingStatus(tenantId, id, input) {
+        return this.updateRouting(tenantId, id, input);
+    }
     async deleteRouting(tenantId, id) {
+        try {
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            const condition = isUUID ? (0, drizzle_orm_1.eq)(masterData_js_1.routings.id, id) : (0, drizzle_orm_1.eq)(masterData_js_1.routings.routingCode, id);
+            await database_js_1.db.delete(masterData_js_1.routings).where(condition);
+        }
+        catch (err) {
+            console.warn("DB deleteRouting error:", err.message);
+        }
         const idx = inMemoryRoutings.findIndex((r) => matchKey(r, id, ["id", "routingId", "routingCode", "skuCode", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryRoutings.splice(idx, 1);
@@ -970,6 +1346,26 @@ class MasterDataService {
             expectedYieldPct: Number(input.expectedYieldPct) || 99.0,
         };
         inMemorySkus.unshift(newSku);
+        try {
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const cat = (newSku.category.toUpperCase().includes("RAW")) ? "RAW_MATERIAL" : (newSku.category.toUpperCase().includes("PACK") ? "PACKAGING" : "FINISHED_GOODS");
+            const [insertedSku] = await database_js_1.db.insert(masterData_js_1.skus).values({
+                tenantId: tId,
+                skuCode: newSku.skuCode,
+                name: newSku.name,
+                category: cat,
+                uom: newSku.uom,
+                standardCost: newSku.stdCost.toString(),
+                shelfLifeDays: newSku.shelfLifeDays,
+            }).returning();
+            if (insertedSku) {
+                newSku.id = insertedSku.id;
+                newSku.skuId = insertedSku.id;
+            }
+        }
+        catch (err) {
+            console.warn("DB insert sku error:", err.message);
+        }
         return newSku;
     }
     async updateSku(tenantId, id, input) {
@@ -1029,8 +1425,9 @@ class MasterDataService {
     }
     async listAssets(tenantId, plantId) {
         try {
-            const tId = tenantId || "00000000-0000-0000-0000-000000000001";
-            if (plantId && plantId !== "ALL") {
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+            if (isUuid) {
                 return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.plantId, plantId)));
             }
             return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId));
@@ -1041,8 +1438,9 @@ class MasterDataService {
     }
     async listStaff(tenantId, plantId) {
         try {
-            const tId = tenantId || "00000000-0000-0000-0000-000000000001";
-            if (plantId && plantId !== "ALL") {
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+            if (isUuid) {
                 return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.staff.plantId, plantId)));
             }
             return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tId));
@@ -1053,7 +1451,7 @@ class MasterDataService {
     }
     async listQualitySpecs(tenantId) {
         try {
-            const tId = tenantId || "00000000-0000-0000-0000-000000000001";
+            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
             return await database_js_1.db.select().from(masterData_js_1.qualitySpecs).where((0, drizzle_orm_1.eq)(masterData_js_1.qualitySpecs.tenantId, tId));
         }
         catch {

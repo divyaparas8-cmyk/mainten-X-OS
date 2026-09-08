@@ -3,6 +3,7 @@ export declare class WarehouseController {
     getLots(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createLot(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     recordTransaction(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getTransactions(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getWarehouses(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getBins(request: FastifyRequest<{
         Querystring: {

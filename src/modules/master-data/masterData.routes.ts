@@ -43,9 +43,12 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
 
   // 7. Routings Master
   fastify.get("/routings", { schema: { tags: ["Master Data"], summary: "List Production Routings" } }, masterDataController.getRoutings.bind(masterDataController));
+  fastify.get("/routings/:id", { schema: { tags: ["Master Data"], summary: "Get Routing by ID with Steps" } }, masterDataController.getRoutingById.bind(masterDataController));
   fastify.post("/routings", { schema: { tags: ["Master Data"], summary: "Register New Routing Master" } }, masterDataController.createRouting.bind(masterDataController));
   fastify.put("/routings/:id", { schema: { tags: ["Master Data"], summary: "Update Routing Master" } }, masterDataController.updateRouting.bind(masterDataController));
+  fastify.patch("/routings/:id/status", { schema: { tags: ["Master Data"], summary: "Update Routing Approval/Active Status" } }, masterDataController.updateRoutingStatus.bind(masterDataController));
   fastify.delete("/routings/:id", { schema: { tags: ["Master Data"], summary: "Delete Routing Master" } }, masterDataController.deleteRouting.bind(masterDataController));
+
 
   // 8. Product Families
   fastify.get("/product-families", { schema: { tags: ["Master Data"], summary: "List Product Families" } }, masterDataController.getProductFamilies.bind(masterDataController));

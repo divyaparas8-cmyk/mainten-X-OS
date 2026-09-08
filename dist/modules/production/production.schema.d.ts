@@ -1,39 +1,67 @@
 import { z } from "zod";
-export declare const createProductionOrderSchema: z.ZodObject<{
+export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
     orderNumber: z.ZodString;
     skuId: z.ZodString;
     lineId: z.ZodString;
-    targetQuantity: z.ZodNumber;
-    plannedStart: z.ZodString;
-    plannedEnd: z.ZodString;
-    priority: z.ZodDefault<z.ZodEnum<["URGENT", "NORMAL", "LOW"]>>;
+    targetQuantity: z.ZodOptional<z.ZodNumber>;
+    plannedQuantity: z.ZodOptional<z.ZodNumber>;
+    quantity: z.ZodOptional<z.ZodNumber>;
+    plannedStart: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+    plannedEnd: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+    priority: z.ZodDefault<z.ZodEffects<z.ZodEnum<["URGENT", "NORMAL", "LOW"]>, "NORMAL" | "URGENT" | "LOW", unknown>>;
     notes: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     skuId: string;
     lineId: string;
     orderNumber: string;
     priority: "NORMAL" | "URGENT" | "LOW";
-    targetQuantity: number;
     plannedStart: string;
     plannedEnd: string;
+    quantity?: number | undefined;
     notes?: string | undefined;
+    targetQuantity?: number | undefined;
+    plannedQuantity?: number | undefined;
 }, {
     skuId: string;
     lineId: string;
     orderNumber: string;
+    quantity?: number | undefined;
+    notes?: string | undefined;
+    priority?: unknown;
+    targetQuantity?: number | undefined;
+    plannedStart?: string | undefined;
+    plannedEnd?: string | undefined;
+    plannedQuantity?: number | undefined;
+}>, {
     targetQuantity: number;
     plannedStart: string;
     plannedEnd: string;
-    priority?: "NORMAL" | "URGENT" | "LOW" | undefined;
+    skuId: string;
+    lineId: string;
+    orderNumber: string;
+    priority: "NORMAL" | "URGENT" | "LOW";
+    quantity?: number | undefined;
     notes?: string | undefined;
+    plannedQuantity?: number | undefined;
+}, {
+    skuId: string;
+    lineId: string;
+    orderNumber: string;
+    quantity?: number | undefined;
+    notes?: string | undefined;
+    priority?: unknown;
+    targetQuantity?: number | undefined;
+    plannedStart?: string | undefined;
+    plannedEnd?: string | undefined;
+    plannedQuantity?: number | undefined;
 }>;
 export type CreateProductionOrderInput = z.infer<typeof createProductionOrderSchema>;
 export declare const updateOrderStatusSchema: z.ZodObject<{
-    status: z.ZodEnum<["PLANNED", "SCHEDULED", "RELEASED", "RUNNING", "COMPLETED", "QA_PENDING", "RELEASED_TO_WAREHOUSE", "CANCELLED"]>;
+    status: z.ZodEffects<z.ZodEnum<["PLANNED", "SCHEDULED", "RELEASED", "RUNNING", "COMPLETED", "QA_PENDING", "RELEASED_TO_WAREHOUSE", "CANCELLED"]>, "RUNNING" | "PLANNED" | "RELEASED" | "COMPLETED" | "SCHEDULED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE" | "CANCELLED", unknown>;
 }, "strip", z.ZodTypeAny, {
     status: "RUNNING" | "PLANNED" | "RELEASED" | "COMPLETED" | "SCHEDULED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE" | "CANCELLED";
 }, {
-    status: "RUNNING" | "PLANNED" | "RELEASED" | "COMPLETED" | "SCHEDULED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE" | "CANCELLED";
+    status?: unknown;
 }>;
 export declare const updateBatchStepSchema: z.ZodObject<{
     stepNumber: z.ZodNumber;

@@ -3,15 +3,19 @@ import { productionService } from "./production.service.js";
 import { createProductionOrderSchema, updateOrderStatusSchema, updateBatchStepSchema, recordOperatorEntrySchema, logDowntimeSchema } from "./production.schema.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
 
+import { resolvePlantId } from "../../shared/utils/tenantContext.js";
+
 export class ProductionController {
   async getOrders(request: FastifyRequest, reply: FastifyReply) {
-    const data = await productionService.listOrders(request.user.tenantId, request.user.plantId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await productionService.listOrders(request.user.tenantId, plantId);
     return reply.send(formatSuccess(data));
   }
 
   async createOrder(request: FastifyRequest, reply: FastifyReply) {
     const input = createProductionOrderSchema.parse(request.body);
-    const data = await productionService.createOrder(request.user.tenantId, request.user.plantId || "default-plant", input);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await productionService.createOrder(request.user.tenantId, plantId, input);
     return reply.status(201).send(formatSuccess(data, "Production Order created & eBR Batch initialized"));
   }
 
@@ -34,13 +38,15 @@ export class ProductionController {
 
   async recordOperatorEntry(request: FastifyRequest, reply: FastifyReply) {
     const input = recordOperatorEntrySchema.parse(request.body);
-    const data = await productionService.recordOperatorEntry(request.user.tenantId, request.user.plantId || "default-plant", input, request.user.userId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await productionService.recordOperatorEntry(request.user.tenantId, plantId, input, request.user.userId);
     return reply.send(formatSuccess(data, "Operator production log recorded & order counter incremented"));
   }
 
   async logDowntime(request: FastifyRequest, reply: FastifyReply) {
     const input = logDowntimeSchema.parse(request.body);
-    const data = await productionService.logDowntime(request.user.tenantId, request.user.plantId || "default-plant", input, request.user.userId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await productionService.logDowntime(request.user.tenantId, plantId, input, request.user.userId);
     return reply.send(formatSuccess(data, "Downtime stoppage recorded"));
   }
 }

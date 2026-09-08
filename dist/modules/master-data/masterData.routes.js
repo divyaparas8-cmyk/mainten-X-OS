@@ -37,8 +37,10 @@ async function masterDataRoutes(fastify) {
     fastify.delete("/operations/:id", { schema: { tags: ["Master Data"], summary: "Delete Standard Operation" } }, masterData_controller_js_1.masterDataController.deleteOperation.bind(masterData_controller_js_1.masterDataController));
     // 7. Routings Master
     fastify.get("/routings", { schema: { tags: ["Master Data"], summary: "List Production Routings" } }, masterData_controller_js_1.masterDataController.getRoutings.bind(masterData_controller_js_1.masterDataController));
+    fastify.get("/routings/:id", { schema: { tags: ["Master Data"], summary: "Get Routing by ID with Steps" } }, masterData_controller_js_1.masterDataController.getRoutingById.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/routings", { schema: { tags: ["Master Data"], summary: "Register New Routing Master" } }, masterData_controller_js_1.masterDataController.createRouting.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/routings/:id", { schema: { tags: ["Master Data"], summary: "Update Routing Master" } }, masterData_controller_js_1.masterDataController.updateRouting.bind(masterData_controller_js_1.masterDataController));
+    fastify.patch("/routings/:id/status", { schema: { tags: ["Master Data"], summary: "Update Routing Approval/Active Status" } }, masterData_controller_js_1.masterDataController.updateRoutingStatus.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/routings/:id", { schema: { tags: ["Master Data"], summary: "Delete Routing Master" } }, masterData_controller_js_1.masterDataController.deleteRouting.bind(masterData_controller_js_1.masterDataController));
     // 8. Product Families
     fastify.get("/product-families", { schema: { tags: ["Master Data"], summary: "List Product Families" } }, masterData_controller_js_1.masterDataController.getProductFamilies.bind(masterData_controller_js_1.masterDataController));

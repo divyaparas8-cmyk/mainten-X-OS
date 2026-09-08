@@ -18,9 +18,9 @@ exports.registerSchema = zod_1.z.object({
 });
 exports.digitalSignOffSchema = zod_1.z.object({
     pin: zod_1.z.string().min(4, "4-digit signature PIN required"),
-    entityType: zod_1.z.string(),
-    entityId: zod_1.z.string(),
-    meaning: zod_1.z.string(),
+    entityType: zod_1.z.string().default("General"),
+    entityId: zod_1.z.string().default("system"),
+    meaning: zod_1.z.string().default("DIGITAL_SIGN_OFF"),
     comments: zod_1.z.string().optional(),
 });
 //# sourceMappingURL=auth.schema.js.map

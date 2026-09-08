@@ -89,8 +89,18 @@ export declare class MasterDataController {
         };
     }>, reply: FastifyReply): Promise<never>;
     getRoutings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getRoutingById(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     createRouting(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateRouting(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    updateRoutingStatus(request: FastifyRequest<{
         Params: {
             id: string;
         };

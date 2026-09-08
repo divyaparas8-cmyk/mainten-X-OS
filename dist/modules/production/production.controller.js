@@ -4,14 +4,17 @@ exports.productionController = exports.ProductionController = void 0;
 const production_service_js_1 = require("./production.service.js");
 const production_schema_js_1 = require("./production.schema.js");
 const responseFormatter_js_1 = require("../../shared/utils/responseFormatter.js");
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 class ProductionController {
     async getOrders(request, reply) {
-        const data = await production_service_js_1.productionService.listOrders(request.user.tenantId, request.user.plantId);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await production_service_js_1.productionService.listOrders(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createOrder(request, reply) {
         const input = production_schema_js_1.createProductionOrderSchema.parse(request.body);
-        const data = await production_service_js_1.productionService.createOrder(request.user.tenantId, request.user.plantId || "default-plant", input);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await production_service_js_1.productionService.createOrder(request.user.tenantId, plantId, input);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Production Order created & eBR Batch initialized"));
     }
     async updateOrderStatus(request, reply) {
@@ -30,12 +33,14 @@ class ProductionController {
     }
     async recordOperatorEntry(request, reply) {
         const input = production_schema_js_1.recordOperatorEntrySchema.parse(request.body);
-        const data = await production_service_js_1.productionService.recordOperatorEntry(request.user.tenantId, request.user.plantId || "default-plant", input, request.user.userId);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await production_service_js_1.productionService.recordOperatorEntry(request.user.tenantId, plantId, input, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Operator production log recorded & order counter incremented"));
     }
     async logDowntime(request, reply) {
         const input = production_schema_js_1.logDowntimeSchema.parse(request.body);
-        const data = await production_service_js_1.productionService.logDowntime(request.user.tenantId, request.user.plantId || "default-plant", input, request.user.userId);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await production_service_js_1.productionService.logDowntime(request.user.tenantId, plantId, input, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Downtime stoppage recorded"));
     }
 }

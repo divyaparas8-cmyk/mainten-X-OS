@@ -8,11 +8,28 @@ const warehouse_js_1 = require("../../db/schema/warehouse.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const forecastEngine_js_1 = require("../../shared/engines/forecastEngine.js");
 const mrpEngine_js_1 = require("../../shared/engines/mrpEngine.js");
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 class PlanningService {
     async listCustomerOrders(tenantId, plantId) {
         return await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
     }
     async createCustomerOrder(tenantId, plantId, input) {
+        let resolvedSkuId = input.skuId;
+        if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
+            const [foundSku] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.skus)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuId), (0, drizzle_orm_1.eq)(masterData_js_1.skus.name, input.skuId))))
+                .limit(1);
+            if (foundSku) {
+                resolvedSkuId = foundSku.id;
+            }
+            else {
+                const [firstSku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId)).limit(1);
+                if (firstSku)
+                    resolvedSkuId = firstSku.id;
+            }
+        }
         const [order] = await database_js_1.db
             .insert(planning_js_1.customerOrders)
             .values({
@@ -20,7 +37,7 @@ class PlanningService {
             plantId,
             orderNumber: input.orderNumber,
             customerName: input.customerName,
-            skuId: input.skuId,
+            skuId: resolvedSkuId,
             quantity: input.quantity.toString(),
             priority: input.priority,
             requestedDate: new Date(input.requestedDate),
@@ -30,6 +47,22 @@ class PlanningService {
         return order;
     }
     async runStatisticalForecast(tenantId, plantId, input) {
+        let resolvedSkuId = input.skuId;
+        if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
+            const [foundSku] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.skus)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuId), (0, drizzle_orm_1.eq)(masterData_js_1.skus.name, input.skuId))))
+                .limit(1);
+            if (foundSku) {
+                resolvedSkuId = foundSku.id;
+            }
+            else {
+                const [firstSku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId)).limit(1);
+                if (firstSku)
+                    resolvedSkuId = firstSku.id;
+            }
+        }
         // Simulated historical dataset for SKU
         const historicalDemand = [14200, 15100, 13900, 16200, 14800, 15500];
         const result = (0, forecastEngine_js_1.calculateExponentialSmoothingForecast)({
@@ -42,7 +75,7 @@ class PlanningService {
             .values({
             tenantId,
             plantId,
-            skuId: input.skuId,
+            skuId: resolvedSkuId,
             period: input.period,
             baselineDemand: result.baselineForecast.toString(),
             promoUplift: result.promoUpliftUnits.toString(),
@@ -60,15 +93,47 @@ class PlanningService {
         return await database_js_1.db.select().from(planning_js_1.apsSchedules).where((0, drizzle_orm_1.eq)(planning_js_1.apsSchedules.tenantId, tenantId));
     }
     async createApsSchedule(tenantId, plantId, input) {
+        let resolvedLineId = input.lineId;
+        if (!(0, tenantContext_js_1.isValidUuid)(input.lineId)) {
+            const [foundLine] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.productionLines)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.code, input.lineId), (0, drizzle_orm_1.eq)(masterData_js_1.productionLines.name, input.lineId))))
+                .limit(1);
+            if (foundLine) {
+                resolvedLineId = foundLine.id;
+            }
+            else {
+                const [firstLine] = await database_js_1.db.select().from(masterData_js_1.productionLines).where((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.tenantId, tenantId)).limit(1);
+                if (firstLine)
+                    resolvedLineId = firstLine.id;
+            }
+        }
+        let resolvedSkuId = input.skuId;
+        if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
+            const [foundSku] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.skus)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuId), (0, drizzle_orm_1.eq)(masterData_js_1.skus.name, input.skuId))))
+                .limit(1);
+            if (foundSku) {
+                resolvedSkuId = foundSku.id;
+            }
+            else {
+                const [firstSku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId)).limit(1);
+                if (firstSku)
+                    resolvedSkuId = firstSku.id;
+            }
+        }
         const [schedule] = await database_js_1.db
             .insert(planning_js_1.apsSchedules)
             .values({
             tenantId,
             plantId,
-            lineId: input.lineId,
-            shiftId: input.shiftId,
-            orderId: input.orderId,
-            skuId: input.skuId,
+            lineId: resolvedLineId,
+            shiftId: input.shiftId && (0, tenantContext_js_1.isValidUuid)(input.shiftId) ? input.shiftId : null,
+            orderId: input.orderId && (0, tenantContext_js_1.isValidUuid)(input.orderId) ? input.orderId : null,
+            skuId: resolvedSkuId,
             startTime: new Date(input.startTime),
             endTime: new Date(input.endTime),
             quantity: input.quantity.toString(),

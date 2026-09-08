@@ -97,6 +97,7 @@ export interface RoutingEntity {
     expectedYieldPct: number;
     effectiveFrom: string;
     effectiveTo: string;
+    notes?: string;
     steps?: any[];
 }
 export interface ProductFamilyEntity {
@@ -226,8 +227,13 @@ export declare class MasterDataService {
         message: string;
     }>;
     listRoutings(tenantId?: string): Promise<RoutingEntity[]>;
+    getRoutingById(tenantId: string | undefined, id: string): Promise<RoutingEntity | null>;
     createRouting(tenantId: string | undefined, input: any): Promise<RoutingEntity>;
-    updateRouting(tenantId: string | undefined, id: string, input: any): Promise<RoutingEntity>;
+    updateRouting(tenantId: string | undefined, id: string, input: any): Promise<RoutingEntity | null>;
+    updateRoutingStatus(tenantId: string | undefined, id: string, input: {
+        status?: string;
+        approvalStatus?: string;
+    }): Promise<RoutingEntity | null>;
     deleteRouting(tenantId: string | undefined, id: string): Promise<RoutingEntity | {
         id: string;
         message: string;
@@ -310,8 +316,50 @@ export declare class MasterDataService {
         batchUom: string;
         yieldPercent: string | null;
         isDefault: boolean;
-        items: never;
-        sku: never;
+        items: {
+            id: string;
+            uom: string;
+            bomId: string;
+            componentSkuId: string;
+            quantity: string;
+            scrapPercentage: string | null;
+            sequence: number;
+            stage: string | null;
+            componentSku: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                tenantId: string;
+                isActive: boolean;
+                skuCode: string;
+                category: string;
+                familyId: string | null;
+                uom: string;
+                barcode: string | null;
+                standardCost: string | null;
+                shelfLifeDays: number | null;
+                minStockLevel: string | null;
+                maxStockLevel: string | null;
+            };
+        }[];
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
     }[]>;
     createBom(tenantId: string | undefined, input: any): Promise<any>;
     updateBom(tenantId: string | undefined, id: string, input: any): Promise<any>;

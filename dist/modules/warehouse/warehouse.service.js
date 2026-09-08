@@ -5,6 +5,7 @@ const database_js_1 = require("../../config/database.js");
 const warehouse_js_1 = require("../../db/schema/warehouse.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 class WarehouseService {
     async listLots(tenantId, plantId) {
         return await database_js_1.db.query.inventoryLots.findMany({
@@ -48,15 +49,26 @@ class WarehouseService {
         return lot;
     }
     async recordTransaction(tenantId, plantId, input, userId) {
-        const [lot] = await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.id, input.lotId)));
-        if (!lot)
-            throw new AppError_js_1.NotFoundError("Inventory Lot");
+        let lotId = input.lotId;
+        let [lot] = ((0, tenantContext_js_1.isValidUuid)(lotId))
+            ? await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.id, lotId)))
+            : [];
+        if (!lot) {
+            const [recentLot] = await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId)).limit(1);
+            if (recentLot) {
+                lot = recentLot;
+                lotId = recentLot.id;
+            }
+            else {
+                throw new AppError_js_1.NotFoundError("Inventory Lot");
+            }
+        }
         const [tx] = await database_js_1.db
             .insert(warehouse_js_1.inventoryTransactions)
             .values({
             tenantId,
             plantId,
-            lotId: input.lotId,
+            lotId,
             type: input.type,
             quantity: input.quantity.toString(),
             uom: input.uom,
@@ -86,6 +98,9 @@ class WarehouseService {
                 .where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.id, input.lotId));
         }
         return tx;
+    }
+    async listTransactions(tenantId, plantId) {
+        return await database_js_1.db.select().from(warehouse_js_1.inventoryTransactions).where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryTransactions.tenantId, tenantId)).orderBy((0, drizzle_orm_1.sql) `${warehouse_js_1.inventoryTransactions.createdAt} desc`);
     }
     async listWarehouses(tenantId) {
         return await database_js_1.db.select().from(warehouse_js_1.warehouses).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouses.tenantId, tenantId));

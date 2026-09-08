@@ -22,7 +22,7 @@ exports.qaBatchReleaseSchema = zod_1.z.object({
 });
 exports.createQualityHoldSchema = zod_1.z.object({
     lotNumber: zod_1.z.string().min(2),
-    batchId: zod_1.z.string().uuid().optional(),
+    batchId: zod_1.z.string().optional(),
     reason: zod_1.z.string().min(2),
     severity: zod_1.z.string().default("HIGH"),
 });

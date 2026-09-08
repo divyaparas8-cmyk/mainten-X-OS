@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.masterDataController = exports.MasterDataController = void 0;
 const masterData_service_js_1 = require("./masterData.service.js");
+const masterData_schema_js_1 = require("./masterData.schema.js");
 const responseFormatter_js_1 = require("../../shared/utils/responseFormatter.js");
 class MasterDataController {
     // ==========================================
@@ -137,14 +138,28 @@ class MasterDataController {
         const data = await masterData_service_js_1.masterDataService.listRoutings(request.user?.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async getRoutingById(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.getRoutingById(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
     async createRouting(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.createRouting(request.user?.tenantId, request.body);
+        const body = (request.body || {});
+        const validated = masterData_schema_js_1.createRoutingSchema.partial({ skuId: true }).parse(body);
+        const data = await masterData_service_js_1.masterDataService.createRouting(request.user?.tenantId, { ...body, ...validated });
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Routing master registered successfully"));
     }
     async updateRouting(request, reply) {
         const { id } = request.params;
-        const data = await masterData_service_js_1.masterDataService.updateRouting(request.user?.tenantId, id, request.body);
+        const body = (request.body || {});
+        const validated = masterData_schema_js_1.updateRoutingSchema.parse(body);
+        const data = await masterData_service_js_1.masterDataService.updateRouting(request.user?.tenantId, id, { ...body, ...validated });
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Routing updated successfully"));
+    }
+    async updateRoutingStatus(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateRoutingStatus(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Routing status updated successfully"));
     }
     async deleteRouting(request, reply) {
         const { id } = request.params;

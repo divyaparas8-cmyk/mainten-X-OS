@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -130,6 +130,39 @@ exports.qualitySpecs = (0, pg_core_1.pgTable)("quality_specs", {
     maxTolerance: (0, pg_core_1.numeric)("max_tolerance", { precision: 10, scale: 3 }).notNull(),
     uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(), // "°C", "pH", "Brix", "mm"
     isCCP: (0, pg_core_1.boolean)("is_ccp").default(false).notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+});
+exports.routings = (0, pg_core_1.pgTable)("routings", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "set null" }),
+    routingCode: (0, pg_core_1.varchar)("routing_code", { length: 100 }).notNull(), // e.g. "RTG-5001-L1"
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
+    lineId: (0, pg_core_1.uuid)("line_id").references(() => exports.productionLines.id, { onDelete: "set null" }),
+    revision: (0, pg_core_1.varchar)("revision", { length: 50 }).default("R1").notNull(),
+    approvalStatus: (0, pg_core_1.varchar)("approval_status", { length: 50 }).default("Approved").notNull(), // "Draft", "In Review", "Approved", "Obsolete"
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(), // "Active", "Inactive"
+    stdRunRateBph: (0, pg_core_1.integer)("std_run_rate_bph").default(12000).notNull(),
+    setupDurationMin: (0, pg_core_1.integer)("setup_duration_min").default(45).notNull(),
+    expectedYieldPct: (0, pg_core_1.numeric)("expected_yield_pct", { precision: 5, scale: 2 }).default("98.50").notNull(),
+    effectiveFrom: (0, pg_core_1.timestamp)("effective_from"),
+    effectiveTo: (0, pg_core_1.timestamp)("effective_to"),
+    notes: (0, pg_core_1.text)("notes"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+exports.routingSteps = (0, pg_core_1.pgTable)("routing_steps", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    routingId: (0, pg_core_1.uuid)("routing_id").references(() => exports.routings.id, { onDelete: "cascade" }).notNull(),
+    sequence: (0, pg_core_1.integer)("sequence").default(10).notNull(),
+    operationCode: (0, pg_core_1.varchar)("operation_code", { length: 100 }).notNull(), // "OP-10", "OP-20"
+    operationName: (0, pg_core_1.varchar)("operation_name", { length: 255 }).notNull(), // "Depalletizing & Bottle Infeed"
+    workCenterId: (0, pg_core_1.uuid)("work_center_id").references(() => exports.workCenters.id, { onDelete: "set null" }),
+    stdDurationMin: (0, pg_core_1.numeric)("std_duration_min", { precision: 10, scale: 2 }).default("15.00"),
+    setupDurationMin: (0, pg_core_1.numeric)("setup_duration_min", { precision: 10, scale: 2 }).default("10.00"),
+    crewSize: (0, pg_core_1.integer)("crew_size").default(2),
+    isQualityGate: (0, pg_core_1.boolean)("is_quality_gate").default(false).notNull(),
+    instructions: (0, pg_core_1.text)("instructions"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 //# sourceMappingURL=masterData.js.map

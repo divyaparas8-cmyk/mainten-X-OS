@@ -317,6 +317,103 @@ async function runDatabaseSeed() {
             assignedTo: operator.id,
             reportedBy: plantManager.id,
         });
+        // 11. Seed Routings & Steps
+        const [existingRtg] = await database_js_1.db.select().from(index_js_1.routings).where((0, drizzle_orm_1.eq)(index_js_1.routings.routingCode, "RTG-5001-L1")).limit(1);
+        if (!existingRtg) {
+            const [rtg] = await database_js_1.db
+                .insert(index_js_1.routings)
+                .values({
+                tenantId: demoTenant.id,
+                plantId: indorePlant.id,
+                routingCode: "RTG-5001-L1",
+                skuId: citrusSku.id,
+                lineId: line1.id,
+                revision: "R1",
+                approvalStatus: "Approved",
+                status: "Active",
+                stdRunRateBph: 38000,
+                setupDurationMin: 30,
+                expectedYieldPct: "99.20",
+                effectiveFrom: new Date("2024-01-01"),
+                effectiveTo: new Date("2030-12-31"),
+                notes: "Primary high-speed bottling line routing for 500ml sparkling soda. ISO 22000 certified.",
+            })
+                .returning();
+            await database_js_1.db.insert(index_js_1.routingSteps).values([
+                {
+                    routingId: rtg.id,
+                    sequence: 10,
+                    operationCode: "OP-10",
+                    operationName: "Depalletizing & Bottle Infeed Rinsing",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "10.00",
+                    setupDurationMin: "5.00",
+                    crewSize: 2,
+                    isQualityGate: false,
+                    instructions: "Automated sweep depalletizer infeed with ionized air pressure rinse at 4.5 bar.",
+                },
+                {
+                    routingId: rtg.id,
+                    sequence: 20,
+                    operationCode: "OP-20",
+                    operationName: "Formulation & High-Shear Blending Bay",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "20.00",
+                    setupDurationMin: "15.00",
+                    crewSize: 3,
+                    isQualityGate: true,
+                    instructions: "Verify Brix level (10.5 ± 0.2°Bx) and carbonation saturation before transfer to holding tank.",
+                },
+                {
+                    routingId: rtg.id,
+                    sequence: 30,
+                    operationCode: "OP-30",
+                    operationName: "Rotary Isobaric Filling & Capping (48-Valve)",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "25.00",
+                    setupDurationMin: "10.00",
+                    crewSize: 4,
+                    isQualityGate: true,
+                    instructions: "Maintain aseptic filling pressure and run acoustic torque audit on caps every 30 mins.",
+                },
+                {
+                    routingId: rtg.id,
+                    sequence: 40,
+                    operationCode: "OP-40",
+                    operationName: "Tunnel Pasteurizer & Thermal Kill Zone",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "15.00",
+                    setupDurationMin: "5.00",
+                    crewSize: 2,
+                    isQualityGate: true,
+                    instructions: "Critical Control Point CCP-1: Target 83.5°C with 15s hold. Fail-safe diverter active.",
+                },
+                {
+                    routingId: rtg.id,
+                    sequence: 50,
+                    operationCode: "OP-50",
+                    operationName: "Roll-Fed Labeller & Vision Date-Code Verification",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "10.00",
+                    setupDurationMin: "5.00",
+                    crewSize: 2,
+                    isQualityGate: false,
+                    instructions: "High-speed wrap-around OPP label application and optical character recognition on batch codes.",
+                },
+                {
+                    routingId: rtg.id,
+                    sequence: 60,
+                    operationCode: "OP-60",
+                    operationName: "Case Packing, Shrink Bundling & Robotic Palletizer",
+                    workCenterId: wc1.id,
+                    stdDurationMin: "10.00",
+                    setupDurationMin: "5.00",
+                    crewSize: 2,
+                    isQualityGate: true,
+                    instructions: "Verify 24-pack tray formation, shrink tightness, and GS1-128 pallet SSCC barcode print.",
+                },
+            ]);
+        }
         console.log("🎉 Database seed completed successfully!");
     }
     catch (error) {

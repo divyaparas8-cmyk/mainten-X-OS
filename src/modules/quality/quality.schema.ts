@@ -26,9 +26,10 @@ export type QaBatchReleaseInput = z.infer<typeof qaBatchReleaseSchema>;
 
 export const createQualityHoldSchema = z.object({
   lotNumber: z.string().min(2),
-  batchId: z.string().uuid().optional(),
+  batchId: z.string().optional(),
   reason: z.string().min(2),
   severity: z.string().default("HIGH"),
 });
 
 export type CreateQualityHoldInput = z.infer<typeof createQualityHoldSchema>;
+

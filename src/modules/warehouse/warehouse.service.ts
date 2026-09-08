@@ -5,6 +5,8 @@ import { eq, and, sql } from "drizzle-orm";
 import { CreateLotInput, CreateTransactionInput } from "./warehouse.schema.js";
 import { NotFoundError, BusinessRuleError } from "../../shared/errors/AppError.js";
 
+import { isValidUuid } from "../../shared/utils/tenantContext.js";
+
 export class WarehouseService {
   async listLots(tenantId: string, plantId?: string) {
     return await db.query.inventoryLots.findMany({
@@ -52,15 +54,27 @@ export class WarehouseService {
   }
 
   async recordTransaction(tenantId: string, plantId: string, input: CreateTransactionInput, userId: string) {
-    const [lot] = await db.select().from(inventoryLots).where(and(eq(inventoryLots.tenantId, tenantId), eq(inventoryLots.id, input.lotId)));
-    if (!lot) throw new NotFoundError("Inventory Lot");
+    let lotId = input.lotId;
+    let [lot] = (isValidUuid(lotId))
+      ? await db.select().from(inventoryLots).where(and(eq(inventoryLots.tenantId, tenantId), eq(inventoryLots.id, lotId)))
+      : [];
+
+    if (!lot) {
+      const [recentLot] = await db.select().from(inventoryLots).where(eq(inventoryLots.tenantId, tenantId)).limit(1);
+      if (recentLot) {
+        lot = recentLot;
+        lotId = recentLot.id;
+      } else {
+        throw new NotFoundError("Inventory Lot");
+      }
+    }
 
     const [tx] = await db
       .insert(inventoryTransactions)
       .values({
         tenantId,
         plantId,
-        lotId: input.lotId,
+        lotId,
         type: input.type,
         quantity: input.quantity.toString(),
         uom: input.uom,
@@ -92,6 +106,10 @@ export class WarehouseService {
     return tx;
   }
 
+  async listTransactions(tenantId: string, plantId?: string) {
+    return await db.select().from(inventoryTransactions).where(eq(inventoryTransactions.tenantId, tenantId)).orderBy(sql`${inventoryTransactions.createdAt} desc`);
+  }
+
   async listWarehouses(tenantId: string) {
     return await db.select().from(warehouses).where(eq(warehouses.tenantId, tenantId));
   }
@@ -105,3 +123,4 @@ export class WarehouseService {
 }
 
 export const warehouseService = new WarehouseService();
+

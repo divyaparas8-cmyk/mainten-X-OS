@@ -30,6 +30,21 @@ async function buildApp() {
             level: process.env.LOG_LEVEL || "info",
         },
     });
+    // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+    app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => {
+        if (!body || body.trim().length === 0) {
+            done(null, undefined);
+            return;
+        }
+        try {
+            const json = JSON.parse(body);
+            done(null, json);
+        }
+        catch (err) {
+            err.statusCode = 400;
+            done(err, undefined);
+        }
+    });
     // 1. Core Plugins
     await app.register(cors_js_1.default);
     await app.register(helmet_js_1.default);

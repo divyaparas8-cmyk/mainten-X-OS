@@ -27,6 +27,21 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
   });
 
+  // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+  app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body: string, done) => {
+    if (!body || body.trim().length === 0) {
+      done(null, undefined);
+      return;
+    }
+    try {
+      const json = JSON.parse(body);
+      done(null, json);
+    } catch (err: any) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
+  });
+
   // 1. Core Plugins
   await app.register(corsPlugin);
   await app.register(helmetPlugin);

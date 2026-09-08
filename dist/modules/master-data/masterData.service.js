@@ -118,6 +118,123 @@ let inMemoryAllergenRules = [
     { id: "ALG-01", ruleId: "ALG-01", allergenType: "Soy & Lecithin", allergenName: "Soy-Derived Emulsifiers", riskLevel: "High", protocol: "Hot Caustic CIP + Strip Inspection", verificationTest: "ELISA Specific Strip Test", status: "Active" },
     { id: "ALG-02", ruleId: "ALG-02", allergenType: "Dairy & Whey", allergenName: "Hydrolyzed Whey Protein", riskLevel: "Critical", protocol: "Full Alkaline CIP + Acid Rinse + Heat Sanitize", verificationTest: "Lateral Flow Strip + QA Signoff", status: "Active" },
 ];
+let inMemorySkus = [
+    {
+        id: "SKU-001",
+        skuId: "SKU-001",
+        skuCode: "SKU-5001",
+        code: "SKU-5001",
+        name: "500ml Sparkling Citrus Soda",
+        category: "Finished Goods",
+        itemType: "Finished Good",
+        familyId: "PF-01",
+        family: "Sparkling Flavors",
+        uom: "Bottles",
+        plantId: "PLT-01",
+        stdCost: 0.42,
+        revision: "R3",
+        status: "Active",
+        approvalStatus: "Approved",
+        shelfLifeDays: 365,
+        packConfigCode: "PCK-5001-24",
+        packSize: "24 x 500ml",
+        eligibleLineIds: ["LIN-01", "LIN-02"],
+        stdRunRateBPH: 42000,
+        expectedYieldPct: 99.4,
+    },
+    {
+        id: "SKU-002",
+        skuId: "SKU-002",
+        skuCode: "SKU-5002",
+        code: "SKU-5002",
+        name: "1L Tonic Water Natural Quinine",
+        category: "Finished Goods",
+        itemType: "Finished Good",
+        familyId: "PF-02",
+        family: "Tonics & Mixers",
+        uom: "Bottles",
+        plantId: "PLT-01",
+        stdCost: 0.68,
+        revision: "R2",
+        status: "Active",
+        approvalStatus: "Approved",
+        shelfLifeDays: 540,
+        packConfigCode: "PCK-5002-12",
+        packSize: "12 x 1L",
+        eligibleLineIds: ["LIN-01", "LIN-02"],
+        stdRunRateBPH: 28000,
+        expectedYieldPct: 99.2,
+    },
+    {
+        id: "SKU-003",
+        skuId: "SKU-003",
+        skuCode: "SKU-5003",
+        code: "SKU-5003",
+        name: "330ml Organic Ginger Beer",
+        category: "Finished Goods",
+        itemType: "Finished Good",
+        familyId: "PF-03",
+        family: "Ginger Beers",
+        uom: "Cans",
+        plantId: "PLT-02",
+        stdCost: 0.38,
+        revision: "R4",
+        status: "Active",
+        approvalStatus: "Approved",
+        shelfLifeDays: 270,
+        packConfigCode: "PCK-5003-24",
+        packSize: "24 x 330ml",
+        eligibleLineIds: ["LIN-03"],
+        stdRunRateBPH: 55000,
+        expectedYieldPct: 99.0,
+    },
+    {
+        id: "SKU-101",
+        skuId: "SKU-101",
+        skuCode: "ING-1001",
+        code: "ING-1001",
+        name: "Liquid Cane Sugar 67°Bx",
+        category: "Raw Ingredients",
+        itemType: "Raw Material",
+        familyId: "FAM-04",
+        family: "Sweeteners",
+        uom: "Liters",
+        plantId: "PLT-01",
+        stdCost: 1.20,
+        status: "Active",
+    },
+    {
+        id: "SKU-201",
+        skuId: "SKU-201",
+        skuCode: "PKG-2001",
+        code: "PKG-2001",
+        name: "28mm Tamper-Evident HDPE Bottle Cap",
+        category: "Packaging",
+        itemType: "Packaging Component",
+        familyId: "FAM-05",
+        family: "Caps & Closures",
+        uom: "Units",
+        plantId: "PLT-01",
+        stdCost: 0.025,
+        status: "Active",
+    },
+];
+function matchKey(entity, keyVal, candidateProps = ["id", "code", "companyId", "plantId", "departmentId", "lineId", "workCenterId", "operationId", "routingId", "familyId", "uomId", "configId", "targetId", "ruleId", "classId", "name"]) {
+    if (!keyVal || !entity)
+        return false;
+    try {
+        const search = decodeURIComponent(String(keyVal)).trim().toLowerCase();
+        for (const prop of candidateProps) {
+            if (entity[prop] !== undefined && entity[prop] !== null) {
+                const val = String(entity[prop]).trim().toLowerCase();
+                if (val === search)
+                    return true;
+            }
+        }
+    }
+    catch (_) { }
+    return false;
+}
 class MasterDataService {
     // ==========================================
     // 1. COMPANIES / LEGAL ENTITIES
@@ -142,7 +259,7 @@ class MasterDataService {
         return newCompany;
     }
     async updateCompany(tenantId, id, input) {
-        const idx = inMemoryCompanies.findIndex((c) => c.id === id || c.companyId === id || c.code === id);
+        const idx = inMemoryCompanies.findIndex((c) => matchKey(c, id, ["id", "companyId", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -166,7 +283,7 @@ class MasterDataService {
         return inMemoryCompanies[idx];
     }
     async deleteCompany(tenantId, id) {
-        const idx = inMemoryCompanies.findIndex((c) => c.id === id || c.companyId === id);
+        const idx = inMemoryCompanies.findIndex((c) => matchKey(c, id, ["id", "companyId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryCompanies.splice(idx, 1);
             return deleted[0];
@@ -226,7 +343,7 @@ class MasterDataService {
         return newPlant;
     }
     async updatePlant(tenantId, id, input) {
-        const idx = inMemoryPlants.findIndex((p) => p.id === id || p.plantId === id || p.code === id);
+        const idx = inMemoryPlants.findIndex((p) => matchKey(p, id, ["id", "plantId", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -247,7 +364,7 @@ class MasterDataService {
         return inMemoryPlants[idx];
     }
     async deletePlant(tenantId, id) {
-        const idx = inMemoryPlants.findIndex((p) => p.id === id || p.plantId === id);
+        const idx = inMemoryPlants.findIndex((p) => matchKey(p, id, ["id", "plantId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryPlants.splice(idx, 1);
             return deleted[0];
@@ -269,8 +386,8 @@ class MasterDataService {
             id: newId,
             departmentId: newId,
             plantId: input.plantId || "PLT-01",
-            code: input.code ? input.code.toUpperCase() : `DEP-0${inMemoryDepartments.length + 1}`,
-            name: input.name,
+            code: input.code ? String(input.code).trim().toUpperCase() : `DEP-0${inMemoryDepartments.length + 1}`,
+            name: String(input.name || "Department").trim(),
             deptHead: input.deptHead || input.managerName || "Robert Thorne",
             managerName: input.deptHead || input.managerName || "Robert Thorne",
             costCenter: input.costCenter || "CC-101",
@@ -281,7 +398,7 @@ class MasterDataService {
         return newDept;
     }
     async updateDepartment(tenantId, id, input) {
-        const idx = inMemoryDepartments.findIndex((d) => d.id === id || d.departmentId === id || d.code === id);
+        const idx = inMemoryDepartments.findIndex((d) => matchKey(d, id, ["id", "departmentId", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -303,7 +420,7 @@ class MasterDataService {
         return inMemoryDepartments[idx];
     }
     async deleteDepartment(tenantId, id) {
-        const idx = inMemoryDepartments.findIndex((d) => d.id === id || d.departmentId === id);
+        const idx = inMemoryDepartments.findIndex((d) => matchKey(d, id, ["id", "departmentId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryDepartments.splice(idx, 1);
             return deleted[0];
@@ -324,9 +441,9 @@ class MasterDataService {
         const newLine = {
             id: newId,
             lineId: newId,
-            lineCode: input.lineCode ? input.lineCode.toUpperCase() : (input.code || `LINE-${inMemoryLines.length + 1}`).toUpperCase(),
-            code: input.lineCode ? input.lineCode.toUpperCase() : (input.code || `LINE-${inMemoryLines.length + 1}`).toUpperCase(),
-            name: input.name,
+            lineCode: input.lineCode ? String(input.lineCode).trim().toUpperCase() : (input.code ? String(input.code).trim().toUpperCase() : `LINE-${inMemoryLines.length + 1}`),
+            code: input.lineCode ? String(input.lineCode).trim().toUpperCase() : (input.code ? String(input.code).trim().toUpperCase() : `LINE-${inMemoryLines.length + 1}`),
+            name: String(input.name || "Production Line").trim(),
             plantId: input.plantId || "PLT-01",
             plantName: input.plantId === "PLT-02" ? "Austin Facility" : "Indore Plant",
             type: input.type || "Continuous Flow",
@@ -340,7 +457,7 @@ class MasterDataService {
         return newLine;
     }
     async updateLine(tenantId, id, input) {
-        const idx = inMemoryLines.findIndex((l) => l.lineId === id || l.id === id || l.lineCode === id || l.code === id);
+        const idx = inMemoryLines.findIndex((l) => matchKey(l, id, ["id", "lineId", "lineCode", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 lineId: id,
@@ -362,7 +479,7 @@ class MasterDataService {
         return inMemoryLines[idx];
     }
     async deleteLine(tenantId, id) {
-        const idx = inMemoryLines.findIndex((l) => l.lineId === id || l.id === id);
+        const idx = inMemoryLines.findIndex((l) => matchKey(l, id, ["id", "lineId", "lineCode", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryLines.splice(idx, 1);
             return deleted[0];
@@ -380,12 +497,12 @@ class MasterDataService {
     }
     async createWorkCenter(tenantId, input) {
         const newId = `WC-${Math.floor(400 + Math.random() * 99)}`;
-        const lineObj = inMemoryLines.find((l) => l.lineId === input.lineId || l.id === input.lineId);
+        const lineObj = inMemoryLines.find((l) => matchKey(l, input.lineId, ["id", "lineId", "lineCode", "code", "name"]));
         const newWC = {
             id: newId,
             workCenterId: newId,
-            code: input.code ? input.code.toUpperCase() : `WC-0${inMemoryWorkCenters.length + 1}`,
-            name: input.name,
+            code: input.code ? String(input.code).trim().toUpperCase() : `WC-0${inMemoryWorkCenters.length + 1}`,
+            name: String(input.name || "Work Center").trim(),
             lineId: input.lineId || "LIN-01",
             lineName: input.lineName || (lineObj ? lineObj.name : "Line 1 — Aseptic Bottling"),
             plantId: input.plantId || (lineObj ? lineObj.plantId : "PLT-01"),
@@ -397,8 +514,8 @@ class MasterDataService {
         return newWC;
     }
     async updateWorkCenter(tenantId, id, input) {
-        const idx = inMemoryWorkCenters.findIndex((w) => w.id === id || w.workCenterId === id || w.code === id);
-        const lineObj = input.lineId ? inMemoryLines.find((l) => l.lineId === input.lineId || l.id === input.lineId) : undefined;
+        const idx = inMemoryWorkCenters.findIndex((w) => matchKey(w, id, ["id", "workCenterId", "code", "name"]));
+        const lineObj = input.lineId ? inMemoryLines.find((l) => matchKey(l, input.lineId, ["id", "lineId", "lineCode", "code", "name"])) : undefined;
         if (idx === -1) {
             const fallback = {
                 id,
@@ -423,7 +540,7 @@ class MasterDataService {
         return inMemoryWorkCenters[idx];
     }
     async deleteWorkCenter(tenantId, id) {
-        const idx = inMemoryWorkCenters.findIndex((w) => w.id === id || w.workCenterId === id);
+        const idx = inMemoryWorkCenters.findIndex((w) => matchKey(w, id, ["id", "workCenterId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryWorkCenters.splice(idx, 1);
             return deleted[0];
@@ -457,7 +574,7 @@ class MasterDataService {
         return newOp;
     }
     async updateOperation(tenantId, id, input) {
-        const idx = inMemoryOperations.findIndex((o) => o.id === id || o.operationId === id || o.operationCode === id);
+        const idx = inMemoryOperations.findIndex((o) => matchKey(o, id, ["id", "operationId", "operationCode", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -482,7 +599,7 @@ class MasterDataService {
         return inMemoryOperations[idx];
     }
     async deleteOperation(tenantId, id) {
-        const idx = inMemoryOperations.findIndex((o) => o.id === id || o.operationId === id || o.operationCode === id);
+        const idx = inMemoryOperations.findIndex((o) => matchKey(o, id, ["id", "operationId", "operationCode", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryOperations.splice(idx, 1);
             return deleted[0];
@@ -521,7 +638,7 @@ class MasterDataService {
         return newRtg;
     }
     async updateRouting(tenantId, id, input) {
-        const idx = inMemoryRoutings.findIndex((r) => r.id === id || r.routingId === id || r.routingCode === id);
+        const idx = inMemoryRoutings.findIndex((r) => matchKey(r, id, ["id", "routingId", "routingCode", "skuCode", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -552,7 +669,7 @@ class MasterDataService {
         return inMemoryRoutings[idx];
     }
     async deleteRouting(tenantId, id) {
-        const idx = inMemoryRoutings.findIndex((r) => r.id === id || r.routingId === id || r.routingCode === id);
+        const idx = inMemoryRoutings.findIndex((r) => matchKey(r, id, ["id", "routingId", "routingCode", "skuCode", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryRoutings.splice(idx, 1);
             return deleted[0];
@@ -581,7 +698,7 @@ class MasterDataService {
         return newFamily;
     }
     async updateProductFamily(tenantId, id, input) {
-        const idx = inMemoryProductFamilies.findIndex((f) => f.id === id || f.familyId === id || f.code === id);
+        const idx = inMemoryProductFamilies.findIndex((f) => matchKey(f, id, ["id", "familyId", "code", "name"]));
         if (idx === -1) {
             const fallback = {
                 id,
@@ -598,7 +715,7 @@ class MasterDataService {
         return inMemoryProductFamilies[idx];
     }
     async deleteProductFamily(tenantId, id) {
-        const idx = inMemoryProductFamilies.findIndex((f) => f.id === id || f.familyId === id || f.code === id);
+        const idx = inMemoryProductFamilies.findIndex((f) => matchKey(f, id, ["id", "familyId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryProductFamilies.splice(idx, 1);
             return deleted[0];
@@ -627,7 +744,7 @@ class MasterDataService {
         return newUom;
     }
     async updateUom(tenantId, id, input) {
-        const idx = inMemoryUoms.findIndex((u) => u.id === id || u.uomId === id || u.code === id);
+        const idx = inMemoryUoms.findIndex((u) => matchKey(u, id, ["id", "uomId", "code", "name"]));
         if (idx !== -1) {
             inMemoryUoms[idx] = { ...inMemoryUoms[idx], ...input };
             return inMemoryUoms[idx];
@@ -635,7 +752,7 @@ class MasterDataService {
         return { id, ...input };
     }
     async deleteUom(tenantId, id) {
-        const idx = inMemoryUoms.findIndex((u) => u.id === id || u.uomId === id || u.code === id);
+        const idx = inMemoryUoms.findIndex((u) => matchKey(u, id, ["id", "uomId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryUoms.splice(idx, 1);
             return deleted[0];
@@ -666,7 +783,7 @@ class MasterDataService {
         return newConfig;
     }
     async updatePackConfig(tenantId, id, input) {
-        const idx = inMemoryPackConfigs.findIndex((p) => p.id === id || p.configId === id || p.code === id);
+        const idx = inMemoryPackConfigs.findIndex((p) => matchKey(p, id, ["id", "configId", "code", "name"]));
         if (idx !== -1) {
             inMemoryPackConfigs[idx] = { ...inMemoryPackConfigs[idx], ...input };
             return inMemoryPackConfigs[idx];
@@ -674,7 +791,7 @@ class MasterDataService {
         return { id, ...input };
     }
     async deletePackConfig(tenantId, id) {
-        const idx = inMemoryPackConfigs.findIndex((p) => p.id === id || p.configId === id || p.code === id);
+        const idx = inMemoryPackConfigs.findIndex((p) => matchKey(p, id, ["id", "configId", "code", "name"]));
         if (idx !== -1) {
             const deleted = inMemoryPackConfigs.splice(idx, 1);
             return deleted[0];
@@ -810,39 +927,66 @@ class MasterDataService {
     // ==========================================
     async listSkus(tenantId) {
         try {
-            if (tenantId) {
-                return await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
+            const dbSkus = tenantId
+                ? await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId))
+                : await database_js_1.db.select().from(masterData_js_1.skus);
+            if (dbSkus && dbSkus.length > 0) {
+                return dbSkus.map((s) => ({
+                    ...s,
+                    id: s.id,
+                    skuId: s.id,
+                    code: s.skuCode,
+                    itemType: s.category === "BEVERAGE" || s.category === "Finished Goods" ? "Finished Good" : s.category,
+                    status: s.status || (s.isActive ? "Active" : "Inactive") || "Active",
+                }));
             }
-            return await database_js_1.db.select().from(masterData_js_1.skus);
         }
-        catch {
-            return [];
-        }
+        catch (_) { }
+        return inMemorySkus;
     }
     async createSku(tenantId, input) {
-        const tId = tenantId || "00000000-0000-0000-0000-000000000001";
-        try {
-            const [newSku] = await database_js_1.db
-                .insert(masterData_js_1.skus)
-                .values({
-                tenantId: tId,
-                skuCode: input.skuCode || input.code,
-                name: input.name,
-                category: input.category || "BEVERAGE",
-                familyId: input.familyId,
-                uom: input.uom || "EA",
-                barcode: input.barcode,
-                standardCost: (input.standardCost || 0).toString(),
-                shelfLifeDays: Number(input.shelfLifeDays) || 365,
-                minStockLevel: (input.minStockLevel || 100).toString(),
-                maxStockLevel: (input.maxStockLevel || 10000).toString(),
-            })
-                .returning();
-            return newSku;
+        const newId = `SKU-00${inMemorySkus.length + 1}`;
+        const newSku = {
+            id: newId,
+            skuId: newId,
+            skuCode: input.skuCode || input.code || `SKU-500${inMemorySkus.length + 1}`,
+            code: input.skuCode || input.code || `SKU-500${inMemorySkus.length + 1}`,
+            name: input.name,
+            category: input.category || "Finished Goods",
+            itemType: input.itemType || "Finished Good",
+            familyId: input.familyId || "PF-01",
+            family: input.family || "Carbonated Soft Drinks",
+            uom: input.uom || "Bottles",
+            plantId: input.plantId || "PLT-01",
+            stdCost: Number(input.stdCost || input.standardCost) || 0.50,
+            revision: input.revision || "R1",
+            status: input.status || "Active",
+            approvalStatus: input.approvalStatus || "Approved",
+            shelfLifeDays: Number(input.shelfLifeDays) || 365,
+            packConfigCode: input.packConfigCode || "PCK-5001-24",
+            packSize: input.packSize || "24 x 500ml",
+            eligibleLineIds: input.eligibleLineIds || ["LIN-01", "LIN-02"],
+            stdRunRateBPH: Number(input.stdRunRateBPH) || 38000,
+            expectedYieldPct: Number(input.expectedYieldPct) || 99.0,
+        };
+        inMemorySkus.unshift(newSku);
+        return newSku;
+    }
+    async updateSku(tenantId, id, input) {
+        const idx = inMemorySkus.findIndex((s) => matchKey(s, id, ["id", "skuId", "skuCode", "code", "name"]));
+        if (idx !== -1) {
+            inMemorySkus[idx] = { ...inMemorySkus[idx], ...input };
+            return inMemorySkus[idx];
         }
-        catch (err) {
-            return { id: `SKU-${Date.now()}`, ...input };
+        return { id, ...input };
+    }
+    async deleteSku(tenantId, id) {
+        const idx = inMemorySkus.findIndex((s) => matchKey(s, id, ["id", "skuId", "skuCode", "code", "name"]));
+        if (idx !== -1) {
+            const deleted = inMemorySkus.splice(idx, 1);
+            return deleted[0];
         }
+        return { id, message: "SKU deleted" };
     }
     async listBoms(tenantId) {
         try {

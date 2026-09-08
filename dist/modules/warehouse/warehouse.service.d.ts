@@ -19,7 +19,23 @@ export declare class WarehouseService {
         locationBinId: string | null;
         mfgDate: Date | null;
         expiryDate: Date | null;
-        sku: never;
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
     }[]>;
     createLot(tenantId: string, plantId: string, input: CreateLotInput): Promise<{
         status: string;
@@ -57,6 +73,22 @@ export declare class WarehouseService {
         referenceId: string | null;
         performedBy: string | null;
     }>;
+    listTransactions(tenantId: string, plantId?: string): Promise<{
+        type: string;
+        id: string;
+        createdAt: Date;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        quantity: string;
+        notes: string | null;
+        lotId: string;
+        fromBinId: string | null;
+        toBinId: string | null;
+        referenceType: string | null;
+        referenceId: string | null;
+        performedBy: string | null;
+    }[]>;
     listWarehouses(tenantId: string): Promise<{
         code: string;
         type: string | null;

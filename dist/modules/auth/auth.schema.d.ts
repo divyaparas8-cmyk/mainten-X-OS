@@ -41,9 +41,9 @@ export declare const registerSchema: z.ZodObject<{
 export type RegisterInput = z.infer<typeof registerSchema>;
 export declare const digitalSignOffSchema: z.ZodObject<{
     pin: z.ZodString;
-    entityType: z.ZodString;
-    entityId: z.ZodString;
-    meaning: z.ZodString;
+    entityType: z.ZodDefault<z.ZodString>;
+    entityId: z.ZodDefault<z.ZodString>;
+    meaning: z.ZodDefault<z.ZodString>;
     comments: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     entityType: string;
@@ -52,10 +52,10 @@ export declare const digitalSignOffSchema: z.ZodObject<{
     pin: string;
     comments?: string | undefined;
 }, {
-    entityType: string;
-    entityId: string;
-    meaning: string;
     pin: string;
+    entityType?: string | undefined;
+    entityId?: string | undefined;
+    meaning?: string | undefined;
     comments?: string | undefined;
 }>;
 export type DigitalSignOffInput = z.infer<typeof digitalSignOffSchema>;

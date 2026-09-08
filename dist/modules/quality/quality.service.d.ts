@@ -57,9 +57,55 @@ export declare class QualityService {
         progressPercent: number;
         startedAt: Date | null;
         completedAt: Date | null;
-        ccpChecks: never;
-        sku: never;
-        steps: never;
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
+        steps: {
+            status: string;
+            parameters: unknown;
+            id: string;
+            notes: string | null;
+            startedAt: Date | null;
+            completedAt: Date | null;
+            batchId: string;
+            stepNumber: number;
+            stepName: string;
+            operatorId: string | null;
+            verifiedBy: string | null;
+        }[];
+        ccpChecks: {
+            status: string;
+            id: string;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            lineId: string;
+            targetValue: string;
+            notes: string | null;
+            batchId: string;
+            operatorId: string;
+            verifiedBy: string | null;
+            ccpCode: string;
+            ccpName: string;
+            actualValue: string;
+            criticalLimitMin: string | null;
+            criticalLimitMax: string | null;
+            checkedAt: Date;
+        }[];
     }[]>;
     authorizeBatchRelease(tenantId: string, plantId: string, input: QaBatchReleaseInput, userId: string, ipAddress?: string): Promise<{
         id: string;

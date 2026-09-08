@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userRoles = exports.rolePermissions = exports.permissions = exports.roles = exports.users = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
-const tenants_js_1 = require("./tenants.js");
+const tenants_1 = require("./tenants");
 exports.users = (0, pg_core_1.pgTable)("users", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     email: (0, pg_core_1.varchar)("email", { length: 255 }).notNull().unique(),
     passwordHash: (0, pg_core_1.varchar)("password_hash", { length: 255 }).notNull(),
     firstName: (0, pg_core_1.varchar)("first_name", { length: 100 }).notNull(),
@@ -21,7 +21,7 @@ exports.users = (0, pg_core_1.pgTable)("users", {
 });
 exports.roles = (0, pg_core_1.pgTable)("roles", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }), // null if system role
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }), // null if system role
     code: (0, pg_core_1.varchar)("code", { length: 100 }).notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     description: (0, pg_core_1.text)("description"),
@@ -46,7 +46,7 @@ exports.rolePermissions = (0, pg_core_1.pgTable)("role_permissions", {
 exports.userRoles = (0, pg_core_1.pgTable)("user_roles", {
     userId: (0, pg_core_1.uuid)("userId").references(() => exports.users.id, { onDelete: "cascade" }).notNull(),
     roleId: (0, pg_core_1.uuid)("roleId").references(() => exports.roles.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plantId").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }), // optional plant scope
+    plantId: (0, pg_core_1.uuid)("plantId").references(() => tenants_1.plants.id, { onDelete: "cascade" }), // optional plant scope
 }, (table) => [
     (0, pg_core_1.primaryKey)({ columns: [table.userId, table.roleId] }),
 ]);

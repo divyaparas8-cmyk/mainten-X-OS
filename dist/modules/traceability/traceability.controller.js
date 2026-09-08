@@ -8,6 +8,7 @@ const recallSimulationSchema = zod_1.z.object({
     lotNumber: zod_1.z.string().min(2),
     reason: zod_1.z.string().min(2),
 });
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 class TraceabilityController {
     async getGenealogy(request, reply) {
         const data = await traceability_service_js_1.traceabilityService.get360Genealogy(request.user.tenantId, request.params.lotNumber);
@@ -15,7 +16,8 @@ class TraceabilityController {
     }
     async runRecallSimulation(request, reply) {
         const input = recallSimulationSchema.parse(request.body);
-        const data = await traceability_service_js_1.traceabilityService.runRecallSimulation(request.user.tenantId, request.user.plantId || "default-plant", input.lotNumber, input.reason, request.user.userId);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await traceability_service_js_1.traceabilityService.runRecallSimulation(request.user.tenantId, plantId, input.lotNumber, input.reason, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Digital 360° Recall Simulation executed and containment plan generated"));
     }
 }

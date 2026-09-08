@@ -22,9 +22,9 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const digitalSignOffSchema = z.object({
   pin: z.string().min(4, "4-digit signature PIN required"),
-  entityType: z.string(),
-  entityId: z.string(),
-  meaning: z.string(),
+  entityType: z.string().default("General"),
+  entityId: z.string().default("system"),
+  meaning: z.string().default("DIGITAL_SIGN_OFF"),
   comments: z.string().optional(),
 });
 

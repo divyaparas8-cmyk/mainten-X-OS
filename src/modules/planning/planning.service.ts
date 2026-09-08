@@ -1,11 +1,12 @@
 import { db } from "../../config/database.js";
 import { customerOrders, forecasts, apsSchedules, mrpRequirements, purchaseRequisitions } from "../../db/schema/planning.js";
-import { skus, bomItems, boms } from "../../db/schema/masterData.js";
+import { skus, bomItems, boms, productionLines } from "../../db/schema/masterData.js";
 import { inventoryLots } from "../../db/schema/warehouse.js";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { CreateCustomerOrderInput, RunForecastInput, CreateApsScheduleInput } from "./planning.schema.js";
 import { calculateExponentialSmoothingForecast } from "../../shared/engines/forecastEngine.js";
 import { calculateNetRequirements } from "../../shared/engines/mrpEngine.js";
+import { isValidUuid } from "../../shared/utils/tenantContext.js";
 
 export class PlanningService {
   async listCustomerOrders(tenantId: string, plantId?: string) {
@@ -13,6 +14,21 @@ export class PlanningService {
   }
 
   async createCustomerOrder(tenantId: string, plantId: string, input: CreateCustomerOrderInput) {
+    let resolvedSkuId = input.skuId;
+    if (!isValidUuid(input.skuId)) {
+      const [foundSku] = await db
+        .select()
+        .from(skus)
+        .where(and(eq(skus.tenantId, tenantId), or(eq(skus.skuCode, input.skuId), eq(skus.name, input.skuId))))
+        .limit(1);
+      if (foundSku) {
+        resolvedSkuId = foundSku.id;
+      } else {
+        const [firstSku] = await db.select().from(skus).where(eq(skus.tenantId, tenantId)).limit(1);
+        if (firstSku) resolvedSkuId = firstSku.id;
+      }
+    }
+
     const [order] = await db
       .insert(customerOrders)
       .values({
@@ -20,7 +36,7 @@ export class PlanningService {
         plantId,
         orderNumber: input.orderNumber,
         customerName: input.customerName,
-        skuId: input.skuId,
+        skuId: resolvedSkuId,
         quantity: input.quantity.toString(),
         priority: input.priority,
         requestedDate: new Date(input.requestedDate),
@@ -32,6 +48,21 @@ export class PlanningService {
   }
 
   async runStatisticalForecast(tenantId: string, plantId: string, input: RunForecastInput) {
+    let resolvedSkuId = input.skuId;
+    if (!isValidUuid(input.skuId)) {
+      const [foundSku] = await db
+        .select()
+        .from(skus)
+        .where(and(eq(skus.tenantId, tenantId), or(eq(skus.skuCode, input.skuId), eq(skus.name, input.skuId))))
+        .limit(1);
+      if (foundSku) {
+        resolvedSkuId = foundSku.id;
+      } else {
+        const [firstSku] = await db.select().from(skus).where(eq(skus.tenantId, tenantId)).limit(1);
+        if (firstSku) resolvedSkuId = firstSku.id;
+      }
+    }
+
     // Simulated historical dataset for SKU
     const historicalDemand = [14200, 15100, 13900, 16200, 14800, 15500];
 
@@ -46,7 +77,7 @@ export class PlanningService {
       .values({
         tenantId,
         plantId,
-        skuId: input.skuId,
+        skuId: resolvedSkuId,
         period: input.period,
         baselineDemand: result.baselineForecast.toString(),
         promoUplift: result.promoUpliftUnits.toString(),
@@ -67,15 +98,45 @@ export class PlanningService {
   }
 
   async createApsSchedule(tenantId: string, plantId: string, input: CreateApsScheduleInput) {
+    let resolvedLineId = input.lineId;
+    if (!isValidUuid(input.lineId)) {
+      const [foundLine] = await db
+        .select()
+        .from(productionLines)
+        .where(and(eq(productionLines.tenantId, tenantId), or(eq(productionLines.code, input.lineId), eq(productionLines.name, input.lineId))))
+        .limit(1);
+      if (foundLine) {
+        resolvedLineId = foundLine.id;
+      } else {
+        const [firstLine] = await db.select().from(productionLines).where(eq(productionLines.tenantId, tenantId)).limit(1);
+        if (firstLine) resolvedLineId = firstLine.id;
+      }
+    }
+
+    let resolvedSkuId = input.skuId;
+    if (!isValidUuid(input.skuId)) {
+      const [foundSku] = await db
+        .select()
+        .from(skus)
+        .where(and(eq(skus.tenantId, tenantId), or(eq(skus.skuCode, input.skuId), eq(skus.name, input.skuId))))
+        .limit(1);
+      if (foundSku) {
+        resolvedSkuId = foundSku.id;
+      } else {
+        const [firstSku] = await db.select().from(skus).where(eq(skus.tenantId, tenantId)).limit(1);
+        if (firstSku) resolvedSkuId = firstSku.id;
+      }
+    }
+
     const [schedule] = await db
       .insert(apsSchedules)
       .values({
         tenantId,
         plantId,
-        lineId: input.lineId,
-        shiftId: input.shiftId,
-        orderId: input.orderId,
-        skuId: input.skuId,
+        lineId: resolvedLineId,
+        shiftId: input.shiftId && isValidUuid(input.shiftId) ? input.shiftId : null,
+        orderId: input.orderId && isValidUuid(input.orderId) ? input.orderId : null,
+        skuId: resolvedSkuId,
         startTime: new Date(input.startTime),
         endTime: new Date(input.endTime),
         quantity: input.quantity.toString(),

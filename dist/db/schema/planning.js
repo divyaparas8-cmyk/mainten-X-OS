@@ -2,15 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
-const tenants_js_1 = require("./tenants.js");
-const masterData_js_1 = require("./masterData.js");
+const tenants_1 = require("./tenants");
+const masterData_1 = require("./masterData");
 exports.customerOrders = (0, pg_core_1.pgTable)("customer_orders", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     orderNumber: (0, pg_core_1.varchar)("order_number", { length: 100 }).notNull(), // "PO-KR-99321"
     customerName: (0, pg_core_1.varchar)("customer_name", { length: 255 }).notNull(), // "Kroger Supermarkets"
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_js_1.skus.id, { onDelete: "restrict" }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "restrict" }).notNull(),
     quantity: (0, pg_core_1.numeric)("quantity", { precision: 12, scale: 2 }).notNull(),
     priority: (0, pg_core_1.varchar)("priority", { length: 50 }).default("NORMAL"), // "URGENT", "NORMAL", "LOW"
     requestedDate: (0, pg_core_1.timestamp)("requested_date").notNull(),
@@ -22,9 +22,9 @@ exports.customerOrders = (0, pg_core_1.pgTable)("customer_orders", {
 });
 exports.forecasts = (0, pg_core_1.pgTable)("forecasts", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_js_1.skus.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "cascade" }).notNull(),
     period: (0, pg_core_1.varchar)("period", { length: 50 }).notNull(), // "2026-W36" or "2026-09"
     baselineDemand: (0, pg_core_1.numeric)("baseline_demand", { precision: 12, scale: 2 }).notNull(),
     promoUplift: (0, pg_core_1.numeric)("promo_uplift", { precision: 12, scale: 2 }).default("0.00"),
@@ -36,12 +36,12 @@ exports.forecasts = (0, pg_core_1.pgTable)("forecasts", {
 });
 exports.apsSchedules = (0, pg_core_1.pgTable)("aps_schedules", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
-    lineId: (0, pg_core_1.uuid)("line_id").references(() => masterData_js_1.productionLines.id, { onDelete: "cascade" }).notNull(),
-    shiftId: (0, pg_core_1.uuid)("shift_id").references(() => masterData_js_1.shifts.id, { onDelete: "set null" }),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    lineId: (0, pg_core_1.uuid)("line_id").references(() => masterData_1.productionLines.id, { onDelete: "cascade" }).notNull(),
+    shiftId: (0, pg_core_1.uuid)("shift_id").references(() => masterData_1.shifts.id, { onDelete: "set null" }),
     orderId: (0, pg_core_1.uuid)("order_id").references(() => exports.customerOrders.id, { onDelete: "set null" }),
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_js_1.skus.id, { onDelete: "restrict" }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "restrict" }).notNull(),
     startTime: (0, pg_core_1.timestamp)("start_time").notNull(),
     endTime: (0, pg_core_1.timestamp)("end_time").notNull(),
     quantity: (0, pg_core_1.numeric)("quantity", { precision: 12, scale: 2 }).notNull(),
@@ -54,9 +54,9 @@ exports.apsSchedules = (0, pg_core_1.pgTable)("aps_schedules", {
 });
 exports.mrpRequirements = (0, pg_core_1.pgTable)("mrp_requirements", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_js_1.skus.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "cascade" }).notNull(),
     grossRequirement: (0, pg_core_1.numeric)("gross_requirement", { precision: 14, scale: 4 }).notNull(),
     availableStock: (0, pg_core_1.numeric)("available_stock", { precision: 14, scale: 4 }).notNull(),
     reservedStock: (0, pg_core_1.numeric)("reserved_stock", { precision: 14, scale: 4 }).default("0.00"),
@@ -68,10 +68,10 @@ exports.mrpRequirements = (0, pg_core_1.pgTable)("mrp_requirements", {
 });
 exports.purchaseRequisitions = (0, pg_core_1.pgTable)("purchase_requisitions", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_js_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     reqNumber: (0, pg_core_1.varchar)("req_number", { length: 100 }).notNull(), // "PR-2026-0881"
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_js_1.skus.id, { onDelete: "restrict" }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "restrict" }).notNull(),
     quantity: (0, pg_core_1.numeric)("quantity", { precision: 14, scale: 4 }).notNull(),
     uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(),
     vendorName: (0, pg_core_1.varchar)("vendor_name", { length: 255 }),

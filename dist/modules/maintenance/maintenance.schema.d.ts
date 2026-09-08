@@ -3,8 +3,8 @@ export declare const createWorkOrderSchema: z.ZodObject<{
     assetId: z.ZodString;
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
-    type: z.ZodDefault<z.ZodEnum<["CORRECTIVE", "PREVENTIVE", "EMERGENCY_BREAKDOWN", "CALIBRATION"]>>;
-    priority: z.ZodDefault<z.ZodEnum<["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]>>;
+    type: z.ZodEffects<z.ZodDefault<z.ZodEnum<["CORRECTIVE", "PREVENTIVE", "EMERGENCY_BREAKDOWN", "CALIBRATION"]>>, "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION", unknown>;
+    priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]>>, "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM", unknown>;
     assignedTo: z.ZodOptional<z.ZodString>;
     failureCodeId: z.ZodOptional<z.ZodString>;
     estimatedHours: z.ZodDefault<z.ZodNumber>;
@@ -22,9 +22,9 @@ export declare const createWorkOrderSchema: z.ZodObject<{
 }, {
     title: string;
     assetId: string;
-    type?: "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION" | undefined;
+    type?: unknown;
     description?: string | undefined;
-    priority?: "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM" | undefined;
+    priority?: unknown;
     scheduledDate?: string | undefined;
     assignedTo?: string | undefined;
     failureCodeId?: string | undefined;
@@ -32,13 +32,13 @@ export declare const createWorkOrderSchema: z.ZodObject<{
 }>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;
 export declare const updateWorkOrderStatusSchema: z.ZodObject<{
-    status: z.ZodEnum<["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_FOR_PARTS", "COMPLETED", "CLOSED"]>;
+    status: z.ZodEffects<z.ZodEnum<["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_FOR_PARTS", "COMPLETED", "CLOSED"]>, "IN_PROGRESS" | "COMPLETED" | "OPEN" | "ASSIGNED" | "WAITING_FOR_PARTS" | "CLOSED", unknown>;
     actualHours: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     status: "IN_PROGRESS" | "COMPLETED" | "OPEN" | "ASSIGNED" | "WAITING_FOR_PARTS" | "CLOSED";
     actualHours?: number | undefined;
 }, {
-    status: "IN_PROGRESS" | "COMPLETED" | "OPEN" | "ASSIGNED" | "WAITING_FOR_PARTS" | "CLOSED";
+    status?: unknown;
     actualHours?: number | undefined;
 }>;
 export type UpdateWorkOrderStatusInput = z.infer<typeof updateWorkOrderStatusSchema>;

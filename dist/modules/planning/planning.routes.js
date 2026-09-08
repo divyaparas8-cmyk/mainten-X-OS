@@ -11,5 +11,6 @@ async function planningRoutes(fastify) {
     fastify.get("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "List Multi-Line APS Gantt Schedules" } }, planning_controller_js_1.planningController.getApsSchedules.bind(planning_controller_js_1.planningController));
     fastify.post("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "Publish APS Schedule" } }, planning_controller_js_1.planningController.createApsSchedule.bind(planning_controller_js_1.planningController));
     fastify.get("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planning_controller_js_1.planningController.getMrpExplosion.bind(planning_controller_js_1.planningController));
+    fastify.post("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planning_controller_js_1.planningController.getMrpExplosion.bind(planning_controller_js_1.planningController));
 }
 //# sourceMappingURL=planning.routes.js.map

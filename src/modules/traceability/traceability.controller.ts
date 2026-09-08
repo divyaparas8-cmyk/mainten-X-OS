@@ -8,6 +8,8 @@ const recallSimulationSchema = z.object({
   reason: z.string().min(2),
 });
 
+import { resolvePlantId } from "../../shared/utils/tenantContext.js";
+
 export class TraceabilityController {
   async getGenealogy(request: FastifyRequest<{ Params: { lotNumber: string } }>, reply: FastifyReply) {
     const data = await traceabilityService.get360Genealogy(request.user.tenantId, request.params.lotNumber);
@@ -16,9 +18,10 @@ export class TraceabilityController {
 
   async runRecallSimulation(request: FastifyRequest, reply: FastifyReply) {
     const input = recallSimulationSchema.parse(request.body);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await traceabilityService.runRecallSimulation(
       request.user.tenantId,
-      request.user.plantId || "default-plant",
+      plantId,
       input.lotNumber,
       input.reason,
       request.user.userId

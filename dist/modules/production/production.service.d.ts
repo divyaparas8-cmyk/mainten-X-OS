@@ -9,6 +9,7 @@ export declare class ProductionService {
         plantId: string;
         skuId: string;
         lineId: string;
+        notes: string | null;
         orderNumber: string;
         priority: string | null;
         targetQuantity: string;
@@ -18,10 +19,56 @@ export declare class ProductionService {
         plannedEnd: Date;
         actualStart: Date | null;
         actualEnd: Date | null;
-        notes: string | null;
-        batches: never;
-        sku: never;
-        line: never;
+        batches: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            skuId: string;
+            productionOrderId: string;
+            batchNumber: string;
+            recipeVersion: string;
+            tankNumber: string | null;
+            targetVolume: string;
+            actualVolume: string | null;
+            currentStep: number;
+            progressPercent: number;
+            startedAt: Date | null;
+            completedAt: Date | null;
+        }[];
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
+        line: {
+            code: string;
+            status: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            tenantId: string;
+            plantId: string;
+            workCenterId: string | null;
+            lineType: string | null;
+            nominalSpeedBpm: number | null;
+            healthScore: number | null;
+        };
     }[]>;
     createOrder(tenantId: string, plantId: string, input: CreateProductionOrderInput): Promise<{
         order: {
@@ -33,6 +80,7 @@ export declare class ProductionService {
             plantId: string;
             skuId: string;
             lineId: string;
+            notes: string | null;
             orderNumber: string;
             priority: string | null;
             targetQuantity: string;
@@ -42,7 +90,6 @@ export declare class ProductionService {
             plannedEnd: Date;
             actualStart: Date | null;
             actualEnd: Date | null;
-            notes: string | null;
         };
         batch: {
             status: string;
@@ -104,10 +151,68 @@ export declare class ProductionService {
         progressPercent: number;
         startedAt: Date | null;
         completedAt: Date | null;
-        ccpChecks: never;
-        sku: never;
-        steps: never;
-        qaRelease: never;
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
+        steps: {
+            status: string;
+            parameters: unknown;
+            id: string;
+            notes: string | null;
+            startedAt: Date | null;
+            completedAt: Date | null;
+            batchId: string;
+            stepNumber: number;
+            stepName: string;
+            operatorId: string | null;
+            verifiedBy: string | null;
+        }[];
+        ccpChecks: {
+            status: string;
+            id: string;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            lineId: string;
+            targetValue: string;
+            notes: string | null;
+            batchId: string;
+            operatorId: string;
+            verifiedBy: string | null;
+            ccpCode: string;
+            ccpName: string;
+            actualValue: string;
+            criticalLimitMin: string | null;
+            criticalLimitMax: string | null;
+            checkedAt: Date;
+        }[];
+        qaRelease: {
+            id: string;
+            tenantId: string;
+            plantId: string;
+            comments: string | null;
+            batchId: string;
+            disposition: string;
+            dispositionBy: string;
+            digitalSignaturePinUsed: boolean;
+            certificateOfAnalysisUrl: string | null;
+            coaMetadata: unknown;
+            releasedAt: Date;
+        };
     }[]>;
     advanceBatchStep(tenantId: string, batchId: string, input: UpdateBatchStepInput, userId: string): Promise<{
         id: string;

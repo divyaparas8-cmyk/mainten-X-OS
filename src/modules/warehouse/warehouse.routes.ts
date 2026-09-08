@@ -7,7 +7,9 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
 
   fastify.get("/lots", { schema: { tags: ["Warehouse & WMS"], summary: "List Inventory Lots (Raw, Packaging, Finished Goods)" } }, warehouseController.getLots.bind(warehouseController));
   fastify.post("/lots", { schema: { tags: ["Warehouse & WMS"], summary: "Create / Receive New Lot" } }, warehouseController.createLot.bind(warehouseController));
+  fastify.get("/transactions", { schema: { tags: ["Warehouse & WMS"], summary: "List Stock Movement Transactions" } }, warehouseController.getTransactions.bind(warehouseController));
   fastify.post("/transactions", { schema: { tags: ["Warehouse & WMS"], summary: "Log Auditable Stock Movement / Adjustment" } }, warehouseController.recordTransaction.bind(warehouseController));
+
 
   fastify.get("/warehouses", { schema: { tags: ["Warehouse & WMS"], summary: "List Warehouses" } }, warehouseController.getWarehouses.bind(warehouseController));
   fastify.get("/bins", { schema: { tags: ["Warehouse & WMS"], summary: "List Location Bins & Racks" } }, warehouseController.getBins.bind(warehouseController));

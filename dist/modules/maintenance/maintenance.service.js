@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.maintenanceService = exports.MaintenanceService = void 0;
 const database_js_1 = require("../../config/database.js");
 const maintenance_js_1 = require("../../db/schema/maintenance.js");
+const masterData_js_1 = require("../../db/schema/masterData.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
 const mtbfEngine_js_1 = require("../../shared/engines/mtbfEngine.js");
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 class MaintenanceService {
     async listWorkOrders(tenantId, plantId) {
         return await database_js_1.db.query.workOrders.findMany({
@@ -18,20 +20,43 @@ class MaintenanceService {
     }
     async createWorkOrder(tenantId, plantId, input, userId) {
         const woNumber = `WO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+        let resolvedAssetId = input.assetId;
+        const [existingAsset] = (0, tenantContext_js_1.isValidUuid)(input.assetId)
+            ? await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tenantId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.id, input.assetId))).limit(1)
+            : [];
+        if (existingAsset) {
+            resolvedAssetId = existingAsset.id;
+        }
+        else {
+            const [foundAsset] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.assets)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.assets.assetCode, input.assetId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.name, input.assetId))))
+                .limit(1);
+            if (foundAsset) {
+                resolvedAssetId = foundAsset.id;
+            }
+            else {
+                const [firstAsset] = await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tenantId)).limit(1);
+                if (firstAsset) {
+                    resolvedAssetId = firstAsset.id;
+                }
+            }
+        }
         const [wo] = await database_js_1.db
             .insert(maintenance_js_1.workOrders)
             .values({
             tenantId,
             plantId,
             woNumber,
-            assetId: input.assetId,
+            assetId: resolvedAssetId,
             title: input.title,
             description: input.description,
             type: input.type,
             priority: input.priority,
-            assignedTo: input.assignedTo,
-            reportedBy: userId,
-            failureCodeId: input.failureCodeId,
+            assignedTo: input.assignedTo && (0, tenantContext_js_1.isValidUuid)(input.assignedTo) ? input.assignedTo : null,
+            reportedBy: userId && (0, tenantContext_js_1.isValidUuid)(userId) ? userId : null,
+            failureCodeId: input.failureCodeId && (0, tenantContext_js_1.isValidUuid)(input.failureCodeId) ? input.failureCodeId : null,
             estimatedHours: input.estimatedHours.toString(),
             scheduledDate: input.scheduledDate ? new Date(input.scheduledDate) : new Date(),
         })
@@ -39,7 +64,10 @@ class MaintenanceService {
         return wo;
     }
     async updateWorkOrderStatus(tenantId, id, input) {
-        const [wo] = await database_js_1.db.select().from(maintenance_js_1.workOrders).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.id, id)));
+        const condition = (0, tenantContext_js_1.isValidUuid)(id)
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.woNumber, id));
+        const [wo] = await database_js_1.db.select().from(maintenance_js_1.workOrders).where(condition);
         if (!wo)
             throw new AppError_js_1.NotFoundError("Work Order");
         const [updated] = await database_js_1.db
@@ -50,7 +78,7 @@ class MaintenanceService {
             ...(input.status === "COMPLETED" || input.status === "CLOSED" ? { completedAt: new Date() } : {}),
             updatedAt: new Date(),
         })
-            .where((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.id, id))
+            .where((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.id, wo.id))
             .returning();
         return updated;
     }

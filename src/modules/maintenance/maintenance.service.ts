@@ -1,10 +1,11 @@
 import { db } from "../../config/database.js";
 import { workOrders, pmSchedules, spareParts, spareConsumption, failureCodes, calibrations } from "../../db/schema/maintenance.js";
 import { assets, productionLines } from "../../db/schema/masterData.js";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, or, sql } from "drizzle-orm";
 import { CreateWorkOrderInput, UpdateWorkOrderStatusInput } from "./maintenance.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 import { calculateReliability } from "../../shared/engines/mtbfEngine.js";
+import { isValidUuid } from "../../shared/utils/tenantContext.js";
 
 export class MaintenanceService {
   async listWorkOrders(tenantId: string, plantId?: string) {
@@ -20,20 +21,44 @@ export class MaintenanceService {
   async createWorkOrder(tenantId: string, plantId: string, input: CreateWorkOrderInput, userId: string) {
     const woNumber = `WO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    let resolvedAssetId = input.assetId;
+    const [existingAsset] = isValidUuid(input.assetId)
+      ? await db.select().from(assets).where(and(eq(assets.tenantId, tenantId), eq(assets.id, input.assetId))).limit(1)
+      : [];
+
+    if (existingAsset) {
+      resolvedAssetId = existingAsset.id;
+    } else {
+      const [foundAsset] = await db
+        .select()
+        .from(assets)
+        .where(and(eq(assets.tenantId, tenantId), or(eq(assets.assetCode, input.assetId), eq(assets.name, input.assetId))))
+        .limit(1);
+
+      if (foundAsset) {
+        resolvedAssetId = foundAsset.id;
+      } else {
+        const [firstAsset] = await db.select().from(assets).where(eq(assets.tenantId, tenantId)).limit(1);
+        if (firstAsset) {
+          resolvedAssetId = firstAsset.id;
+        }
+      }
+    }
+
     const [wo] = await db
       .insert(workOrders)
       .values({
         tenantId,
         plantId,
         woNumber,
-        assetId: input.assetId,
+        assetId: resolvedAssetId,
         title: input.title,
         description: input.description,
         type: input.type,
         priority: input.priority,
-        assignedTo: input.assignedTo,
-        reportedBy: userId,
-        failureCodeId: input.failureCodeId,
+        assignedTo: input.assignedTo && isValidUuid(input.assignedTo) ? input.assignedTo : null,
+        reportedBy: userId && isValidUuid(userId) ? userId : null,
+        failureCodeId: input.failureCodeId && isValidUuid(input.failureCodeId) ? input.failureCodeId : null,
         estimatedHours: input.estimatedHours.toString(),
         scheduledDate: input.scheduledDate ? new Date(input.scheduledDate) : new Date(),
       })
@@ -43,7 +68,11 @@ export class MaintenanceService {
   }
 
   async updateWorkOrderStatus(tenantId: string, id: string, input: UpdateWorkOrderStatusInput) {
-    const [wo] = await db.select().from(workOrders).where(and(eq(workOrders.tenantId, tenantId), eq(workOrders.id, id)));
+    const condition = isValidUuid(id)
+      ? and(eq(workOrders.tenantId, tenantId), eq(workOrders.id, id))
+      : and(eq(workOrders.tenantId, tenantId), eq(workOrders.woNumber, id));
+
+    const [wo] = await db.select().from(workOrders).where(condition);
     if (!wo) throw new NotFoundError("Work Order");
 
     const [updated] = await db
@@ -54,7 +83,7 @@ export class MaintenanceService {
         ...(input.status === "COMPLETED" || input.status === "CLOSED" ? { completedAt: new Date() } : {}),
         updatedAt: new Date(),
       })
-      .where(eq(workOrders.id, id))
+      .where(eq(workOrders.id, wo.id))
       .returning();
 
     return updated;

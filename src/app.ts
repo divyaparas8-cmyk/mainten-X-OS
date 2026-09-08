@@ -16,6 +16,7 @@ import { warehouseRoutes } from "./modules/warehouse/warehouse.routes.js";
 import { traceabilityRoutes } from "./modules/traceability/traceability.routes.js";
 import { maintenanceRoutes } from "./modules/maintenance/maintenance.routes.js";
 import { dashboardsRoutes } from "./modules/dashboards/dashboards.routes.js";
+import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
 
@@ -24,6 +25,21 @@ export async function buildApp(): Promise<FastifyInstance> {
     logger: {
       level: process.env.LOG_LEVEL || "info",
     },
+  });
+
+  // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+  app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body: string, done) => {
+    if (!body || body.trim().length === 0) {
+      done(null, undefined);
+      return;
+    }
+    try {
+      const json = JSON.parse(body);
+      done(null, json);
+    } catch (err: any) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
   });
 
   // 1. Core Plugins
@@ -48,6 +64,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // 4. API v1 Domain Routes
   await app.register(authRoutes, { prefix: "/api/v1/auth" });
+  await app.register(adminRoutes, { prefix: "/api/v1/admin" });
   await app.register(masterDataRoutes, { prefix: "/api/v1/master-data" });
   await app.register(planningRoutes, { prefix: "/api/v1/planning" });
   await app.register(productionRoutes, { prefix: "/api/v1/production" });

@@ -15,9 +15,10 @@ function errorHandler(error, request, reply) {
         }));
         return reply.status(400).send((0, responseFormatter_js_1.formatError)("Request validation failed", "VALIDATION_ERROR", formattedIssues));
     }
-    // 2. Custom AppError Domain Errors
-    if (error instanceof AppError_js_1.AppError) {
-        return reply.status(error.statusCode).send((0, responseFormatter_js_1.formatError)(error.message, error.code, error.details));
+    // 2. Custom AppError Domain Errors (also check statusCode property for ESM/subclassing compatibility)
+    if (error instanceof AppError_js_1.AppError || error.statusCode) {
+        const statusCode = error.statusCode || 400;
+        return reply.status(statusCode).send((0, responseFormatter_js_1.formatError)(error.message, error.code || "APP_ERROR", error.details));
     }
     // 3. Fastify Schema Validation Errors
     if ("validation" in error && error.validation) {

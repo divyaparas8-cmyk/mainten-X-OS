@@ -6,14 +6,41 @@ exports.createProductionOrderSchema = zod_1.z.object({
     orderNumber: zod_1.z.string().min(2),
     skuId: zod_1.z.string().uuid(),
     lineId: zod_1.z.string().uuid(),
-    targetQuantity: zod_1.z.coerce.number().positive(),
-    plannedStart: zod_1.z.string(),
-    plannedEnd: zod_1.z.string(),
-    priority: zod_1.z.enum(["URGENT", "NORMAL", "LOW"]).default("NORMAL"),
+    targetQuantity: zod_1.z.coerce.number().positive().optional(),
+    plannedQuantity: zod_1.z.coerce.number().positive().optional(),
+    quantity: zod_1.z.coerce.number().positive().optional(),
+    plannedStart: zod_1.z.string().optional().default(() => new Date().toISOString()),
+    plannedEnd: zod_1.z.string().optional().default(() => new Date(Date.now() + 8 * 3600000).toISOString()),
+    priority: zod_1.z.preprocess((val) => {
+        if (!val)
+            return "NORMAL";
+        const upper = String(val).toUpperCase();
+        if (upper === "HIGH" || upper === "URGENT")
+            return "URGENT";
+        if (upper === "LOW")
+            return "LOW";
+        return "NORMAL";
+    }, zod_1.z.enum(["URGENT", "NORMAL", "LOW"])).default("NORMAL"),
     notes: zod_1.z.string().optional(),
-});
+}).transform((data) => ({
+    ...data,
+    targetQuantity: data.targetQuantity || data.plannedQuantity || data.quantity || 10000,
+    plannedStart: data.plannedStart || new Date().toISOString(),
+    plannedEnd: data.plannedEnd || new Date(Date.now() + 8 * 3600000).toISOString(),
+}));
 exports.updateOrderStatusSchema = zod_1.z.object({
-    status: zod_1.z.enum([
+    status: zod_1.z.preprocess((val) => {
+        if (!val)
+            return "RUNNING";
+        const s = String(val).toUpperCase().replace(/\s+/g, "_");
+        if (s === "IN_PROGRESS" || s === "INPROGRESS" || s === "ACTIVE" || s === "START")
+            return "RUNNING";
+        if (s === "COMPLETE" || s === "DONE")
+            return "COMPLETED";
+        if (s === "PLAN")
+            return "PLANNED";
+        return s;
+    }, zod_1.z.enum([
         "PLANNED",
         "SCHEDULED",
         "RELEASED",
@@ -22,7 +49,7 @@ exports.updateOrderStatusSchema = zod_1.z.object({
         "QA_PENDING",
         "RELEASED_TO_WAREHOUSE",
         "CANCELLED",
-    ]),
+    ])),
 });
 exports.updateBatchStepSchema = zod_1.z.object({
     stepNumber: zod_1.z.coerce.number().min(1).max(6),

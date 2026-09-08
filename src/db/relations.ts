@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { tenants, plants } from "./schema/tenants.js";
 import { users, roles, permissions, userRoles, rolePermissions } from "./schema/users.js";
-import { skus, boms, bomItems, productionLines, workCenters, assets } from "./schema/masterData.js";
+import { skus, boms, bomItems, productionLines, workCenters, assets, routings, routingSteps } from "./schema/masterData.js";
 import { customerOrders, apsSchedules, mrpRequirements } from "./schema/planning.js";
 import { productionOrders, batches, batchSteps, downtimeLogs, shiftLogs } from "./schema/production.js";
 import { ccpChecks, qaReleases } from "./schema/quality.js";
@@ -13,12 +13,14 @@ export const tenantsRelations = relations(tenants, ({ many }) => ({
   plants: many(plants),
   users: many(users),
   skus: many(skus),
+  routings: many(routings),
 }));
 
 export const plantsRelations = relations(plants, ({ one, many }) => ({
   tenant: one(tenants, { fields: [plants.tenantId], references: [tenants.id] }),
   lines: many(productionLines),
   assets: many(assets),
+  routings: many(routings),
 }));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -35,6 +37,7 @@ export const skusRelations = relations(skus, ({ many }) => ({
   boms: many(boms),
   productionOrders: many(productionOrders),
   inventoryLots: many(inventoryLots),
+  routings: many(routings),
 }));
 
 export const bomsRelations = relations(boms, ({ one, many }) => ({
@@ -82,3 +85,17 @@ export const workOrdersRelations = relations(workOrders, ({ one }) => ({
   asset: one(assets, { fields: [workOrders.assetId], references: [assets.id] }),
   assignedUser: one(users, { fields: [workOrders.assignedTo], references: [users.id] }),
 }));
+
+export const routingsRelations = relations(routings, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [routings.tenantId], references: [tenants.id] }),
+  plant: one(plants, { fields: [routings.plantId], references: [plants.id] }),
+  sku: one(skus, { fields: [routings.skuId], references: [skus.id] }),
+  line: one(productionLines, { fields: [routings.lineId], references: [productionLines.id] }),
+  steps: many(routingSteps),
+}));
+
+export const routingStepsRelations = relations(routingSteps, ({ one }) => ({
+  routing: one(routings, { fields: [routingSteps.routingId], references: [routings.id] }),
+  workCenter: one(workCenters, { fields: [routingSteps.workCenterId], references: [workCenters.id] }),
+}));
+

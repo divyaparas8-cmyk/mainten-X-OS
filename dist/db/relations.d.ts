@@ -2,11 +2,13 @@ export declare const tenantsRelations: import("drizzle-orm").Relations<"tenants"
     plants: import("drizzle-orm").Many<"plants">;
     users: import("drizzle-orm").Many<"users">;
     skus: import("drizzle-orm").Many<"skus">;
+    routings: import("drizzle-orm").Many<"routings">;
 }>;
 export declare const plantsRelations: import("drizzle-orm").Relations<"plants", {
     tenant: import("drizzle-orm").One<"tenants", true>;
     lines: import("drizzle-orm").Many<"production_lines">;
     assets: import("drizzle-orm").Many<"assets">;
+    routings: import("drizzle-orm").Many<"routings">;
 }>;
 export declare const usersRelations: import("drizzle-orm").Relations<"users", {
     tenant: import("drizzle-orm").One<"tenants", true>;
@@ -20,6 +22,7 @@ export declare const skusRelations: import("drizzle-orm").Relations<"skus", {
     boms: import("drizzle-orm").Many<"boms">;
     productionOrders: import("drizzle-orm").Many<"production_orders">;
     inventoryLots: import("drizzle-orm").Many<"inventory_lots">;
+    routings: import("drizzle-orm").Many<"routings">;
 }>;
 export declare const bomsRelations: import("drizzle-orm").Relations<"boms", {
     sku: import("drizzle-orm").One<"skus", true>;
@@ -58,5 +61,16 @@ export declare const inventoryLotsRelations: import("drizzle-orm").Relations<"in
 export declare const workOrdersRelations: import("drizzle-orm").Relations<"work_orders", {
     asset: import("drizzle-orm").One<"assets", true>;
     assignedUser: import("drizzle-orm").One<"users", false>;
+}>;
+export declare const routingsRelations: import("drizzle-orm").Relations<"routings", {
+    tenant: import("drizzle-orm").One<"tenants", true>;
+    plant: import("drizzle-orm").One<"plants", false>;
+    sku: import("drizzle-orm").One<"skus", true>;
+    line: import("drizzle-orm").One<"production_lines", false>;
+    steps: import("drizzle-orm").Many<"routing_steps">;
+}>;
+export declare const routingStepsRelations: import("drizzle-orm").Relations<"routing_steps", {
+    routing: import("drizzle-orm").One<"routings", true>;
+    workCenter: import("drizzle-orm").One<"work_centers", false>;
 }>;
 //# sourceMappingURL=relations.d.ts.map

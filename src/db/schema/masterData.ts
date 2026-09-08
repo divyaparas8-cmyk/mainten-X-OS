@@ -139,3 +139,39 @@ export const qualitySpecs = pgTable("quality_specs", {
   isCCP: boolean("is_ccp").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const routings = pgTable("routings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "set null" }),
+  routingCode: varchar("routing_code", { length: 100 }).notNull(), // e.g. "RTG-5001-L1"
+  skuId: uuid("sku_id").references(() => skus.id, { onDelete: "cascade" }).notNull(),
+  lineId: uuid("line_id").references(() => productionLines.id, { onDelete: "set null" }),
+  revision: varchar("revision", { length: 50 }).default("R1").notNull(),
+  approvalStatus: varchar("approval_status", { length: 50 }).default("Approved").notNull(), // "Draft", "In Review", "Approved", "Obsolete"
+  status: varchar("status", { length: 50 }).default("Active").notNull(), // "Active", "Inactive"
+  stdRunRateBph: integer("std_run_rate_bph").default(12000).notNull(),
+  setupDurationMin: integer("setup_duration_min").default(45).notNull(),
+  expectedYieldPct: numeric("expected_yield_pct", { precision: 5, scale: 2 }).default("98.50").notNull(),
+  effectiveFrom: timestamp("effective_from"),
+  effectiveTo: timestamp("effective_to"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const routingSteps = pgTable("routing_steps", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  routingId: uuid("routing_id").references(() => routings.id, { onDelete: "cascade" }).notNull(),
+  sequence: integer("sequence").default(10).notNull(),
+  operationCode: varchar("operation_code", { length: 100 }).notNull(), // "OP-10", "OP-20"
+  operationName: varchar("operation_name", { length: 255 }).notNull(), // "Depalletizing & Bottle Infeed"
+  workCenterId: uuid("work_center_id").references(() => workCenters.id, { onDelete: "set null" }),
+  stdDurationMin: numeric("std_duration_min", { precision: 10, scale: 2 }).default("15.00"),
+  setupDurationMin: numeric("setup_duration_min", { precision: 10, scale: 2 }).default("10.00"),
+  crewSize: integer("crew_size").default(2),
+  isQualityGate: boolean("is_quality_gate").default(false).notNull(),
+  instructions: text("instructions"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+

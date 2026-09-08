@@ -19,10 +19,11 @@ export function errorHandler(error: FastifyError | Error, request: FastifyReques
     );
   }
 
-  // 2. Custom AppError Domain Errors
-  if (error instanceof AppError) {
-    return reply.status(error.statusCode).send(
-      formatError(error.message, error.code, error.details)
+  // 2. Custom AppError Domain Errors (also check statusCode property for ESM/subclassing compatibility)
+  if (error instanceof AppError || (error as any).statusCode) {
+    const statusCode = (error as any).statusCode || 400;
+    return reply.status(statusCode).send(
+      formatError(error.message, (error as any).code || "APP_ERROR", (error as any).details)
     );
   }
 
@@ -56,3 +57,4 @@ export function errorHandler(error: FastifyError | Error, request: FastifyReques
     )
   );
 }
+

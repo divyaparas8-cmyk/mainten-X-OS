@@ -20,8 +20,41 @@ export declare class MaintenanceService {
         failureCodeId: string | null;
         estimatedHours: string | null;
         actualHours: string | null;
-        asset: never;
-        assignedUser: never;
+        asset: {
+            status: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            lineId: string | null;
+            assetCode: string;
+            modelNumber: string | null;
+            manufacturer: string | null;
+            criticalLevel: string | null;
+            healthPercent: number | null;
+            mtbfHours: string | null;
+            mttrHours: string | null;
+            installDate: Date | null;
+            lastServiceDate: Date | null;
+        };
+        assignedUser: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            email: string;
+            passwordHash: string;
+            firstName: string;
+            lastName: string;
+            phone: string | null;
+            avatarUrl: string | null;
+            digitalSignaturePinHash: string | null;
+            isMasterAdmin: boolean;
+            lastLoginAt: Date | null;
+        } | null;
     }[]>;
     createWorkOrder(tenantId: string, plantId: string, input: CreateWorkOrderInput, userId: string): Promise<{
         type: string;

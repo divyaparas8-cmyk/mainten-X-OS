@@ -21,6 +21,7 @@ const warehouse_routes_js_1 = require("./modules/warehouse/warehouse.routes.js")
 const traceability_routes_js_1 = require("./modules/traceability/traceability.routes.js");
 const maintenance_routes_js_1 = require("./modules/maintenance/maintenance.routes.js");
 const dashboards_routes_js_1 = require("./modules/dashboards/dashboards.routes.js");
+const admin_routes_js_1 = require("./modules/admin/admin.routes.js");
 const notifications_routes_js_1 = require("./modules/notifications/notifications.routes.js");
 const search_routes_js_1 = require("./modules/search/search.routes.js");
 async function buildApp() {
@@ -28,6 +29,21 @@ async function buildApp() {
         logger: {
             level: process.env.LOG_LEVEL || "info",
         },
+    });
+    // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+    app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => {
+        if (!body || body.trim().length === 0) {
+            done(null, undefined);
+            return;
+        }
+        try {
+            const json = JSON.parse(body);
+            done(null, json);
+        }
+        catch (err) {
+            err.statusCode = 400;
+            done(err, undefined);
+        }
     });
     // 1. Core Plugins
     await app.register(cors_js_1.default);
@@ -48,6 +64,7 @@ async function buildApp() {
     });
     // 4. API v1 Domain Routes
     await app.register(auth_routes_js_1.authRoutes, { prefix: "/api/v1/auth" });
+    await app.register(admin_routes_js_1.adminRoutes, { prefix: "/api/v1/admin" });
     await app.register(masterData_routes_js_1.masterDataRoutes, { prefix: "/api/v1/master-data" });
     await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1/planning" });
     await app.register(production_routes_js_1.productionRoutes, { prefix: "/api/v1/production" });

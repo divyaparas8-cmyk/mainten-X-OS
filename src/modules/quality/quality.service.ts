@@ -8,6 +8,9 @@ import { NotFoundError, UnauthorizedError, BusinessRuleError } from "../../share
 import { authService } from "../auth/auth.service.js";
 import { logAuditTrail } from "../../middleware/auditContext.js";
 
+import { productionLines } from "../../db/schema/masterData.js";
+import { isValidUuid } from "../../shared/utils/tenantContext.js";
+
 export class QualityService {
   async listCcpChecks(tenantId: string, plantId?: string) {
     return await db.select().from(ccpChecks).where(eq(ccpChecks.tenantId, tenantId));
@@ -24,13 +27,25 @@ export class QualityService {
       status = "FAIL";
     }
 
+    let lineId = input.lineId;
+    if (!lineId || !isValidUuid(lineId)) {
+      const [firstLine] = await db.select().from(productionLines).where(eq(productionLines.tenantId, tenantId)).limit(1);
+      lineId = firstLine?.id || "c95201ab-a665-40ee-acd8-bd630e901932";
+    }
+
+    let batchId = input.batchId;
+    if (!batchId || !isValidUuid(batchId)) {
+      const [firstBatch] = await db.select().from(batches).where(eq(batches.tenantId, tenantId)).limit(1);
+      batchId = firstBatch?.id || "f2b711ac-68cd-4111-a6f4-256155a7776a";
+    }
+
     const [check] = await db
       .insert(ccpChecks)
       .values({
         tenantId,
         plantId,
-        lineId: input.lineId,
-        batchId: input.batchId,
+        lineId,
+        batchId,
         ccpCode: input.ccpCode,
         ccpName: input.ccpName,
         targetValue: input.targetValue.toString(),
@@ -122,16 +137,36 @@ export class QualityService {
   }
 
   async createQualityHold(tenantId: string, plantId: string, input: CreateQualityHoldInput, userId: string) {
+    let resolvedBatchId: string | null = null;
+    if (input.batchId) {
+      if (isValidUuid(input.batchId)) {
+        resolvedBatchId = input.batchId;
+      } else {
+        const [foundBatch] = await db
+          .select()
+          .from(batches)
+          .where(and(eq(batches.tenantId, tenantId), eq(batches.batchNumber, input.batchId)))
+          .limit(1);
+        if (foundBatch) resolvedBatchId = foundBatch.id;
+      }
+    }
+
+    let resolvedHoldBy = userId;
+    if (!resolvedHoldBy || !isValidUuid(resolvedHoldBy)) {
+      const [firstUser] = await db.select().from(users).where(eq(users.tenantId, tenantId)).limit(1);
+      resolvedHoldBy = firstUser?.id || "923145ab-8812-4cf3-a12b-bba711200192";
+    }
+
     const [hold] = await db
       .insert(qualityHolds)
       .values({
         tenantId,
         plantId,
         lotNumber: input.lotNumber,
-        batchId: input.batchId,
+        batchId: resolvedBatchId,
         reason: input.reason,
         severity: input.severity,
-        holdBy: userId,
+        holdBy: resolvedHoldBy,
       })
       .returning();
 

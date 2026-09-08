@@ -3,22 +3,33 @@ import { warehouseService } from "./warehouse.service.js";
 import { createLotSchema, createTransactionSchema } from "./warehouse.schema.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
 
+import { resolvePlantId } from "../../shared/utils/tenantContext.js";
+
 export class WarehouseController {
   async getLots(request: FastifyRequest, reply: FastifyReply) {
-    const data = await warehouseService.listLots(request.user.tenantId, request.user.plantId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await warehouseService.listLots(request.user.tenantId, plantId);
     return reply.send(formatSuccess(data));
   }
 
   async createLot(request: FastifyRequest, reply: FastifyReply) {
     const input = createLotSchema.parse(request.body);
-    const data = await warehouseService.createLot(request.user.tenantId, request.user.plantId || "default-plant", input);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await warehouseService.createLot(request.user.tenantId, plantId, input);
     return reply.status(201).send(formatSuccess(data, "Inventory lot registered & initial receipt transaction logged"));
   }
 
   async recordTransaction(request: FastifyRequest, reply: FastifyReply) {
     const input = createTransactionSchema.parse(request.body);
-    const data = await warehouseService.recordTransaction(request.user.tenantId, request.user.plantId || "default-plant", input, request.user.userId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await warehouseService.recordTransaction(request.user.tenantId, plantId, input, request.user.userId);
     return reply.status(201).send(formatSuccess(data, `Inventory transaction [${input.type}] recorded cleanly`));
+  }
+
+  async getTransactions(request: FastifyRequest, reply: FastifyReply) {
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await warehouseService.listTransactions(request.user.tenantId, plantId);
+    return reply.send(formatSuccess(data));
   }
 
   async getWarehouses(request: FastifyRequest, reply: FastifyReply) {
@@ -33,3 +44,4 @@ export class WarehouseController {
 }
 
 export const warehouseController = new WarehouseController();
+

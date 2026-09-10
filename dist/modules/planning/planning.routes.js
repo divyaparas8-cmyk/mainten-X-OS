@@ -7,6 +7,8 @@ async function planningRoutes(fastify) {
     fastify.addHook("preHandler", authenticate_js_1.authenticate);
     fastify.get("/demand/orders", { schema: { tags: ["Planning & Demand"], summary: "List Customer Demand Orders" } }, planning_controller_js_1.planningController.getCustomerOrders.bind(planning_controller_js_1.planningController));
     fastify.post("/demand/orders", { schema: { tags: ["Planning & Demand"], summary: "Create Customer Demand Order" } }, planning_controller_js_1.planningController.createCustomerOrder.bind(planning_controller_js_1.planningController));
+    fastify.put("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Customer Demand Order" } }, planning_controller_js_1.planningController.updateCustomerOrder.bind(planning_controller_js_1.planningController));
+    fastify.delete("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Customer Demand Order" } }, planning_controller_js_1.planningController.deleteCustomerOrder.bind(planning_controller_js_1.planningController));
     fastify.post("/forecast/run", { schema: { tags: ["Planning & Demand"], summary: "Execute Statistical Forecast Engine" } }, planning_controller_js_1.planningController.runForecast.bind(planning_controller_js_1.planningController));
     fastify.get("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "List Multi-Line APS Gantt Schedules" } }, planning_controller_js_1.planningController.getApsSchedules.bind(planning_controller_js_1.planningController));
     fastify.post("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "Publish APS Schedule" } }, planning_controller_js_1.planningController.createApsSchedule.bind(planning_controller_js_1.planningController));

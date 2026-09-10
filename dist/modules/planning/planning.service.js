@@ -42,9 +42,38 @@ class PlanningService {
             priority: input.priority,
             requestedDate: new Date(input.requestedDate),
             deliveryAddress: input.deliveryAddress,
+            status: input.status ? input.status.toUpperCase() : "OPEN",
         })
             .returning();
         return order;
+    }
+    async updateCustomerOrder(tenantId, id, updates) {
+        const updateValues = { updatedAt: new Date() };
+        if (updates.customerName)
+            updateValues.customerName = updates.customerName;
+        if (updates.quantity)
+            updateValues.quantity = updates.quantity.toString();
+        if (updates.priority)
+            updateValues.priority = updates.priority;
+        if (updates.status)
+            updateValues.status = updates.status.toUpperCase();
+        if (updates.deliveryAddress !== undefined)
+            updateValues.deliveryAddress = updates.deliveryAddress;
+        if (updates.requestedDate)
+            updateValues.requestedDate = new Date(updates.requestedDate);
+        const isUuid = (0, tenantContext_js_1.isValidUuid)(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.orderNumber, id));
+        const [updated] = await database_js_1.db.update(planning_js_1.customerOrders).set(updateValues).where(condition).returning();
+        return updated;
+    }
+    async deleteCustomerOrder(tenantId, id) {
+        const isUuid = (0, tenantContext_js_1.isValidUuid)(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.orderNumber, id));
+        return await database_js_1.db.delete(planning_js_1.customerOrders).where(condition);
     }
     async runStatisticalForecast(tenantId, plantId, input) {
         let resolvedSkuId = input.skuId;

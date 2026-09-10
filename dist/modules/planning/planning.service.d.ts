@@ -32,6 +32,23 @@ export declare class PlanningService {
         scheduledDate: Date | null;
         deliveryAddress: string | null;
     }>;
+    updateCustomerOrder(tenantId: string, id: string, updates: Partial<CreateCustomerOrderInput>): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        orderNumber: string;
+        customerName: string;
+        skuId: string;
+        quantity: string;
+        priority: string | null;
+        requestedDate: Date;
+        scheduledDate: Date | null;
+        status: string;
+        deliveryAddress: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteCustomerOrder(tenantId: string, id: string): Promise<import("pg").QueryResult<never>>;
     runStatisticalForecast(tenantId: string, plantId: string, input: RunForecastInput): Promise<{
         historicalDemand: number[];
         calculationDetails: import("../../shared/engines/forecastEngine.js").ForecastOutput;

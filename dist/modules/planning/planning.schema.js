@@ -20,6 +20,7 @@ exports.createCustomerOrderSchema = zod_1.z.object({
     }, zod_1.z.enum(["URGENT", "NORMAL", "LOW"]).default("NORMAL")),
     requestedDate: zod_1.z.string(),
     deliveryAddress: zod_1.z.string().optional(),
+    status: zod_1.z.string().optional(),
 });
 exports.runForecastSchema = zod_1.z.object({
     skuId: zod_1.z.string().min(1),

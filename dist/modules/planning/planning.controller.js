@@ -17,6 +17,16 @@ class PlanningController {
         const data = await planning_service_js_1.planningService.createCustomerOrder(request.user.tenantId, plantId, input);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Customer demand order created"));
     }
+    async updateCustomerOrder(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.updateCustomerOrder(request.user.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Customer demand order updated"));
+    }
+    async deleteCustomerOrder(request, reply) {
+        const { id } = request.params;
+        await planning_service_js_1.planningService.deleteCustomerOrder(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(null, "Customer demand order deleted"));
+    }
     async runForecast(request, reply) {
         const input = planning_schema_js_1.runForecastSchema.parse(request.body);
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);

@@ -7,6 +7,7 @@ export declare const createCustomerOrderSchema: z.ZodObject<{
     priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["URGENT", "NORMAL", "LOW"]>>, "NORMAL" | "URGENT" | "LOW", unknown>;
     requestedDate: z.ZodString;
     deliveryAddress: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     skuId: string;
     quantity: number;
@@ -14,6 +15,7 @@ export declare const createCustomerOrderSchema: z.ZodObject<{
     customerName: string;
     priority: "NORMAL" | "URGENT" | "LOW";
     requestedDate: string;
+    status?: string | undefined;
     deliveryAddress?: string | undefined;
 }, {
     skuId: string;
@@ -21,6 +23,7 @@ export declare const createCustomerOrderSchema: z.ZodObject<{
     orderNumber: string;
     customerName: string;
     requestedDate: string;
+    status?: string | undefined;
     priority?: unknown;
     deliveryAddress?: string | undefined;
 }>;

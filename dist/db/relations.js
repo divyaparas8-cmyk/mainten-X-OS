@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.routingStepsRelations = exports.routingsRelations = exports.workOrdersRelations = exports.inventoryLotsRelations = exports.ccpChecksRelations = exports.batchStepsRelations = exports.batchesRelations = exports.productionOrdersRelations = exports.bomItemsRelations = exports.bomsRelations = exports.skusRelations = exports.rolesRelations = exports.usersRelations = exports.plantsRelations = exports.tenantsRelations = void 0;
+exports.inventoryTransactionsRelations = exports.routingStepsRelations = exports.routingsRelations = exports.workOrdersRelations = exports.inventoryLotsRelations = exports.ccpChecksRelations = exports.batchStepsRelations = exports.batchesRelations = exports.productionOrdersRelations = exports.bomItemsRelations = exports.bomsRelations = exports.skusRelations = exports.rolesRelations = exports.usersRelations = exports.plantsRelations = exports.tenantsRelations = void 0;
 const drizzle_orm_1 = require("drizzle-orm");
 const tenants_js_1 = require("./schema/tenants.js");
 const users_js_1 = require("./schema/users.js");
@@ -84,5 +84,9 @@ exports.routingsRelations = (0, drizzle_orm_1.relations)(masterData_js_1.routing
 exports.routingStepsRelations = (0, drizzle_orm_1.relations)(masterData_js_1.routingSteps, ({ one }) => ({
     routing: one(masterData_js_1.routings, { fields: [masterData_js_1.routingSteps.routingId], references: [masterData_js_1.routings.id] }),
     workCenter: one(masterData_js_1.workCenters, { fields: [masterData_js_1.routingSteps.workCenterId], references: [masterData_js_1.workCenters.id] }),
+}));
+exports.inventoryTransactionsRelations = (0, drizzle_orm_1.relations)(warehouse_js_1.inventoryTransactions, ({ one }) => ({
+    lot: one(warehouse_js_1.inventoryLots, { fields: [warehouse_js_1.inventoryTransactions.lotId], references: [warehouse_js_1.inventoryLots.id] }),
+    performedByUser: one(users_js_1.users, { fields: [warehouse_js_1.inventoryTransactions.performedBy], references: [users_js_1.users.id] }),
 }));
 //# sourceMappingURL=relations.js.map

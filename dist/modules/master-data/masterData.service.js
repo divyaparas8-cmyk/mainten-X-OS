@@ -5,6 +5,7 @@ const database_js_1 = require("../../config/database.js");
 const masterData_js_1 = require("../../db/schema/masterData.js");
 const tenants_js_1 = require("../../db/schema/tenants.js");
 const drizzle_orm_1 = require("drizzle-orm");
+const AppError_js_1 = require("../../shared/errors/AppError.js");
 let inMemoryCompanies = [
     {
         id: "CMP-01",
@@ -99,24 +100,179 @@ let inMemoryUoms = [
     { id: "UOM-05", uomId: "UOM-05", code: "KG", name: "Kilogram", category: "Weight", baseUnit: "KG", conversionFactor: 1, status: "Active" },
 ];
 let inMemoryPackConfigs = [
-    { id: "PC-01", configId: "PC-01", code: "PC-PET500-24", name: "500ml PET 24-Pack Shrink Tray", packagingType: "Tray + Poly Film", primaryUnitCount: 24, secondaryUnitCount: 1, palletCount: 72, grossWeightKg: 12.8, status: "Active" },
-    { id: "PC-02", configId: "PC-02", code: "PC-CAN330-24", name: "330ml Sleek Can 24-Pack Corrugated Box", packagingType: "RSC Cardboard Box", primaryUnitCount: 24, secondaryUnitCount: 1, palletCount: 80, grossWeightKg: 8.4, status: "Active" },
+    {
+        id: "PC-01", configId: "PC-01",
+        packConfigId: "PC-01",
+        code: "AHSK-7", packCode: "AHSK-7",
+        name: "500ml PET 24-Pack Shrink Tray",
+        skuName: "500ml Sparkling Citrus Soda", skuCode: "SKU-5001", skuId: "SKU-001",
+        unitsPerPack: 24, primaryUnitCount: 24,
+        packType: "Corrugated Tray & Shrink Wrap", packagingType: "Corrugated Tray & Shrink Wrap",
+        caseConfiguration: "4x6 Units (24 Count)",
+        palletConfiguration: "60 Cases / 1,440 Units per Pallet", palletCount: 60,
+        packagingUom: "CASE-24", tareWeightKg: 12.8, grossWeightKg: 12.8,
+        status: "Active"
+    },
+    {
+        id: "PC-02", configId: "PC-02",
+        packConfigId: "PC-02",
+        code: "LMCN-12", packCode: "LMCN-12",
+        name: "330ml Sleek Can 24-Pack Corrugated Box",
+        skuName: "1L Tonic Water Natural Quinine", skuCode: "SKU-5002", skuId: "SKU-002",
+        unitsPerPack: 12, primaryUnitCount: 12,
+        packType: "RSC Cardboard Box", packagingType: "RSC Cardboard Box",
+        caseConfiguration: "4x3 Units (12 Count)",
+        palletConfiguration: "80 Cases / 960 Units per Pallet", palletCount: 80,
+        packagingUom: "CASE-12", tareWeightKg: 8.4, grossWeightKg: 8.4,
+        status: "Active"
+    },
 ];
 let inMemoryLineTargets = [
     { id: "TGT-01", targetId: "TGT-01", plantId: "PLT-01", lineId: "LIN-01", lineName: "High-Speed Bottling Line 1", skuId: "SKU-001", skuCode: "SKU-5001", skuName: "Citrus Burst Soda", shift: "Morning Shift (A)", plannedOEE: 88.0, plannedUnitsPerHour: 36000, plannedYieldPct: 99.2, changeoverTimeMin: 20, status: "Active" },
     { id: "TGT-02", targetId: "TGT-02", plantId: "PLT-01", lineId: "LIN-02", lineName: "Medium-Speed Glass Line 2", skuId: "SKU-002", skuCode: "SKU-5002", skuName: "Wild Berry Sparkling Water", shift: "Morning Shift (A)", plannedOEE: 85.0, plannedUnitsPerHour: 30000, plannedYieldPct: 98.8, changeoverTimeMin: 25, status: "Active" },
 ];
 let inMemoryChangeoverRules = [
-    { id: "CO-01", ruleId: "CO-01", fromSkuFamily: "CSD-CARBONATED", toSkuFamily: "SPARK-WATER", matrixType: "Flavor & Color Clear", requiredCleaningMin: 35, allergenCleaningRequired: false, allergenType: "", mechanicalChangeoverMin: 15, totalDurationMin: 50, status: "Active" },
-    { id: "CO-02", ruleId: "CO-02", fromSkuFamily: "JUICE-ASEPTIC", toSkuFamily: "CSD-CARBONATED", matrixType: "Full CIP Sterilization", requiredCleaningMin: 60, allergenCleaningRequired: true, allergenType: "Fruit Pulp", mechanicalChangeoverMin: 30, totalDurationMin: 90, status: "Active" },
+    {
+        id: "CO-01",
+        matrixId: "CO-01",
+        fromSkuId: "SKU-001",
+        fromSkuCode: "SKU-5001",
+        fromFamily: "Sparkling Flavors",
+        toSkuId: "SKU-001",
+        toSkuCode: "SKU-5001",
+        toFamily: "Sparkling Flavors",
+        changeoverDurationMin: 0,
+        sanitationClass: "None (Same SKU Continuous)",
+        allergenCleaningRequired: false,
+        notes: "No changeover downtime required for identical formulation batch continuation.",
+        status: "Active"
+    },
+    {
+        id: "CO-02",
+        matrixId: "CO-02",
+        fromSkuId: "SKU-001",
+        fromSkuCode: "SKU-5001",
+        fromFamily: "Sparkling Flavors",
+        toSkuId: "SKU-002",
+        toSkuCode: "SKU-5002",
+        toFamily: "Tonics & Mixers",
+        changeoverDurationMin: 45,
+        sanitationClass: "Class B - Warm Water Flush & Syrup Line Rinse",
+        allergenCleaningRequired: false,
+        notes: "Requires syrup manifold rinse and bottle capper starwheel size change from 500ml to 1L.",
+        status: "Active"
+    },
+    {
+        id: "CO-03",
+        matrixId: "CO-03",
+        fromSkuId: "SKU-001",
+        fromSkuCode: "SKU-5001",
+        fromFamily: "Sparkling Flavors",
+        toSkuId: "SKU-004",
+        toSkuCode: "SKU-5004",
+        toFamily: "Energy Drinks",
+        changeoverDurationMin: 60,
+        sanitationClass: "Class A - Full CIP Sterilization",
+        allergenCleaningRequired: true,
+        notes: "Mandatory deep CIP due to caffeine and high-taurine flavor carryover risk.",
+        status: "Active"
+    }
 ];
 let inMemorySanitationClasses = [
-    { id: "SAN-01", classId: "SAN-01", code: "SAN-CIP-HOT", name: "Hot Caustic CIP (3-Phase)", cleaningLevel: "Comprehensive", washDurationMin: 45, chemicalAgent: "2.0% NaOH @ 80°C", validationMethod: "Conductivity & Swab Test", frequency: "Daily / Major Changeover", status: "Active" },
-    { id: "SAN-02", classId: "SAN-02", code: "SAN-RINSE-COLD", name: "Treated Water Flush & PAA Sanitize", cleaningLevel: "Intermediate", washDurationMin: 20, chemicalAgent: "0.2% Peracetic Acid", validationMethod: "Visual & ATP Swab", frequency: "Minor Flavor Shift", status: "Active" },
+    {
+        id: "SAN-01",
+        sanitationId: "SAN-01",
+        classId: "SAN-01",
+        code: "SAN-CIP-HOT",
+        name: "Class A - Full Caustic CIP (Hot CIP 85°C)",
+        sanitationClass: "Class A - Full Caustic CIP (Hot CIP 85°C)",
+        description: "5-Step full automated clean-in-place: Pre-rinse, Hot Caustic (85°C), Intermediate Rinse, Peracetic Acid Sanitization, Final Sterile Water Rinse.",
+        durationMin: 75,
+        washDurationMin: 75,
+        cleaningMethod: "Automated 5-Step Central CIP Skid",
+        cleaningLevel: "Comprehensive",
+        riskLevel: "Critical / Allergen Elimination",
+        applicableProducts: "Tonics, Ginger Extract Formulations, Allergen Swaps",
+        chemicalAgent: "2.0% NaOH @ 80°C",
+        validationMethod: "Conductivity & Swab Test",
+        frequency: "Daily / Major Changeover",
+        status: "Active"
+    },
+    {
+        id: "SAN-02",
+        sanitationId: "SAN-02",
+        classId: "SAN-02",
+        code: "SAN-RINSE-COLD",
+        name: "Class B - Warm Water Flush & Sanitizer Rinse",
+        sanitationClass: "Class B - Warm Water Flush & Sanitizer Rinse",
+        description: "Warm water flush (55°C) followed by ozone/peracetic acid chemical sanitizer rinse.",
+        durationMin: 35,
+        washDurationMin: 35,
+        cleaningMethod: "Inline CIP Circuit Flush",
+        cleaningLevel: "Intermediate",
+        riskLevel: "Medium (Flavor Swap)",
+        applicableProducts: "Citrus to Cola, Clear Soda to Flavored Soda",
+        chemicalAgent: "0.2% Peracetic Acid",
+        validationMethod: "Visual & ATP Swab",
+        frequency: "Minor Flavor Shift",
+        status: "Active"
+    },
+    {
+        id: "SAN-03",
+        sanitationId: "SAN-03",
+        classId: "SAN-03",
+        code: "SAN-DRY-CLEAN",
+        name: "Class C - Dry Line Sanitation & Vacuum",
+        sanitationClass: "Class C - Dry Line Sanitation & Vacuum",
+        description: "Mechanical dry vacuum, optical sensor lens clean, starwheel sanitization wipe down.",
+        durationMin: 15,
+        washDurationMin: 15,
+        cleaningMethod: "Manual Operator Protocol",
+        cleaningLevel: "Routine",
+        riskLevel: "Low (Same Product Batch Restart)",
+        applicableProducts: "All Finished Goods",
+        chemicalAgent: "Sterile Alcohol Wipes",
+        validationMethod: "Visual Inspection",
+        frequency: "Between Batches",
+        status: "Active"
+    }
 ];
 let inMemoryAllergenRules = [
-    { id: "ALG-01", ruleId: "ALG-01", allergenType: "Soy & Lecithin", allergenName: "Soy-Derived Emulsifiers", riskLevel: "High", protocol: "Hot Caustic CIP + Strip Inspection", verificationTest: "ELISA Specific Strip Test", status: "Active" },
-    { id: "ALG-02", ruleId: "ALG-02", allergenType: "Dairy & Whey", allergenName: "Hydrolyzed Whey Protein", riskLevel: "Critical", protocol: "Full Alkaline CIP + Acid Rinse + Heat Sanitize", verificationTest: "Lateral Flow Strip + QA Signoff", status: "Active" },
+    {
+        id: "ALG-01",
+        ruleId: "ALG-01",
+        allergenId: "ALG-01",
+        allergenType: "Botanical Extracts",
+        allergenName: "Ginger Extract Botanical Essences",
+        skuId: "SKU-003",
+        skuCode: "SKU-5003",
+        riskLevel: "Medium Allergen / Sensory Carryover",
+        cleaningProtocol: "Class A Full CIP + Sensory Swab Verification",
+        protocol: "Class A Full CIP + Sensory Swab Verification",
+        changeoverRestriction: "Must schedule at end of production week prior to weekly deep sanitation.",
+        verificationTest: "ELISA Specific Strip Test",
+        status: "Active"
+    },
+    {
+        id: "ALG-02",
+        ruleId: "ALG-02",
+        allergenId: "ALG-02",
+        allergenType: "Preservatives & Sulfites",
+        allergenName: "Sulfites (Preservatives in Flavorings)",
+        skuId: "SKU-102",
+        skuCode: "ING-1002",
+        riskLevel: "High Regulatory CCP",
+        cleaningProtocol: "Class A CIP + ATP Swab Validation < 10 RLU",
+        protocol: "Class A CIP + ATP Swab Validation < 10 RLU",
+        changeoverRestriction: "Mandatory QA clearance sign-off before commencing allergen-free SKU filling.",
+        verificationTest: "Lateral Flow Strip + QA Signoff",
+        status: "Active"
+    }
+];
+let inMemoryLabourStandards = [
+    { id: "LBR-01", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", standardCrew: 10, stdLaborHoursPer1kUnits: 2.38, directCostPerHour: "$24.50", status: "Active" },
+    { id: "LBR-02", lineId: "LIN-02", lineName: "Line 2 — Formulation & Pasteurizer", standardCrew: 6, stdLaborHoursPer1kUnits: 1.85, directCostPerHour: "$28.00", status: "Active" },
+    { id: "LBR-03", lineId: "LIN-03", lineName: "Line 3 — Canning Line", standardCrew: 8, stdLaborHoursPer1kUnits: 2.15, directCostPerHour: "$24.50", status: "Active" }
 ];
 let inMemorySkus = [
     {
@@ -234,6 +390,28 @@ function matchKey(entity, keyVal, candidateProps = ["id", "code", "companyId", "
     }
     catch (_) { }
     return false;
+}
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function resolvePlantId(tenantId, plantIdOrCode) {
+    if (!plantIdOrCode)
+        return undefined;
+    if (UUID_REGEX.test(plantIdOrCode))
+        return plantIdOrCode;
+    // Try to find plant by code (e.g. "INDORE-01", "PUNE-02", "PLT-01")
+    const [plant] = await database_js_1.db
+        .select({ id: tenants_js_1.plants.id })
+        .from(tenants_js_1.plants)
+        .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(tenants_js_1.plants.code, plantIdOrCode), (0, drizzle_orm_1.sql) `lower(${tenants_js_1.plants.code}) = lower(${plantIdOrCode})`)))
+        .limit(1);
+    if (plant)
+        return plant.id;
+    // Fallback to first plant for tenant so it never throws invalid UUID error
+    const [firstPlant] = await database_js_1.db
+        .select({ id: tenants_js_1.plants.id })
+        .from(tenants_js_1.plants)
+        .where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId))
+        .limit(1);
+    return firstPlant?.id;
 }
 class MasterDataService {
     // ==========================================
@@ -1146,13 +1324,24 @@ class MasterDataService {
         const newConfig = {
             id: newId,
             configId: newId,
-            code: (input.code || `PC-0${inMemoryPackConfigs.length + 1}`).toUpperCase(),
-            name: input.name,
-            packagingType: input.packagingType || "Tray + Poly Film",
-            primaryUnitCount: Number(input.primaryUnitCount) || 24,
-            secondaryUnitCount: Number(input.secondaryUnitCount) || 1,
-            palletCount: Number(input.palletCount) || 72,
-            grossWeightKg: Number(input.grossWeightKg) || 12.5,
+            packConfigId: input.packConfigId || newId,
+            // Store BOTH frontend and backend field names for cross-compatibility
+            packCode: input.packCode || input.code || newId,
+            code: (input.packCode || input.code || newId).toUpperCase(),
+            skuName: input.skuName || input.name || "",
+            name: input.skuName || input.name || "",
+            skuCode: input.skuCode || "",
+            skuId: input.skuId || "",
+            unitsPerPack: Number(input.unitsPerPack || input.primaryUnitCount) || 24,
+            primaryUnitCount: Number(input.unitsPerPack || input.primaryUnitCount) || 24,
+            packType: input.packType || input.packagingType || "Corrugated Tray & Shrink Wrap",
+            packagingType: input.packType || input.packagingType || "Corrugated Tray & Shrink Wrap",
+            caseConfiguration: input.caseConfiguration || "",
+            palletConfiguration: input.palletConfiguration || "",
+            palletCount: Number(input.palletCount) || 60,
+            packagingUom: input.packagingUom || "CASE-24",
+            tareWeightKg: Number(input.tareWeightKg) || 12.5,
+            grossWeightKg: Number(input.grossWeightKg || input.tareWeightKg) || 12.5,
             status: input.status || "Active",
         };
         inMemoryPackConfigs.push(newConfig);
@@ -1227,22 +1416,24 @@ class MasterDataService {
         const newId = `CO-0${inMemoryChangeoverRules.length + 1}`;
         const newRule = {
             id: newId,
-            ruleId: newId,
-            fromSkuFamily: input.fromSkuFamily || "CSD-CARBONATED",
-            toSkuFamily: input.toSkuFamily || "JUICE-ASEPTIC",
-            matrixType: input.matrixType || "Flavor Change",
-            requiredCleaningMin: Number(input.requiredCleaningMin) || 30,
+            matrixId: newId,
+            fromSkuId: input.fromSkuId || "SKU-001",
+            fromSkuCode: input.fromSkuCode || "SKU-5001",
+            fromFamily: input.fromFamily || "Sparkling Flavors",
+            toSkuId: input.toSkuId || "SKU-002",
+            toSkuCode: input.toSkuCode || "SKU-5002",
+            toFamily: input.toFamily || "Tonics & Mixers",
+            changeoverDurationMin: Number(input.changeoverDurationMin) || 30,
+            sanitationClass: input.sanitationClass || "Class B - Warm Water Flush & Syrup Line Rinse",
             allergenCleaningRequired: Boolean(input.allergenCleaningRequired),
-            allergenType: input.allergenType || "",
-            mechanicalChangeoverMin: Number(input.mechanicalChangeoverMin) || 20,
-            totalDurationMin: Number(input.requiredCleaningMin || 30) + Number(input.mechanicalChangeoverMin || 20),
+            notes: input.notes || "",
             status: input.status || "Active",
         };
         inMemoryChangeoverRules.push(newRule);
         return newRule;
     }
     async updateChangeoverRule(tenantId, id, input) {
-        const idx = inMemoryChangeoverRules.findIndex((r) => r.id === id || r.ruleId === id);
+        const idx = inMemoryChangeoverRules.findIndex((r) => r.id === id || r.matrixId === id);
         if (idx !== -1) {
             inMemoryChangeoverRules[idx] = { ...inMemoryChangeoverRules[idx], ...input };
             return inMemoryChangeoverRules[idx];
@@ -1250,7 +1441,7 @@ class MasterDataService {
         return { id, ...input };
     }
     async deleteChangeoverRule(tenantId, id) {
-        const idx = inMemoryChangeoverRules.findIndex((r) => r.id === id || r.ruleId === id);
+        const idx = inMemoryChangeoverRules.findIndex((r) => r.id === id || r.matrixId === id);
         if (idx !== -1) {
             const deleted = inMemoryChangeoverRules.splice(idx, 1);
             return deleted[0];
@@ -1268,17 +1459,52 @@ class MasterDataService {
         const newSan = {
             id: newId,
             classId: newId,
+            sanitationId: newId,
             code: (input.code || `SAN-${inMemorySanitationClasses.length + 1}`).toUpperCase(),
-            name: input.name,
+            name: input.sanitationClass || input.name || `Sanitation Class ${inMemorySanitationClasses.length + 1}`,
+            sanitationClass: input.sanitationClass || input.name || `Sanitation Class ${inMemorySanitationClasses.length + 1}`,
+            description: input.description || "",
+            durationMin: Number(input.durationMin) || Number(input.washDurationMin) || 45,
+            washDurationMin: Number(input.durationMin) || Number(input.washDurationMin) || 45,
+            cleaningMethod: input.cleaningMethod || "Automated 5-Step Central CIP Skid",
             cleaningLevel: input.cleaningLevel || "Intermediate",
-            washDurationMin: Number(input.washDurationMin) || 30,
+            riskLevel: input.riskLevel || "Standard",
+            applicableProducts: input.applicableProducts || "All Formulations",
             chemicalAgent: input.chemicalAgent || "Caustic Solution",
             validationMethod: input.validationMethod || "Visual & Swab",
             frequency: input.frequency || "Daily",
             status: input.status || "Active",
         };
-        inMemorySanitationClasses.push(newSan);
+        inMemorySanitationClasses.unshift(newSan);
         return newSan;
+    }
+    async updateSanitationClass(tenantId, id, input) {
+        const idx = inMemorySanitationClasses.findIndex((s) => s.id === id || s.sanitationId === id || s.classId === id);
+        if (idx !== -1) {
+            inMemorySanitationClasses[idx] = {
+                ...inMemorySanitationClasses[idx],
+                ...input,
+                sanitationClass: input.sanitationClass || input.name || inMemorySanitationClasses[idx].sanitationClass,
+                name: input.sanitationClass || input.name || inMemorySanitationClasses[idx].name,
+                durationMin: Number(input.durationMin) || Number(input.washDurationMin) || inMemorySanitationClasses[idx].durationMin,
+                washDurationMin: Number(input.durationMin) || Number(input.washDurationMin) || inMemorySanitationClasses[idx].washDurationMin,
+                cleaningMethod: input.cleaningMethod || inMemorySanitationClasses[idx].cleaningMethod,
+                riskLevel: input.riskLevel || inMemorySanitationClasses[idx].riskLevel,
+                applicableProducts: input.applicableProducts || inMemorySanitationClasses[idx].applicableProducts,
+                description: input.description !== undefined ? input.description : inMemorySanitationClasses[idx].description,
+                status: input.status || inMemorySanitationClasses[idx].status,
+            };
+            return inMemorySanitationClasses[idx];
+        }
+        return { id, ...input };
+    }
+    async deleteSanitationClass(tenantId, id) {
+        const idx = inMemorySanitationClasses.findIndex((s) => s.id === id || s.sanitationId === id || s.classId === id);
+        if (idx !== -1) {
+            const deleted = inMemorySanitationClasses.splice(idx, 1);
+            return deleted[0];
+        }
+        return { id, message: "Sanitation class deleted" };
     }
     async listAllergenRules(tenantId) {
         return inMemoryAllergenRules;
@@ -1288,15 +1514,48 @@ class MasterDataService {
         const newAlg = {
             id: newId,
             ruleId: newId,
-            allergenType: input.allergenType || "Flavors",
-            allergenName: input.allergenName || "Natural Terpenes",
-            riskLevel: input.riskLevel || "Medium",
-            protocol: input.protocol || "Full CIP Rinse",
-            verificationTest: input.verificationTest || "ATP Test",
+            allergenId: newId,
+            allergenType: input.allergenType || "Botanical / Additive",
+            allergenName: input.allergenName || "New Allergen",
+            skuId: input.skuId || "",
+            skuCode: input.skuCode || "SKU-5001",
+            riskLevel: input.riskLevel || "High",
+            cleaningProtocol: input.cleaningProtocol || input.protocol || "Full CIP Rinse",
+            protocol: input.cleaningProtocol || input.protocol || "Full CIP Rinse",
+            changeoverRestriction: input.changeoverRestriction || input.verificationTest || "QA Signoff Required",
+            verificationTest: input.verificationTest || "ATP Swab Validation",
             status: input.status || "Active",
         };
-        inMemoryAllergenRules.push(newAlg);
+        inMemoryAllergenRules.unshift(newAlg);
         return newAlg;
+    }
+    async updateAllergenRule(tenantId, id, input) {
+        const idx = inMemoryAllergenRules.findIndex((a) => a.id === id || a.allergenId === id || a.ruleId === id);
+        if (idx !== -1) {
+            inMemoryAllergenRules[idx] = {
+                ...inMemoryAllergenRules[idx],
+                ...input,
+                allergenName: input.allergenName || inMemoryAllergenRules[idx].allergenName,
+                skuCode: input.skuCode || inMemoryAllergenRules[idx].skuCode,
+                skuId: input.skuId || inMemoryAllergenRules[idx].skuId,
+                riskLevel: input.riskLevel || inMemoryAllergenRules[idx].riskLevel,
+                cleaningProtocol: input.cleaningProtocol || input.protocol || inMemoryAllergenRules[idx].cleaningProtocol,
+                protocol: input.cleaningProtocol || input.protocol || inMemoryAllergenRules[idx].protocol,
+                changeoverRestriction: input.changeoverRestriction || input.verificationTest || inMemoryAllergenRules[idx].changeoverRestriction,
+                verificationTest: input.verificationTest || inMemoryAllergenRules[idx].verificationTest,
+                status: input.status || inMemoryAllergenRules[idx].status,
+            };
+            return inMemoryAllergenRules[idx];
+        }
+        return { id, ...input };
+    }
+    async deleteAllergenRule(tenantId, id) {
+        const idx = inMemoryAllergenRules.findIndex((a) => a.id === id || a.allergenId === id || a.ruleId === id);
+        if (idx !== -1) {
+            const deleted = inMemoryAllergenRules.splice(idx, 1);
+            return deleted[0];
+        }
+        return { id, message: "Allergen rule deleted" };
     }
     // ==========================================
     // 14. SKUs, BOMs, ASSETS, STAFF, SPECS
@@ -1371,18 +1630,68 @@ class MasterDataService {
     async updateSku(tenantId, id, input) {
         const idx = inMemorySkus.findIndex((s) => matchKey(s, id, ["id", "skuId", "skuCode", "code", "name"]));
         if (idx !== -1) {
-            inMemorySkus[idx] = { ...inMemorySkus[idx], ...input };
-            return inMemorySkus[idx];
+            inMemorySkus[idx] = { ...inMemorySkus[idx], ...input, lastUpdated: new Date().toISOString().substring(0, 10) };
         }
-        return { id, ...input };
+        // Persist to PostgreSQL by matching on skuCode or id
+        try {
+            const cat = input.category
+                ? input.category.toUpperCase().includes("RAW") ? "RAW_MATERIAL"
+                    : input.category.toUpperCase().includes("PACK") ? "PACKAGING"
+                        : "FINISHED_GOODS"
+                : undefined;
+            const updates = {};
+            if (input.name)
+                updates.name = input.name;
+            if (input.skuCode || input.code)
+                updates.skuCode = input.skuCode || input.code;
+            if (cat)
+                updates.category = cat;
+            if (input.uom)
+                updates.uom = input.uom;
+            if (input.description !== undefined)
+                updates.description = input.description;
+            if (input.stdCost !== undefined || input.standardCost !== undefined) {
+                const raw = String(input.stdCost || input.standardCost || "0").replace(/[^\d.]/g, "");
+                updates.standardCost = isNaN(Number(raw)) ? "0" : raw;
+            }
+            if (input.status)
+                updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "INACTIVE";
+            if (Object.keys(updates).length > 0) {
+                // Try matching by UUID first, then by skuCode
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+                if (isUuid) {
+                    await database_js_1.db.update(masterData_js_1.skus).set(updates).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, id));
+                }
+                else {
+                    await database_js_1.db.update(masterData_js_1.skus).set(updates).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, id));
+                }
+            }
+        }
+        catch (err) {
+            console.warn("DB update sku error:", err.message);
+        }
+        return idx !== -1 ? inMemorySkus[idx] : { id, ...input };
     }
     async deleteSku(tenantId, id) {
         const idx = inMemorySkus.findIndex((s) => matchKey(s, id, ["id", "skuId", "skuCode", "code", "name"]));
+        let deleted = { id, message: "SKU deleted" };
         if (idx !== -1) {
-            const deleted = inMemorySkus.splice(idx, 1);
-            return deleted[0];
+            deleted = inMemorySkus.splice(idx, 1)[0];
         }
-        return { id, message: "SKU deleted" };
+        // Persist delete to PostgreSQL
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            if (isUuid) {
+                await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, id));
+            }
+            else {
+                await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, id));
+            }
+        }
+        catch (err) {
+            console.warn("DB delete sku error:", err.message);
+        }
+        return deleted;
     }
     async listBoms(tenantId) {
         try {
@@ -1414,10 +1723,69 @@ class MasterDataService {
             return [];
         }
     }
+    async getBomById(tenantId, id) {
+        const bom = await database_js_1.db.query.boms.findFirst({
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.boms.tenantId, tenantId), (0, drizzle_orm_1.eq)(masterData_js_1.boms.id, id)),
+            with: {
+                sku: true,
+                items: {
+                    with: {
+                        componentSku: true,
+                    },
+                },
+            },
+        });
+        if (!bom)
+            throw new AppError_js_1.NotFoundError("BOM Recipe");
+        return bom;
+    }
     async createBom(tenantId, input) {
-        return { id: `BOM-${Date.now()}`, ...input, status: "Active", approvalStatus: "Approved" };
+        // Try to persist to DB if we have a valid UUID tenantId and skuId
+        try {
+            const resolvedTenantId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const isUuidSku = input.skuId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.skuId);
+            if (isUuidSku) {
+                const [inserted] = await database_js_1.db.insert(masterData_js_1.boms).values({
+                    tenantId: resolvedTenantId,
+                    skuId: input.skuId,
+                    name: input.bomNumber || input.name || `BOM-${Date.now()}`,
+                    version: input.revision || "R1",
+                    batchSize: String(input.batchSize || "10000").replace(/[^\d.]/g, "") || "10000",
+                    batchUom: input.batchUom || "Units",
+                    yieldPercent: String(input.yieldTarget || input.yieldPercent || "99.0").replace(/[^\d.]/g, "") || "99.0",
+                    status: "ACTIVE",
+                }).returning();
+                if (inserted)
+                    return { id: inserted.id, ...input, dbId: inserted.id, status: "Draft", approvalStatus: "Draft" };
+            }
+        }
+        catch (err) {
+            console.warn("DB insert bom error:", err.message);
+        }
+        return { id: `BOM-${Date.now()}`, ...input, status: "Draft", approvalStatus: "Draft" };
     }
     async updateBom(tenantId, id, input) {
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            if (isUuid) {
+                const updates = {};
+                if (input.batchSize)
+                    updates.batchSize = String(input.batchSize).replace(/[^\d.]/g, "") || "10000";
+                if (input.yieldTarget || input.yieldPercent) {
+                    updates.yieldPercent = String(input.yieldTarget || input.yieldPercent).replace(/[^\d.]/g, "") || "99.0";
+                }
+                if (input.status)
+                    updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : input.status.toUpperCase();
+                if (input.name)
+                    updates.name = input.name;
+                if (Object.keys(updates).length > 0) {
+                    await database_js_1.db.update(masterData_js_1.boms).set(updates).where((0, drizzle_orm_1.eq)(masterData_js_1.boms.id, id));
+                }
+            }
+        }
+        catch (err) {
+            console.warn("DB update bom error:", err.message);
+        }
         return { id, ...input };
     }
     async deleteBom(tenantId, id) {
@@ -1457,6 +1825,58 @@ class MasterDataService {
         catch {
             return [];
         }
+    }
+    // ==========================================
+    // 15. LABOUR STANDARDS & CREW MANNING
+    // ==========================================
+    async listLabourStandards(tenantId) {
+        return inMemoryLabourStandards;
+    }
+    async createLabourStandard(tenantId, input) {
+        const newId = `LBR-0${inMemoryLabourStandards.length + 1}`;
+        const rawCost = input.directCostPerHour !== undefined ? input.directCostPerHour.toString().trim() : "$25.00";
+        const costStr = rawCost.startsWith("$") ? rawCost : `$${rawCost}`;
+        const newStandard = {
+            id: input.id || newId,
+            lineId: input.lineId || "LIN-01",
+            lineName: input.lineName || "Production Line",
+            standardCrew: Number(input.standardCrew) || 8,
+            stdLaborHoursPer1kUnits: Number(input.stdLaborHoursPer1kUnits) || 2.0,
+            directCostPerHour: costStr,
+            status: input.status || "Active",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        inMemoryLabourStandards.unshift(newStandard);
+        return newStandard;
+    }
+    async updateLabourStandard(tenantId, id, input) {
+        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id);
+        if (idx !== -1) {
+            let costStr = inMemoryLabourStandards[idx].directCostPerHour;
+            if (input.directCostPerHour !== undefined) {
+                const raw = input.directCostPerHour.toString().trim();
+                costStr = raw.startsWith("$") ? raw : `$${raw}`;
+            }
+            inMemoryLabourStandards[idx] = {
+                ...inMemoryLabourStandards[idx],
+                ...input,
+                standardCrew: input.standardCrew !== undefined ? Number(input.standardCrew) : inMemoryLabourStandards[idx].standardCrew,
+                stdLaborHoursPer1kUnits: input.stdLaborHoursPer1kUnits !== undefined ? Number(input.stdLaborHoursPer1kUnits) : inMemoryLabourStandards[idx].stdLaborHoursPer1kUnits,
+                directCostPerHour: costStr,
+                updatedAt: new Date().toISOString()
+            };
+            return inMemoryLabourStandards[idx];
+        }
+        return { id, ...input };
+    }
+    async deleteLabourStandard(tenantId, id) {
+        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id);
+        if (idx !== -1) {
+            const deleted = inMemoryLabourStandards.splice(idx, 1);
+            return deleted[0];
+        }
+        return { id, message: "Labour standard deleted" };
     }
 }
 exports.MasterDataService = MasterDataService;

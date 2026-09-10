@@ -8,6 +8,7 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
 
   // Plant Manager Command Center
   fastify.get("/command-center", { schema: { tags: ["Dashboards & Executive"], summary: "Get Plant Manager Command Center Overview" } }, dashboardsController.getCommandCenter.bind(dashboardsController));
+  fastify.get("/kpis", { schema: { tags: ["Dashboards & Executive"], summary: "Get Executive KPI Scorecard" } }, dashboardsController.getKPIs.bind(dashboardsController));
 
   // ─── Line Lead Dashboard APIs ──────────────────────────────────────────────
   fastify.get("/linelead", { schema: { tags: ["Dashboards & Executive"], summary: "Get Line Lead Dashboard KPIs & Status" } }, dashboardsController.getLineLeadDashboard.bind(dashboardsController));

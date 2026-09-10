@@ -333,6 +333,18 @@ export class MasterDataController {
     return reply.status(201).send(formatSuccess(data, "Sanitation class created successfully"));
   }
 
+  async updateSanitationClass(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateSanitationClass(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Sanitation class updated successfully"));
+  }
+
+  async deleteSanitationClass(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteSanitationClass(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Sanitation class deleted successfully"));
+  }
+
   async getAllergenRules(request: FastifyRequest, reply: FastifyReply) {
     const data = await masterDataService.listAllergenRules(request.user?.tenantId);
     return reply.send(formatSuccess(data));
@@ -341,6 +353,18 @@ export class MasterDataController {
   async createAllergenRule(request: FastifyRequest, reply: FastifyReply) {
     const data = await masterDataService.createAllergenRule(request.user?.tenantId, request.body);
     return reply.status(201).send(formatSuccess(data, "Allergen matrix rule created successfully"));
+  }
+
+  async updateAllergenRule(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateAllergenRule(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Allergen rule updated successfully"));
+  }
+
+  async deleteAllergenRule(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteAllergenRule(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Allergen rule deleted successfully"));
   }
 
   // ==========================================
@@ -356,10 +380,41 @@ export class MasterDataController {
     return reply.status(201).send(formatSuccess(data, "SKU created successfully"));
   }
 
+  async updateSku(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateSku(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "SKU updated successfully"));
+  }
+
+  async deleteSku(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteSku(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "SKU deleted successfully"));
+  }
+
+
   async getBoms(request: FastifyRequest, reply: FastifyReply) {
     const data = await masterDataService.listBoms(request.user?.tenantId);
     return reply.send(formatSuccess(data));
   }
+
+  async createBom(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createBom(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "BOM recipe created successfully"));
+  }
+
+  async updateBom(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateBom(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "BOM recipe updated successfully"));
+  }
+
+  async deleteBom(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteBom(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "BOM recipe deleted successfully"));
+  }
+
 
   async getAssets(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
     const data = await masterDataService.listAssets(request.user?.tenantId, request.query.plantId || request.user?.plantId);
@@ -374,6 +429,31 @@ export class MasterDataController {
   async getQualitySpecs(request: FastifyRequest, reply: FastifyReply) {
     const data = await masterDataService.listQualitySpecs(request.user?.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  // ==========================================
+  // 15. LABOUR STANDARDS
+  // ==========================================
+  async getLabourStandards(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listLabourStandards(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createLabourStandard(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createLabourStandard(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Labour standard created successfully"));
+  }
+
+  async updateLabourStandard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateLabourStandard(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Labour standard updated successfully"));
+  }
+
+  async deleteLabourStandard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteLabourStandard(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Labour standard deleted successfully"));
   }
 }
 

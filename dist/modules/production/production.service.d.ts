@@ -1,115 +1,11 @@
-import { CreateProductionOrderInput, UpdateBatchStepInput, RecordOperatorEntryInput, LogDowntimeInput } from "./production.schema.js";
+import { RecordOperatorEntryInput } from "./production.schema.js";
 export declare class ProductionService {
-    listOrders(tenantId: string, plantId?: string): Promise<{
-        status: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        tenantId: string;
-        plantId: string;
-        skuId: string;
-        lineId: string;
-        notes: string | null;
-        orderNumber: string;
-        priority: string | null;
-        targetQuantity: string;
-        producedQuantity: string;
-        scrapQuantity: string;
-        plannedStart: Date;
-        plannedEnd: Date;
-        actualStart: Date | null;
-        actualEnd: Date | null;
-        batches: {
-            status: string;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            plantId: string;
-            uom: string;
-            skuId: string;
-            productionOrderId: string;
-            batchNumber: string;
-            recipeVersion: string;
-            tankNumber: string | null;
-            targetVolume: string;
-            actualVolume: string | null;
-            currentStep: number;
-            progressPercent: number;
-            startedAt: Date | null;
-            completedAt: Date | null;
-        }[];
-        sku: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            isActive: boolean;
-            skuCode: string;
-            category: string;
-            familyId: string | null;
-            uom: string;
-            barcode: string | null;
-            standardCost: string | null;
-            shelfLifeDays: number | null;
-            minStockLevel: string | null;
-            maxStockLevel: string | null;
-        };
-        line: {
-            code: string;
-            status: string | null;
-            id: string;
-            name: string;
-            createdAt: Date;
-            tenantId: string;
-            plantId: string;
-            workCenterId: string | null;
-            lineType: string | null;
-            nominalSpeedBpm: number | null;
-            healthScore: number | null;
-        };
-    }[]>;
-    createOrder(tenantId: string, plantId: string, input: CreateProductionOrderInput): Promise<{
-        order: {
-            status: string;
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            plantId: string;
-            skuId: string;
-            lineId: string;
-            notes: string | null;
-            orderNumber: string;
-            priority: string | null;
-            targetQuantity: string;
-            producedQuantity: string;
-            scrapQuantity: string;
-            plannedStart: Date;
-            plannedEnd: Date;
-            actualStart: Date | null;
-            actualEnd: Date | null;
-        };
+    listOrders(tenantId: string, plantId?: string): Promise<any[]>;
+    createOrder(tenantId: string, plantId: string, input: any): Promise<{
+        order: any;
         batch: {
-            status: string;
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            plantId: string;
-            uom: string;
-            skuId: string;
-            productionOrderId: string;
             batchNumber: string;
-            recipeVersion: string;
-            tankNumber: string | null;
-            targetVolume: string;
-            actualVolume: string | null;
-            currentStep: number;
-            progressPercent: number;
-            startedAt: Date | null;
-            completedAt: Date | null;
         };
     }>;
     updateOrderStatus(tenantId: string, orderId: string, newStatus: string): Promise<{
@@ -136,107 +32,30 @@ export declare class ProductionService {
         status: string;
         updatedAt: Date;
     }>;
-    listBatches(tenantId: string): Promise<{
-        status: string;
+    listBatches(tenantId: string): Promise<any[]>;
+    advanceBatchStep(tenantId: string, batchId: string, input: any, userId?: string): Promise<{
         id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        tenantId: string;
-        plantId: string;
-        uom: string;
-        skuId: string;
-        productionOrderId: string;
-        batchNumber: string;
-        recipeVersion: string;
-        tankNumber: string | null;
-        targetVolume: string;
-        actualVolume: string | null;
-        currentStep: number;
-        progressPercent: number;
-        startedAt: Date | null;
-        completedAt: Date | null;
-        sku: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            isActive: boolean;
-            skuCode: string;
-            category: string;
-            familyId: string | null;
-            uom: string;
-            barcode: string | null;
-            standardCost: string | null;
-            shelfLifeDays: number | null;
-            minStockLevel: string | null;
-            maxStockLevel: string | null;
-        };
-        steps: {
-            status: string;
-            parameters: unknown;
-            id: string;
-            notes: string | null;
-            startedAt: Date | null;
-            completedAt: Date | null;
-            batchId: string;
-            stepNumber: number;
-            stepName: string;
-            operatorId: string | null;
-            verifiedBy: string | null;
-        }[];
-        ccpChecks: {
-            status: string;
-            id: string;
-            tenantId: string;
-            plantId: string;
-            uom: string;
-            lineId: string;
-            targetValue: string;
-            notes: string | null;
-            batchId: string;
-            operatorId: string;
-            verifiedBy: string | null;
-            ccpCode: string;
-            ccpName: string;
-            actualValue: string;
-            criticalLimitMin: string | null;
-            criticalLimitMax: string | null;
-            checkedAt: Date;
-        }[];
-        qaRelease: {
-            id: string;
-            tenantId: string;
-            plantId: string;
-            comments: string | null;
-            batchId: string;
-            disposition: string;
-            dispositionBy: string;
-            digitalSignaturePinUsed: boolean;
-            certificateOfAnalysisUrl: string | null;
-            coaMetadata: unknown;
-            releasedAt: Date;
-        };
-    }[]>;
-    advanceBatchStep(tenantId: string, batchId: string, input: UpdateBatchStepInput, userId: string): Promise<{
-        id: string;
-        tenantId: string;
-        plantId: string;
-        productionOrderId: string;
-        batchNumber: string;
-        skuId: string;
-        recipeVersion: string;
-        tankNumber: string | null;
-        targetVolume: string;
-        actualVolume: string | null;
-        uom: string;
         currentStep: number;
         progressPercent: number;
         status: string;
-        startedAt: Date | null;
-        completedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
+    }>;
+    verifyLot(batchId: string, lotNo: string): Promise<{
+        batchId: string;
+        lotNo: string;
+        verified: boolean;
+        coaStatus: string;
+        verifiedAt: string;
+        message: string;
+    }>;
+    completeBatch(batchId: string): Promise<{
+        id: string;
+        status: string;
+        progressPercent: number;
+    }>;
+    qaRelease(batchId: string): Promise<{
+        id: string;
+        status: string;
+        releasedAt: string;
     }>;
     recordOperatorEntry(tenantId: string, plantId: string, input: RecordOperatorEntryInput, userId: string): Promise<{
         id: string;
@@ -251,22 +70,82 @@ export declare class ProductionService {
         scrapUnitsProduced: number;
         loggedAt: Date;
     }>;
-    logDowntime(tenantId: string, plantId: string, input: LogDowntimeInput, userId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        tenantId: string;
-        plantId: string;
-        comments: string | null;
-        category: string;
-        startTime: Date;
-        endTime: Date | null;
-        lineId: string;
-        orderId: string | null;
-        assetId: string | null;
-        reasonCode: string;
-        durationMinutes: number;
-        loggedBy: string | null;
+    logDowntime(tenantId: string, plantId: string, input: any, userId?: string): Promise<any>;
+    listHbLogs(plantId?: string): Promise<any[]>;
+    createHbLog(input: any): Promise<any>;
+    getOEEAnalytics(plantId?: string, period?: string): Promise<{
+        plantCode: string;
+        period: string;
+        overallOEE: number;
+        availability: number;
+        performance: number;
+        qualityRate: number;
+        sixBigLosses: {
+            lossCategory: string;
+            durationMins: number;
+            impactPercent: number;
+            costUSD: number;
+        }[];
+        hourlyTrend: {
+            time: string;
+            oee: number;
+            availability: number;
+            performance: number;
+            quality: number;
+        }[];
+        lineMatrix: {
+            line: string;
+            oee: number;
+            availability: number;
+            performance: number;
+            quality: number;
+            status: string;
+        }[];
     }>;
+    getProductionPerformance(plantId?: string): Promise<{
+        plantCode: string;
+        speedCompliance: string;
+        ratedSpeed: string;
+        avgChangeoverMins: number;
+        changeoverData: {
+            sku: string;
+            targetMins: number;
+            actualMins: number;
+            delta: string;
+            status: string;
+        }[];
+        microStops: {
+            reason: string;
+            occurrences: number;
+            lostMins: number;
+        }[];
+    }>;
+    listMachines(plantId?: string): Promise<any[]>;
+    updateMachineStatus(id: string, newStatus: string): Promise<any>;
+    listShiftHandoffs(plantId?: string): Promise<any[]>;
+    createShiftHandoff(input: any): Promise<any>;
+    getShiftPerformance(plantId?: string): Promise<{
+        plantCode: string;
+        shiftA: {
+            output: string;
+            scrap: string;
+            oee: string;
+            supervisor: string;
+        };
+        shiftB: {
+            output: string;
+            scrap: string;
+            oee: string;
+            supervisor: string;
+        };
+        shiftC: {
+            output: string;
+            scrap: string;
+            oee: string;
+            supervisor: string;
+        };
+    }>;
+    listDowntime(plantId?: string): Promise<any[]>;
 }
 export declare const productionService: ProductionService;
 //# sourceMappingURL=production.service.d.ts.map

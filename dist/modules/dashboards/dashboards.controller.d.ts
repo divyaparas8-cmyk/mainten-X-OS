@@ -8,6 +8,7 @@ export declare class DashboardsController {
     requestStockReplenishment(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     proposeLineSpeedUp(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getCommandCenter(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getKPIs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getHbLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     saveHbRecord(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateHbRecord(request: FastifyRequest, reply: FastifyReply): Promise<never>;

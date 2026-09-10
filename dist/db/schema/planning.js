@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
+exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -79,5 +79,20 @@ exports.purchaseRequisitions = (0, pg_core_1.pgTable)("purchase_requisitions", {
     urgency: (0, pg_core_1.varchar)("urgency", { length: 50 }).default("HIGH"),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("PENDING_APPROVAL"), // "PENDING_APPROVAL", "PO_CREATED", "REJECTED"
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+});
+exports.promotionCampaigns = (0, pg_core_1.pgTable)("promotion_campaigns", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "restrict" }).notNull(),
+    upliftPercent: (0, pg_core_1.numeric)("uplift_percent", { precision: 5, scale: 2 }).notNull(),
+    incrementalUnits: (0, pg_core_1.numeric)("incremental_units", { precision: 14, scale: 2 }).default("0.00"),
+    startDate: (0, pg_core_1.timestamp)("start_date").notNull(),
+    endDate: (0, pg_core_1.timestamp)("end_date").notNull(),
+    channel: (0, pg_core_1.varchar)("channel", { length: 100 }).default("Wholesale Club Flyer"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SCHEDULED").notNull(), // "ACTIVE", "SCHEDULED", "EXPIRED", "CANCELLED"
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
 //# sourceMappingURL=planning.js.map

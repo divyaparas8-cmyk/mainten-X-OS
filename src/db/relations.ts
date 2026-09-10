@@ -99,3 +99,8 @@ export const routingStepsRelations = relations(routingSteps, ({ one }) => ({
   workCenter: one(workCenters, { fields: [routingSteps.workCenterId], references: [workCenters.id] }),
 }));
 
+export const inventoryTransactionsRelations = relations(inventoryTransactions, ({ one }) => ({
+  lot: one(inventoryLots, { fields: [inventoryTransactions.lotId], references: [inventoryLots.id] }),
+  performedByUser: one(users, { fields: [inventoryTransactions.performedBy], references: [users.id] }),
+}));
+

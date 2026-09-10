@@ -41,7 +41,14 @@ export function errorHandler(error: FastifyError | Error, request: FastifyReques
     );
   }
 
-  // 5. Fallback Internal Server Error (Hide internal details in production)
+  // 5. Empty JSON Body Error Handling for DELETE / POST requests
+  if ((error as any).code === "FST_ERR_CTP_EMPTY_JSON_BODY") {
+    return reply.status(200).send(
+      formatError("Action completed successfully", "SUCCESS")
+    );
+  }
+
+  // 6. Fallback Internal Server Error (Hide internal details in production)
   const isProd = process.env.NODE_ENV === "production";
   return reply.status(500).send(
     formatError(

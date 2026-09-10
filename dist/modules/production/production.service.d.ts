@@ -8,7 +8,30 @@ export declare class ProductionService {
             batchNumber: string;
         };
     }>;
-    updateOrderStatus(tenantId: string, orderId: string, newStatus: string): Promise<any>;
+    updateOrderStatus(tenantId: string, orderId: string, newStatus: string): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        orderNumber: string;
+        skuId: string;
+        lineId: string;
+        targetQuantity: string;
+        producedQuantity: string;
+        scrapQuantity: string;
+        status: string;
+        priority: string | null;
+        plannedStart: Date;
+        plannedEnd: Date;
+        actualStart: Date | null;
+        actualEnd: Date | null;
+        notes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    } | {
+        id: string;
+        status: string;
+        updatedAt: Date;
+    }>;
     listBatches(tenantId: string): Promise<any[]>;
     advanceBatchStep(tenantId: string, batchId: string, input: any, userId?: string): Promise<{
         id: string;

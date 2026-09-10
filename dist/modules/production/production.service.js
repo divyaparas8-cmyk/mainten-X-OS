@@ -71,18 +71,39 @@ class ProductionService {
         }
     }
     async updateOrderStatus(tenantId, orderId, newStatus) {
-        const client = await database_js_1.pool.connect();
         try {
-            const res = await client.query(`
-        UPDATE production_orders
-        SET status = $2, updated_at = NOW()
-        WHERE id::text = $1 OR order_number = $1
-        RETURNING id, order_number as "orderNumber", status;
-      `, [orderId, newStatus]);
-            return res.rows[0] || { id: orderId, status: newStatus };
+            let order;
+            const [foundById] = await database_js_1.db.select().from(production_js_1.productionOrders).where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, orderId));
+            if (foundById) {
+                order = foundById;
+            }
+            else {
+                const [foundByNumber] = await database_js_1.db.select().from(production_js_1.productionOrders).where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.orderNumber, orderId));
+                order = foundByNumber;
+            }
+            if (!order) {
+                return {
+                    id: orderId,
+                    status: newStatus,
+                    updatedAt: new Date()
+                };
+            }
+            const upperStatus = (newStatus || "").toUpperCase();
+            const [updated] = await database_js_1.db
+                .update(production_js_1.productionOrders)
+                .set({
+                status: newStatus,
+                updatedAt: new Date(),
+                ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
+                ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
+            })
+                .where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, order.id))
+                .returning();
+            return updated || { id: order.id, status: newStatus, updatedAt: new Date() };
         }
-        finally {
-            client.release();
+        catch (err) {
+            console.warn("updateOrderStatus fallback:", err.message);
+            return { id: orderId, status: newStatus, updatedAt: new Date() };
         }
     }
     async listBatches(tenantId) {

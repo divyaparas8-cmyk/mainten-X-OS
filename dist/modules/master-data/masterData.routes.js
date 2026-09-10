@@ -86,6 +86,7 @@ async function masterDataRoutes(fastify) {
     fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.updateBom.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.deleteBom.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
+    fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterData_controller_js_1.masterDataController.getStaff.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterData_controller_js_1.masterDataController.getQualitySpecs.bind(masterData_controller_js_1.masterDataController));
     // 15. Labour Standards

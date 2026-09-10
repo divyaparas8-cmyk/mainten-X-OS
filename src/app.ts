@@ -20,6 +20,9 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
 import { executiveRoutes } from "./modules/executive/executive.routes.js";
+import { ciRoutes } from "./modules/ci/ci.routes.js";
+import { exceptionsRoutes } from "./modules/exceptions/exceptions.routes.js";
+import { aiRoutes } from "./modules/ai/ai.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -80,6 +83,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
   await app.register(notificationsRoutes, { prefix: "/api/v1/notifications" });
   await app.register(searchRoutes, { prefix: "/api/v1/search" });
+  await app.register(ciRoutes, { prefix: "/api/v1/ci" });
+  await app.register(exceptionsRoutes, { prefix: "/api/v1/exceptions" });
+  await app.register(aiRoutes, { prefix: "/api/v1/ai" });
 
   return app;
 }

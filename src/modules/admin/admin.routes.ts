@@ -216,6 +216,177 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     adminController.getApprovalRules.bind(adminController)
   );
+
+  fastify.get(
+    "/data-health/scan",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Scan All Master Data Tables for Anomalies — Missing, Duplicates, Stale, Invalid, Broken",
+      },
+    },
+    adminController.scanDataHealth.bind(adminController)
+  );
+
+  // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
+  fastify.get(
+    "/integrations/iot",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get All Connected Industrial IoT Gateways & Edge Brokers",
+      },
+    },
+    adminController.getIoTGateways.bind(adminController)
+  );
+
+  fastify.post(
+    "/integrations/iot",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Register / Provision New Industrial IoT Gateway",
+      },
+    },
+    adminController.createIoTGateway.bind(adminController)
+  );
+
+  fastify.put(
+    "/integrations/iot/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Industrial IoT Gateway Configuration",
+      },
+    },
+    adminController.updateIoTGateway.bind(adminController)
+  );
+
+  fastify.delete(
+    "/integrations/iot/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete / Disconnect Industrial IoT Gateway",
+      },
+    },
+    adminController.deleteIoTGateway.bind(adminController)
+  );
+
+  fastify.post(
+    "/integrations/iot/ping",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Ping All Industrial IoT Gateways & Check Sensor Health",
+      },
+    },
+    adminController.pingIoTGateways.bind(adminController)
+  );
+
+  // ── INTEGRATIONS: ERP CONNECTOR ───────────────────────────────────
+  fastify.get(
+    "/integrations/erp",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get SAP S/4HANA ERP Connector Status & Parameters",
+      },
+    },
+    adminController.getERPStatus.bind(adminController)
+  );
+
+  fastify.post(
+    "/integrations/erp/sync",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Trigger Immediate Synchronization with SAP S/4HANA ERP",
+      },
+    },
+    adminController.syncERP.bind(adminController)
+  );
+
+  // ── INTEGRATIONS: BARCODE SYMBOLOGY ───────────────────────────────
+  fastify.get(
+    "/integrations/barcode",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Configured Barcode, QR & GS1 Symbologies",
+      },
+    },
+    adminController.getBarcodeFormats.bind(adminController)
+  );
+
+  fastify.post(
+    "/integrations/barcode",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Configure New Barcode / QR Symbology Standard",
+      },
+    },
+    adminController.createBarcodeFormat.bind(adminController)
+  );
+
+  fastify.put(
+    "/integrations/barcode/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Barcode Symbology Configuration",
+      },
+    },
+    adminController.updateBarcodeFormat.bind(adminController)
+  );
+
+  fastify.delete(
+    "/integrations/barcode/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Barcode Symbology Configuration",
+      },
+    },
+    adminController.deleteBarcodeFormat.bind(adminController)
+  );
+
+  // ── INTEGRATIONS: REST API KEYS ───────────────────────────────────
+  fastify.get(
+    "/integrations/apis",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Active Enterprise REST API & Machine Integration Keys",
+      },
+    },
+    adminController.getApiKeys.bind(adminController)
+  );
+
+  fastify.post(
+    "/integrations/apis",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Generate New Enterprise Integration API Key",
+      },
+    },
+    adminController.createApiKey.bind(adminController)
+  );
+
+  fastify.delete(
+    "/integrations/apis/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Revoke Enterprise Integration API Key",
+      },
+    },
+    adminController.revokeApiKey.bind(adminController)
+  );
 }
+
+
 
 

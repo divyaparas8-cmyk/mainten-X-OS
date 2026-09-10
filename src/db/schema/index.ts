@@ -9,6 +9,8 @@ export * from "./warehouse.js";
 export * from "./traceability.js";
 export * from "./maintenance.js";
 export * from "./common.js";
+export * from "./ci.js";
+export * from "./plantManager.js";
 export * from "../relations.js";
 
 

@@ -207,11 +207,11 @@ export declare const createForecastSchema: z.ZodObject<{
     finalForecast?: number | undefined;
     modelType?: string | undefined;
     reason?: string | undefined;
+    owner?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
-    owner?: string | undefined;
 }, {
     status?: string | undefined;
     method?: string | undefined;
@@ -223,11 +223,11 @@ export declare const createForecastSchema: z.ZodObject<{
     finalForecast?: number | undefined;
     modelType?: string | undefined;
     reason?: string | undefined;
+    owner?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
-    owner?: string | undefined;
 }>;
 export type CreateForecastInput = z.infer<typeof createForecastSchema>;
 export declare const updateForecastSchema: z.ZodObject<{
@@ -250,8 +250,8 @@ export declare const updateForecastSchema: z.ZodObject<{
     overrideQuantity?: number | undefined;
     finalForecast?: number | undefined;
     reason?: string | undefined;
-    baselineForecast?: number | undefined;
     owner?: string | undefined;
+    baselineForecast?: number | undefined;
 }, {
     status?: string | undefined;
     method?: string | undefined;
@@ -261,8 +261,8 @@ export declare const updateForecastSchema: z.ZodObject<{
     overrideQuantity?: number | undefined;
     finalForecast?: number | undefined;
     reason?: string | undefined;
-    baselineForecast?: number | undefined;
     owner?: string | undefined;
+    baselineForecast?: number | undefined;
 }>;
 export type UpdateForecastInput = z.infer<typeof updateForecastSchema>;
 export declare const runForecastSchema: z.ZodObject<{
@@ -301,9 +301,9 @@ export declare const createPromotionSchema: z.ZodObject<{
     title?: string | undefined;
     name?: string | undefined;
     skuId?: string | undefined;
+    startDate?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
-    startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
 }, {
@@ -311,11 +311,11 @@ export declare const createPromotionSchema: z.ZodObject<{
     title?: string | undefined;
     name?: string | undefined;
     skuId?: string | undefined;
+    startDate?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
     upliftPercent?: number | undefined;
     projectedUnits?: number | undefined;
-    startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
 }>;

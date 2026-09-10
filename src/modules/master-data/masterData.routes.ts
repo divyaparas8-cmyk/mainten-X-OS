@@ -83,15 +83,33 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   // 13. Sanitation & Allergens
   fastify.get("/sanitation-classes", { schema: { tags: ["Master Data"], summary: "List Sanitation Classes" } }, masterDataController.getSanitationClasses.bind(masterDataController));
   fastify.post("/sanitation-classes", { schema: { tags: ["Master Data"], summary: "Create Sanitation Class" } }, masterDataController.createSanitationClass.bind(masterDataController));
+  fastify.put("/sanitation-classes/:id", { schema: { tags: ["Master Data"], summary: "Update Sanitation Class" } }, masterDataController.updateSanitationClass.bind(masterDataController));
+  fastify.delete("/sanitation-classes/:id", { schema: { tags: ["Master Data"], summary: "Delete Sanitation Class" } }, masterDataController.deleteSanitationClass.bind(masterDataController));
   fastify.get("/allergen-rules", { schema: { tags: ["Master Data"], summary: "List Allergen Matrix Rules" } }, masterDataController.getAllergenRules.bind(masterDataController));
   fastify.post("/allergen-rules", { schema: { tags: ["Master Data"], summary: "Create Allergen Matrix Rule" } }, masterDataController.createAllergenRule.bind(masterDataController));
+  fastify.put("/allergen-rules/:id", { schema: { tags: ["Master Data"], summary: "Update Allergen Matrix Rule" } }, masterDataController.updateAllergenRule.bind(masterDataController));
+  fastify.delete("/allergen-rules/:id", { schema: { tags: ["Master Data"], summary: "Delete Allergen Matrix Rule" } }, masterDataController.deleteAllergenRule.bind(masterDataController));
 
   // 14. SKUs, BOMs, Assets, Staff, Specs
   fastify.get("/skus", { schema: { tags: ["Master Data"], summary: "List Products & SKUs" } }, masterDataController.getSkus.bind(masterDataController));
   fastify.post("/skus", { schema: { tags: ["Master Data"], summary: "Create new SKU" } }, masterDataController.createSku.bind(masterDataController));
+  fastify.put("/skus/:id", { schema: { tags: ["Master Data"], summary: "Update SKU master record" } }, masterDataController.updateSku.bind(masterDataController));
+  fastify.delete("/skus/:id", { schema: { tags: ["Master Data"], summary: "Delete SKU from master" } }, masterDataController.deleteSku.bind(masterDataController));
+
   fastify.get("/boms", { schema: { tags: ["Master Data"], summary: "List BOMs & Formulations" } }, masterDataController.getBoms.bind(masterDataController));
+  fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterDataController.createBom.bind(masterDataController));
+  fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterDataController.updateBom.bind(masterDataController));
+  fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterDataController.deleteBom.bind(masterDataController));
+
   fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterDataController.getAssets.bind(masterDataController));
+  fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterDataController.getAssets.bind(masterDataController));
   fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterDataController.getStaff.bind(masterDataController));
   fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterDataController.getQualitySpecs.bind(masterDataController));
+
+  // 15. Labour Standards
+  fastify.get("/labour-standards", { schema: { tags: ["Master Data"], summary: "List Labour Standards" } }, masterDataController.getLabourStandards.bind(masterDataController));
+  fastify.post("/labour-standards", { schema: { tags: ["Master Data"], summary: "Create Labour Standard" } }, masterDataController.createLabourStandard.bind(masterDataController));
+  fastify.put("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Update Labour Standard" } }, masterDataController.updateLabourStandard.bind(masterDataController));
+  fastify.delete("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Delete Labour Standard" } }, masterDataController.deleteLabourStandard.bind(masterDataController));
 }
 

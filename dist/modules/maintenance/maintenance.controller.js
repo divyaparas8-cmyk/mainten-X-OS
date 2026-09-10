@@ -11,6 +11,40 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.listWorkOrders(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async getBreakdowns(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.listBreakdowns(request.user.tenantId, plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getHistory(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.listHistory(request.user.tenantId, plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async exportHistory(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.exportHistoryDossier(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `History dossier exported successfully for ${request.params.id}`));
+    }
+    async updateAsset(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.updateAsset(request.user.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Asset ${request.params.id} updated successfully`));
+    }
+    async getTroubleshooting(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.listTroubleshooting(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async saveTroubleshootingStep(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.saveTroubleshootingStep(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Troubleshooting step recorded"));
+    }
+    async saveTroubleshootingDraft(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.saveTroubleshootingDraft(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Troubleshooting draft saved"));
+    }
+    async saveTroubleshootingSolution(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.saveTroubleshootingSolution(request.user.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Troubleshooting solution saved successfully"));
+    }
     async createWorkOrder(request, reply) {
         const input = maintenance_schema_js_1.createWorkOrderSchema.parse(request.body);
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
@@ -26,6 +60,40 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.listPMSchedules(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async createPMSchedule(request, reply) {
+        const body = request.body;
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.createPMSchedule(request.user.tenantId, plantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "PM Schedule created successfully"));
+    }
+    async executePMChecklist(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.executePMChecklist(request.user.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "PM Checklist executed & signed off successfully"));
+    }
+    async savePMChecklistDraft(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.savePMChecklistDraft(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "PM Checklist draft saved successfully"));
+    }
+    async getPM(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.listPM(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getCalendar(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.listCalendar(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getNotifications(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.listNotifications(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getProfile(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.listProfile(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async updateProfile(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.updateProfile(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Profile updated successfully"));
+    }
     async getSpareParts(request, reply) {
         const data = await maintenance_service_js_1.maintenanceService.listSpareParts(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -33,6 +101,39 @@ class MaintenanceController {
     async getReliabilityMetrics(request, reply) {
         const data = await maintenance_service_js_1.maintenanceService.getReliabilityMetrics(request.user.tenantId, request.user.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getRCAInvestigations(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.getRCAInvestigations(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "RCA investigations fetched successfully"));
+    }
+    async createRCAInvestigation(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.createRCAInvestigation(request.user.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "RCA investigation created successfully"));
+    }
+    async exportReliabilityReport(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.exportReliabilityReport(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Reliability analytics report exported successfully"));
+    }
+    async saveWorkOrderExecution(request, reply) {
+        const { id } = request.params;
+        const data = await maintenance_service_js_1.maintenanceService.saveWorkOrderExecution(request.user.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Repair actions and verification test results saved successfully"));
+    }
+    async issueWorkOrderPart(request, reply) {
+        const { id } = (request.params || {});
+        const body = (request.body || {});
+        const data = await maintenance_service_js_1.maintenanceService.issueWorkOrderPart(request.user.tenantId, { workOrderId: id, ...body });
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Spare part issued successfully to work order"));
+    }
+    async signOffWorkOrder(request, reply) {
+        const { id } = request.params;
+        const data = await maintenance_service_js_1.maintenanceService.signOffWorkOrder(request.user.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Work order verified and signed off successfully"));
+    }
+    async addWorkOrderComment(request, reply) {
+        const { id } = request.params;
+        const data = await maintenance_service_js_1.maintenanceService.addWorkOrderComment(request.user.tenantId, id, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Comment logged to work order activity trail"));
     }
 }
 exports.MaintenanceController = MaintenanceController;

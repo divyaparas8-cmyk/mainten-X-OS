@@ -43,22 +43,22 @@ exports.updateWorkOrderStatusSchema = zod_1.z.object({
     status: zod_1.z.preprocess((val) => {
         if (typeof val === "string") {
             const clean = val.toUpperCase().replace(/[\s-]+/g, "_");
-            if (clean.includes("PROGRESS"))
+            if (clean.includes("PROGRESS") || clean.includes("INVESTIGAT") || clean.includes("REPAIR"))
                 return "IN_PROGRESS";
             if (clean.includes("PART"))
                 return "WAITING_FOR_PARTS";
-            if (clean.includes("COMPLETE"))
+            if (clean.includes("COMPLETE") || clean.includes("RESOLVE") || clean.includes("VERIF"))
                 return "COMPLETED";
             if (clean.includes("CLOSE"))
                 return "CLOSED";
             if (clean.includes("ASSIGN"))
                 return "ASSIGNED";
-            if (clean.includes("OPEN"))
+            if (clean.includes("OPEN") || clean.includes("REPORT") || clean.includes("ACKNOW"))
                 return "OPEN";
             return clean;
         }
         return val;
-    }, zod_1.z.enum(["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_FOR_PARTS", "COMPLETED", "CLOSED"])),
+    }, zod_1.z.string().min(1).default("OPEN")),
     actualHours: zod_1.z.coerce.number().optional(),
 });
 //# sourceMappingURL=maintenance.schema.js.map

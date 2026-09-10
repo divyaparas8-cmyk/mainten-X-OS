@@ -230,8 +230,8 @@ export declare const submitSanitationSchema: z.ZodObject<{
     steps?: any[] | undefined;
 }, {
     status?: string | undefined;
-    steps?: any[] | undefined;
     operator?: string | undefined;
+    steps?: any[] | undefined;
     loop?: string | undefined;
     protocol?: string | undefined;
 }>;

@@ -32,10 +32,10 @@ export declare const createWorkOrderSchema: z.ZodObject<{
 }>;
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;
 export declare const updateWorkOrderStatusSchema: z.ZodObject<{
-    status: z.ZodEffects<z.ZodEnum<["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_FOR_PARTS", "COMPLETED", "CLOSED"]>, "IN_PROGRESS" | "COMPLETED" | "OPEN" | "CLOSED" | "ASSIGNED" | "WAITING_FOR_PARTS", unknown>;
+    status: z.ZodEffects<z.ZodDefault<z.ZodString>, string, unknown>;
     actualHours: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    status: "IN_PROGRESS" | "COMPLETED" | "OPEN" | "CLOSED" | "ASSIGNED" | "WAITING_FOR_PARTS";
+    status: string;
     actualHours?: number | undefined;
 }, {
     status?: unknown;

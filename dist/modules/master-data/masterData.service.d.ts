@@ -150,38 +150,63 @@ export interface LineTargetEntity {
 }
 export interface ChangeoverRuleEntity {
     id: string;
-    ruleId?: string;
-    fromSkuFamily: string;
-    toSkuFamily: string;
-    matrixType: string;
-    requiredCleaningMin: number;
-    allergenCleaningRequired: boolean;
-    allergenType?: string;
-    mechanicalChangeoverMin: number;
-    totalDurationMin: number;
-    status: string;
+    matrixId?: string;
+    fromSkuId?: string;
+    fromSkuCode?: string;
+    fromFamily?: string;
+    toSkuId?: string;
+    toSkuCode?: string;
+    toFamily?: string;
+    changeoverDurationMin?: number;
+    sanitationClass?: string;
+    allergenCleaningRequired?: boolean;
+    notes?: string;
+    status?: string;
 }
 export interface SanitationClassEntity {
     id: string;
     classId?: string;
-    code: string;
-    name: string;
-    cleaningLevel: string;
-    washDurationMin: number;
-    chemicalAgent: string;
-    validationMethod: string;
-    frequency: string;
+    sanitationId?: string;
+    code?: string;
+    name?: string;
+    sanitationClass: string;
+    description?: string;
+    durationMin: number;
+    washDurationMin?: number;
+    cleaningMethod: string;
+    cleaningLevel?: string;
+    riskLevel: string;
+    applicableProducts?: string;
+    chemicalAgent?: string;
+    validationMethod?: string;
+    frequency?: string;
     status: string;
 }
 export interface AllergenRuleEntity {
     id: string;
     ruleId?: string;
-    allergenType: string;
+    allergenId?: string;
+    allergenType?: string;
     allergenName: string;
+    skuId?: string;
+    skuCode: string;
     riskLevel: string;
-    protocol: string;
-    verificationTest: string;
+    protocol?: string;
+    cleaningProtocol: string;
+    changeoverRestriction: string;
+    verificationTest?: string;
     status: string;
+}
+export interface LabourStandardEntity {
+    id: string;
+    lineId: string;
+    lineName: string;
+    standardCrew: number;
+    stdLaborHoursPer1kUnits: number;
+    directCostPerHour: string;
+    status: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 export declare class MasterDataService {
     listCompanies(tenantId?: string): Promise<CompanyEntity[]>;
@@ -252,13 +277,10 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listPackConfigs(tenantId?: string): Promise<PackConfigEntity[]>;
-    createPackConfig(tenantId: string | undefined, input: any): Promise<PackConfigEntity>;
+    listPackConfigs(tenantId?: string): Promise<any[]>;
+    createPackConfig(tenantId: string | undefined, input: any): Promise<any>;
     updatePackConfig(tenantId: string | undefined, id: string, input: any): Promise<any>;
-    deletePackConfig(tenantId: string | undefined, id: string): Promise<PackConfigEntity | {
-        id: string;
-        message: string;
-    }>;
+    deletePackConfig(tenantId: string | undefined, id: string): Promise<any>;
     listLineTargets(tenantId?: string): Promise<LineTargetEntity[]>;
     createLineTarget(tenantId: string | undefined, input: any): Promise<LineTargetEntity>;
     updateLineTarget(tenantId: string | undefined, id: string, input: any): Promise<any>;
@@ -275,8 +297,18 @@ export declare class MasterDataService {
     }>;
     listSanitationClasses(tenantId?: string): Promise<SanitationClassEntity[]>;
     createSanitationClass(tenantId: string | undefined, input: any): Promise<SanitationClassEntity>;
+    updateSanitationClass(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteSanitationClass(tenantId: string | undefined, id: string): Promise<SanitationClassEntity | {
+        id: string;
+        message: string;
+    }>;
     listAllergenRules(tenantId?: string): Promise<AllergenRuleEntity[]>;
     createAllergenRule(tenantId: string | undefined, input: any): Promise<AllergenRuleEntity>;
+    updateAllergenRule(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteAllergenRule(tenantId: string | undefined, id: string): Promise<AllergenRuleEntity | {
+        id: string;
+        message: string;
+    }>;
     listSkus(tenantId?: string): Promise<any[]>;
     createSku(tenantId: string | undefined, input: any): Promise<{
         id: string;
@@ -469,6 +501,13 @@ export declare class MasterDataService {
         maxTolerance: string;
         isCCP: boolean;
     }[]>;
+    listLabourStandards(tenantId?: string): Promise<LabourStandardEntity[]>;
+    createLabourStandard(tenantId: string | undefined, input: any): Promise<LabourStandardEntity>;
+    updateLabourStandard(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteLabourStandard(tenantId: string | undefined, id: string): Promise<LabourStandardEntity | {
+        id: string;
+        message: string;
+    }>;
 }
 export declare const masterDataService: MasterDataService;
 //# sourceMappingURL=masterData.service.d.ts.map

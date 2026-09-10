@@ -12,7 +12,6 @@ import {
   updateShipmentStatusSchema
 } from "./planning.schema.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
-
 import { resolvePlantId } from "../../shared/utils/tenantContext.js";
 
 export class PlanningController {
@@ -171,7 +170,6 @@ export class PlanningController {
     const data = await planningService.runMrpExplosion(request.user.tenantId, plantId);
     return reply.send(formatSuccess(data, "MRP Net Requirements calculated"));
   }
-
 
   // MRP Engine Run Simulation
   async runMrpEngine(request: FastifyRequest, reply: FastifyReply) {
@@ -335,6 +333,84 @@ export class PlanningController {
     const horizon = query?.horizon || "14d";
     const data = await planningService.getPlanningDashboardSummary(request.user.tenantId, request.user.plantId, horizon);
     return reply.send(formatSuccess(data));
+  }
+
+  // --- Plant Manager Handlers ---
+
+  async getSchedules(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.listSchedules((request.query as any)?.plantId || request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createSchedule(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await planningService.createSchedule({
+      sku: body.sku,
+      line: body.line,
+      quantity: Number(body.quantity || body.plannedQty || 30000),
+      startTime: body.startTime || "06:00",
+      endTime: body.endTime || "14:30",
+      plantId: body.plantId || request.user.plantId,
+    });
+    return reply.status(201).send(formatSuccess(data, "Schedule run created successfully"));
+  }
+
+  async toggleScheduleLock(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const data = await planningService.toggleScheduleLock(id, body?.locked);
+    return reply.send(formatSuccess(data, "Schedule lock updated"));
+  }
+
+  async deleteSchedule(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await planningService.deleteSchedule(id);
+    return reply.send(formatSuccess(data, "Schedule run deleted"));
+  }
+
+  async getCapacity(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.listCapacity((request.query as any)?.plantId || request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async getConstraints(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.listConstraints((request.query as any)?.plantId || request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createConstraint(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await planningService.createConstraint({
+      type: body.type,
+      description: body.description,
+      line: body.line,
+      impact: body.impact,
+      risk: body.risk || "Medium",
+      plantId: body.plantId || request.user.plantId,
+    });
+    return reply.status(201).send(formatSuccess(data, "Constraint registered"));
+  }
+
+  async resolveConstraint(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await planningService.resolveConstraint(id);
+    return reply.send(formatSuccess(data, "Constraint marked resolved"));
+  }
+
+  async deleteConstraint(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await planningService.deleteConstraint(id);
+    return reply.send(formatSuccess(data, "Constraint deleted"));
+  }
+
+  async applyRecovery(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await planningService.applyRecovery({
+      speedBoostPercent: Number(body.speedBoostPercent || body.speedBoost || 0),
+      overtimeHours: Number(body.overtimeHours || body.overtime || 0),
+      plantId: body.plantId || request.user.plantId,
+    });
+    return reply.send(formatSuccess(data, "Recovery plan calculated & applied"));
   }
 }
 

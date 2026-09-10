@@ -44,17 +44,17 @@ export const updateWorkOrderStatusSchema = z.object({
     (val) => {
       if (typeof val === "string") {
         const clean = val.toUpperCase().replace(/[\s-]+/g, "_");
-        if (clean.includes("PROGRESS")) return "IN_PROGRESS";
+        if (clean.includes("PROGRESS") || clean.includes("INVESTIGAT") || clean.includes("REPAIR")) return "IN_PROGRESS";
         if (clean.includes("PART")) return "WAITING_FOR_PARTS";
-        if (clean.includes("COMPLETE")) return "COMPLETED";
+        if (clean.includes("COMPLETE") || clean.includes("RESOLVE") || clean.includes("VERIF")) return "COMPLETED";
         if (clean.includes("CLOSE")) return "CLOSED";
         if (clean.includes("ASSIGN")) return "ASSIGNED";
-        if (clean.includes("OPEN")) return "OPEN";
+        if (clean.includes("OPEN") || clean.includes("REPORT") || clean.includes("ACKNOW")) return "OPEN";
         return clean;
       }
       return val;
     },
-    z.enum(["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_FOR_PARTS", "COMPLETED", "CLOSED"])
+    z.string().min(1).default("OPEN")
   ),
   actualHours: z.coerce.number().optional(),
 });

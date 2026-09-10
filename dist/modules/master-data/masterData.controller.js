@@ -282,6 +282,16 @@ class MasterDataController {
         const data = await masterData_service_js_1.masterDataService.createSanitationClass(request.user?.tenantId, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Sanitation class created successfully"));
     }
+    async updateSanitationClass(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateSanitationClass(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Sanitation class updated successfully"));
+    }
+    async deleteSanitationClass(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteSanitationClass(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Sanitation class deleted successfully"));
+    }
     async getAllergenRules(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listAllergenRules(request.user?.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -289,6 +299,16 @@ class MasterDataController {
     async createAllergenRule(request, reply) {
         const data = await masterData_service_js_1.masterDataService.createAllergenRule(request.user?.tenantId, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Allergen matrix rule created successfully"));
+    }
+    async updateAllergenRule(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateAllergenRule(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Allergen rule updated successfully"));
+    }
+    async deleteAllergenRule(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteAllergenRule(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Allergen rule deleted successfully"));
     }
     // ==========================================
     // SKUs, BOMs, ASSETS, STAFF, SPECS
@@ -301,9 +321,33 @@ class MasterDataController {
         const data = await masterData_service_js_1.masterDataService.createSku(request.user?.tenantId, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "SKU created successfully"));
     }
+    async updateSku(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateSku(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "SKU updated successfully"));
+    }
+    async deleteSku(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteSku(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "SKU deleted successfully"));
+    }
     async getBoms(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listBoms(request.user?.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createBom(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createBom(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "BOM recipe created successfully"));
+    }
+    async updateBom(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateBom(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "BOM recipe updated successfully"));
+    }
+    async deleteBom(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteBom(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "BOM recipe deleted successfully"));
     }
     async getAssets(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listAssets(request.user?.tenantId, request.query.plantId || request.user?.plantId);
@@ -316,6 +360,27 @@ class MasterDataController {
     async getQualitySpecs(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listQualitySpecs(request.user?.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    // ==========================================
+    // 15. LABOUR STANDARDS
+    // ==========================================
+    async getLabourStandards(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listLabourStandards(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createLabourStandard(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createLabourStandard(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Labour standard created successfully"));
+    }
+    async updateLabourStandard(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateLabourStandard(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Labour standard updated successfully"));
+    }
+    async deleteLabourStandard(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteLabourStandard(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Labour standard deleted successfully"));
     }
 }
 exports.MasterDataController = MasterDataController;

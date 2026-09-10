@@ -1,0 +1,1990 @@
+﻿{
+  "totalTables": 73,
+  "tables": [
+    {
+      "tableName": "aps_schedules",
+      "rowCount": 4,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "line_id -> production_lines.id",
+        "shift_id -> shifts.id",
+        "order_id -> customer_orders.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "shift_id",
+        "order_id",
+        "sku_id",
+        "start_time",
+        "end_time",
+        "quantity",
+        "changeover_minutes",
+        "cip_required",
+        "status",
+        "sequence_number",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "assets",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "line_id -> production_lines.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "asset_code",
+        "name",
+        "model_number",
+        "manufacturer",
+        "critical_level",
+        "status",
+        "health_percent",
+        "mtbf_hours",
+        "mttr_hours",
+        "install_date",
+        "last_service_date",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "audit_logs",
+      "rowCount": 133,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "user_id -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "user_id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "old_values",
+        "new_values",
+        "ip_address",
+        "user_agent",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "batch_steps",
+      "rowCount": 24,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "batch_id -> batches.id",
+        "operator_id -> users.id",
+        "verified_by -> users.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "batch_id",
+        "step_number",
+        "step_name",
+        "status",
+        "operator_id",
+        "verified_by",
+        "parameters",
+        "started_at",
+        "completed_at",
+        "notes"
+      ]
+    },
+    {
+      "tableName": "batches",
+      "rowCount": 5,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "production_order_id -> production_orders.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "production_order_id",
+        "batch_number",
+        "sku_id",
+        "recipe_version",
+        "tank_number",
+        "target_volume",
+        "actual_volume",
+        "uom",
+        "current_step",
+        "progress_percent",
+        "status",
+        "started_at",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "bom_items",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "bom_id -> boms.id",
+        "component_sku_id -> skus.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "bom_id",
+        "component_sku_id",
+        "quantity",
+        "scrap_percentage",
+        "uom",
+        "sequence",
+        "stage"
+      ]
+    },
+    {
+      "tableName": "boms",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "sku_id",
+        "version",
+        "name",
+        "batch_size",
+        "batch_uom",
+        "yield_percent",
+        "is_default",
+        "status",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "calibrations",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "asset_id -> assets.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "asset_id",
+        "instrument_name",
+        "certificate_number",
+        "calibration_date",
+        "next_due_date",
+        "accuracy_error",
+        "status"
+      ]
+    },
+    {
+      "tableName": "capa_records",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "assigned_to -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "capa_number",
+        "title",
+        "root_cause_method",
+        "root_cause_analysis",
+        "corrective_action",
+        "preventive_action",
+        "target_completion_date",
+        "status",
+        "assigned_to",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ccp_checks",
+      "rowCount": 8,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "line_id -> production_lines.id",
+        "batch_id -> batches.id",
+        "operator_id -> users.id",
+        "verified_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "batch_id",
+        "ccp_code",
+        "ccp_name",
+        "target_value",
+        "actual_value",
+        "critical_limit_min",
+        "critical_limit_max",
+        "uom",
+        "status",
+        "operator_id",
+        "verified_by",
+        "checked_at",
+        "notes"
+      ]
+    },
+    {
+      "tableName": "ci_capa_actions",
+      "rowCount": 4,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "rca_id",
+        "project_id",
+        "description",
+        "action_type",
+        "owner",
+        "due_date",
+        "priority",
+        "status",
+        "completion_date",
+        "evidence_notes",
+        "effectiveness_result",
+        "verified_by",
+        "verified_at",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_capex_projects",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "name",
+        "plant_id",
+        "line_id",
+        "asset_id",
+        "linked_rca_id",
+        "linked_project_id",
+        "budget",
+        "estimated_cost",
+        "actual_cost",
+        "engineering_justification",
+        "status",
+        "owner",
+        "target_commission_date",
+        "dossier_ref",
+        "approval_status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_ideas",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "submitted_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "title",
+        "category",
+        "problem_statement",
+        "proposed_solution",
+        "estimated_savings",
+        "status",
+        "submitted_by",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_losses",
+      "rowCount": 5,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "category",
+        "plant_id",
+        "line_id",
+        "asset_id",
+        "event_name",
+        "hours_lost",
+        "units_lost",
+        "financial_impact_usd",
+        "linked_rca_id",
+        "linked_project_id",
+        "trend",
+        "date",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_projects",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "name",
+        "type",
+        "plant_id",
+        "line_id",
+        "asset_id",
+        "linked_rca_id",
+        "sponsor",
+        "owner",
+        "start_date",
+        "target_date",
+        "status",
+        "progress",
+        "baseline_metric",
+        "target_metric",
+        "current_metric",
+        "projected_savings_annual",
+        "realized_savings_ytd",
+        "benefit_status",
+        "locked_by",
+        "locked_at",
+        "unlock_reason",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_rca_evidence",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "rca_id",
+        "type",
+        "title",
+        "details",
+        "file_url",
+        "uploaded_by",
+        "date",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_rca_hypotheses",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "rca_id",
+        "statement",
+        "test_method",
+        "evidence_result",
+        "validation_status",
+        "validated_by",
+        "validated_at",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_rca_investigations",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "title",
+        "asset_id",
+        "asset_name",
+        "line_id",
+        "line_name",
+        "source_breakdown_id",
+        "source_work_order_id",
+        "severity",
+        "status",
+        "current_phase",
+        "problem_statement",
+        "lead_investigator",
+        "team_members",
+        "event_date",
+        "days_active",
+        "why_tree",
+        "eight_d",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "ci_reliability_records",
+      "rowCount": 4,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "asset_id",
+        "asset_name",
+        "line_id",
+        "line_name",
+        "plant_id",
+        "failures_count",
+        "total_downtime_min",
+        "mtbf_hrs",
+        "mttr_min",
+        "last_failure_date",
+        "failure_category",
+        "criticality",
+        "is_bad_actor",
+        "bad_actor_reason",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_standards",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "title",
+        "type",
+        "version",
+        "plant_id",
+        "line_id",
+        "asset_id",
+        "source_project_id",
+        "source_rca_id",
+        "owner",
+        "status",
+        "effective_date",
+        "review_date",
+        "approved_by",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "ci_verified_solutions",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "asset_id",
+        "asset_name",
+        "failure_mode",
+        "symptom",
+        "root_cause",
+        "solution_steps",
+        "parts_used",
+        "source_rca_id",
+        "verified_by",
+        "verified_date",
+        "status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "customer_orders",
+      "rowCount": 6,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "order_number",
+        "customer_name",
+        "sku_id",
+        "quantity",
+        "priority",
+        "requested_date",
+        "scheduled_date",
+        "status",
+        "delivery_address",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "deviations",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "reported_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "deviation_number",
+        "title",
+        "description",
+        "category",
+        "severity",
+        "status",
+        "reported_by",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "digital_signatures",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "user_id -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "user_id",
+        "entity_type",
+        "entity_id",
+        "meaning",
+        "comments",
+        "signed_at"
+      ]
+    },
+    {
+      "tableName": "documents",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "author_id -> users.id",
+        "approved_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "doc_code",
+        "title",
+        "category",
+        "version",
+        "file_url",
+        "status",
+        "author_id",
+        "approved_by",
+        "effective_date"
+      ]
+    },
+    {
+      "tableName": "downtime_logs",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "line_id -> production_lines.id",
+        "asset_id -> assets.id",
+        "order_id -> production_orders.id",
+        "logged_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "asset_id",
+        "order_id",
+        "reason_code",
+        "category",
+        "start_time",
+        "end_time",
+        "duration_minutes",
+        "comments",
+        "logged_by",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "exceptions",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "exception_code",
+        "severity",
+        "module",
+        "title",
+        "description",
+        "status",
+        "reported_at",
+        "resolved_at"
+      ]
+    },
+    {
+      "tableName": "failure_codes",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "code",
+        "symptom",
+        "category",
+        "standard_resolution",
+        "success_count"
+      ]
+    },
+    {
+      "tableName": "forecasts",
+      "rowCount": 5,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "sku_id",
+        "period",
+        "baseline_demand",
+        "promo_uplift",
+        "override_quantity",
+        "final_forecast",
+        "mape_accuracy",
+        "model_type",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "goods_receipts",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "received_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "grn_number",
+        "po_number",
+        "vendor_name",
+        "received_by",
+        "received_date",
+        "status",
+        "items"
+      ]
+    },
+    {
+      "tableName": "inventory_lots",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id",
+        "location_bin_id -> location_bins.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "sku_id",
+        "lot_number",
+        "lot_type",
+        "supplier_name",
+        "supplier_lot_number",
+        "initial_quantity",
+        "current_quantity",
+        "reserved_quantity",
+        "uom",
+        "location_bin_id",
+        "mfg_date",
+        "expiry_date",
+        "status",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "inventory_transactions",
+      "rowCount": 8,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "lot_id -> inventory_lots.id",
+        "from_bin_id -> location_bins.id",
+        "to_bin_id -> location_bins.id",
+        "performed_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "lot_id",
+        "type",
+        "quantity",
+        "uom",
+        "from_bin_id",
+        "to_bin_id",
+        "reference_type",
+        "reference_id",
+        "notes",
+        "performed_by",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "location_bins",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "warehouse_id -> warehouses.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "warehouse_id",
+        "bin_code",
+        "aisle",
+        "rack",
+        "shelf",
+        "bin",
+        "zone",
+        "is_occupied"
+      ]
+    },
+    {
+      "tableName": "lot_genealogies",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "parent_lot_id -> inventory_lots.id",
+        "child_lot_id -> inventory_lots.id",
+        "batch_id -> batches.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "parent_lot_id",
+        "child_lot_id",
+        "batch_id",
+        "quantity_used",
+        "uom",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "mrp_requirements",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "sku_id",
+        "gross_requirement",
+        "available_stock",
+        "reserved_stock",
+        "scheduled_receipts",
+        "net_shortage",
+        "required_date",
+        "status",
+        "calculated_at"
+      ]
+    },
+    {
+      "tableName": "notifications",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "user_id -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "user_id",
+        "title",
+        "message",
+        "category",
+        "severity",
+        "is_read",
+        "link_url",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "permissions",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "code",
+        "module",
+        "action",
+        "description",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "plants",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "code",
+        "name",
+        "city",
+        "state",
+        "country",
+        "timezone",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_capacity_plans",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "line_name",
+        "week_code",
+        "available_hours",
+        "planned_hours",
+        "utilization_percent",
+        "status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "pm_exceptions",
+      "rowCount": 6,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "title",
+        "severity",
+        "category",
+        "asset_or_order",
+        "impact_description",
+        "owner",
+        "escalation_level",
+        "status",
+        "resolution_notes",
+        "resolved_at",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_hb_logs",
+      "rowCount": 10,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "pitch_id",
+        "hour_window",
+        "target_units",
+        "actual_units",
+        "delta",
+        "cumulative_delta",
+        "variance_reason",
+        "corrective_action",
+        "shift_code",
+        "logged_date",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_machine_telemetry",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "machine_code",
+        "name",
+        "line_id",
+        "status",
+        "speed_bph",
+        "rated_speed_bph",
+        "target_count",
+        "produced_count",
+        "scrap_count",
+        "runtime_hours",
+        "downtime_minutes",
+        "efficiency_percent",
+        "current_order",
+        "operator",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_planning_constraints",
+      "rowCount": 5,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "constraint_type",
+        "rule_description",
+        "affected_line",
+        "schedule_impact",
+        "risk_level",
+        "status",
+        "resolved_at",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_production_schedules",
+      "rowCount": 6,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "sku_id",
+        "sku_name",
+        "line_id",
+        "line_name",
+        "planned_quantity",
+        "start_time",
+        "end_time",
+        "status",
+        "locked",
+        "attainment_percent",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "pm_recovery_plans",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "scenario_name",
+        "speed_boost_percent",
+        "overtime_hours",
+        "projected_recovery_units",
+        "feasibility_percent",
+        "estimated_cost_usd",
+        "applied_at"
+      ]
+    },
+    {
+      "tableName": "pm_schedules",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "asset_id -> assets.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "asset_id",
+        "schedule_code",
+        "title",
+        "frequency",
+        "interval_days",
+        "last_performed_date",
+        "next_due_date",
+        "status",
+        "checklist_template",
+        "is_active"
+      ]
+    },
+    {
+      "tableName": "pm_shift_handoffs",
+      "rowCount": 4,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "shift_from",
+        "shift_to",
+        "handed_over_by",
+        "received_by",
+        "units_produced",
+        "scrap_units",
+        "notes",
+        "signature_status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "product_families",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "code",
+        "name",
+        "description",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "production_lines",
+      "rowCount": 7,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "work_center_id -> work_centers.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "work_center_id",
+        "code",
+        "name",
+        "line_type",
+        "nominal_speed_bpm",
+        "status",
+        "health_score",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "production_orders",
+      "rowCount": 8,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id",
+        "line_id -> production_lines.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "order_number",
+        "sku_id",
+        "line_id",
+        "target_quantity",
+        "produced_quantity",
+        "scrap_quantity",
+        "status",
+        "priority",
+        "planned_start",
+        "planned_end",
+        "actual_start",
+        "actual_end",
+        "notes",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "purchase_requisitions",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "req_number",
+        "sku_id",
+        "quantity",
+        "uom",
+        "vendor_name",
+        "estimated_cost",
+        "urgency",
+        "status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "purchasing_vendors",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "vendor_code",
+        "name",
+        "contact_email",
+        "phone",
+        "rating",
+        "lead_time_days",
+        "status"
+      ]
+    },
+    {
+      "tableName": "qa_releases",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "batch_id -> batches.id",
+        "disposition_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "batch_id",
+        "disposition",
+        "disposition_by",
+        "digital_signature_pin_used",
+        "certificate_of_analysis_url",
+        "coa_metadata",
+        "comments",
+        "released_at"
+      ]
+    },
+    {
+      "tableName": "quality_holds",
+      "rowCount": 3,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "batch_id -> batches.id",
+        "hold_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "lot_number",
+        "batch_id",
+        "reason",
+        "severity",
+        "status",
+        "hold_by",
+        "hold_at",
+        "released_at"
+      ]
+    },
+    {
+      "tableName": "quality_specs",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "sku_id -> skus.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "sku_id",
+        "parameter_name",
+        "target_value",
+        "min_tolerance",
+        "max_tolerance",
+        "uom",
+        "is_ccp",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "recall_events",
+      "rowCount": 2,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "initiated_by -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "recall_code",
+        "initiated_by",
+        "target_lot_number",
+        "reason",
+        "scope",
+        "impact_summary",
+        "status",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "role_permissions",
+      "rowCount": 0,
+      "primaryKey": [
+        "permission_id",
+        "role_id"
+      ],
+      "foreignKeys": [
+        "role_id -> roles.id",
+        "permission_id -> permissions.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "role_id",
+        "permission_id"
+      ]
+    },
+    {
+      "tableName": "roles",
+      "rowCount": 15,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "code",
+        "name",
+        "description",
+        "is_system",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "routing_steps",
+      "rowCount": 22,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "routing_id -> routings.id",
+        "work_center_id -> work_centers.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "routing_id",
+        "sequence",
+        "operation_code",
+        "operation_name",
+        "work_center_id",
+        "std_duration_min",
+        "setup_duration_min",
+        "crew_size",
+        "is_quality_gate",
+        "instructions",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "routings",
+      "rowCount": 6,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "sku_id -> skus.id",
+        "line_id -> production_lines.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "routing_code",
+        "sku_id",
+        "line_id",
+        "revision",
+        "approval_status",
+        "status",
+        "std_run_rate_bph",
+        "setup_duration_min",
+        "expected_yield_pct",
+        "effective_from",
+        "effective_to",
+        "notes",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "shift_logs",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "line_id -> production_lines.id",
+        "order_id -> production_orders.id",
+        "operator_id -> users.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "line_id",
+        "order_id",
+        "shift_code",
+        "operator_id",
+        "hour_window",
+        "good_units_produced",
+        "scrap_units_produced",
+        "logged_at"
+      ]
+    },
+    {
+      "tableName": "shifts",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "code",
+        "name",
+        "start_time",
+        "end_time",
+        "is_active"
+      ]
+    },
+    {
+      "tableName": "shipment_orders",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "shipment_number",
+        "customer_name",
+        "carrier",
+        "tracking_number",
+        "status",
+        "dispatch_date",
+        "shipped_lots"
+      ]
+    },
+    {
+      "tableName": "skus",
+      "rowCount": 11,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "family_id -> product_families.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "sku_code",
+        "name",
+        "category",
+        "family_id",
+        "uom",
+        "barcode",
+        "standard_cost",
+        "shelf_life_days",
+        "min_stock_level",
+        "max_stock_level",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "spare_consumption",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "work_order_id -> work_orders.id",
+        "spare_part_id -> spare_parts.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "work_order_id",
+        "spare_part_id",
+        "quantity_used",
+        "unit_cost",
+        "consumed_at"
+      ]
+    },
+    {
+      "tableName": "spare_parts",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "part_number",
+        "name",
+        "category",
+        "current_stock",
+        "min_stock_level",
+        "unit_cost",
+        "bin_location",
+        "supplier_name"
+      ]
+    },
+    {
+      "tableName": "staff",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "employee_code",
+        "name",
+        "designation",
+        "shift_code",
+        "phone",
+        "is_available",
+        "certifications",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "tenants",
+      "rowCount": 1,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "name",
+        "slug",
+        "plan",
+        "status",
+        "settings",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "user_roles",
+      "rowCount": 14,
+      "primaryKey": [
+        "roleId",
+        "userId"
+      ],
+      "foreignKeys": [
+        "userId -> users.id",
+        "roleId -> roles.id",
+        "plantId -> plants.id"
+      ],
+      "hasTenantId": false,
+      "hasPlantId": false,
+      "columns": [
+        "userId",
+        "roleId",
+        "plantId"
+      ]
+    },
+    {
+      "tableName": "users",
+      "rowCount": 19,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": false,
+      "columns": [
+        "id",
+        "tenant_id",
+        "email",
+        "password_hash",
+        "first_name",
+        "last_name",
+        "phone",
+        "avatar_url",
+        "digital_signature_pin_hash",
+        "is_master_admin",
+        "status",
+        "last_login_at",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "tableName": "warehouses",
+      "rowCount": 0,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "code",
+        "name",
+        "type",
+        "is_active"
+      ]
+    },
+    {
+      "tableName": "work_centers",
+      "rowCount": 7,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "code",
+        "name",
+        "category",
+        "capacity_per_hour",
+        "hourly_rate",
+        "is_active",
+        "created_at"
+      ]
+    },
+    {
+      "tableName": "work_orders",
+      "rowCount": 4,
+      "primaryKey": [
+        "id"
+      ],
+      "foreignKeys": [
+        "tenant_id -> tenants.id",
+        "plant_id -> plants.id",
+        "asset_id -> assets.id",
+        "assigned_to -> users.id",
+        "reported_by -> users.id",
+        "failure_code_id -> failure_codes.id"
+      ],
+      "hasTenantId": true,
+      "hasPlantId": true,
+      "columns": [
+        "id",
+        "tenant_id",
+        "plant_id",
+        "wo_number",
+        "asset_id",
+        "title",
+        "description",
+        "type",
+        "priority",
+        "status",
+        "assigned_to",
+        "reported_by",
+        "failure_code_id",
+        "estimated_hours",
+        "actual_hours",
+        "scheduled_date",
+        "completed_at",
+        "created_at",
+        "updated_at"
+      ]
+    }
+  ]
+}

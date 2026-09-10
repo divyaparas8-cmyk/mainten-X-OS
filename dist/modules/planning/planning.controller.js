@@ -39,6 +39,73 @@ class PlanningController {
         const data = await planning_service_js_1.planningService.runMrpExplosion(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Net Requirements calculated"));
     }
+    // --- Plant Manager Handlers ---
+    async getSchedules(request, reply) {
+        const data = await planning_service_js_1.planningService.listSchedules(request.query?.plantId || request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createSchedule(request, reply) {
+        const body = request.body;
+        const data = await planning_service_js_1.planningService.createSchedule({
+            sku: body.sku,
+            line: body.line,
+            quantity: Number(body.quantity || body.plannedQty || 30000),
+            startTime: body.startTime || "06:00",
+            endTime: body.endTime || "14:30",
+            plantId: body.plantId || request.user.plantId,
+        });
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Schedule run created successfully"));
+    }
+    async toggleScheduleLock(request, reply) {
+        const { id } = request.params;
+        const body = request.body;
+        const data = await planning_service_js_1.planningService.toggleScheduleLock(id, body?.locked);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Schedule lock updated"));
+    }
+    async deleteSchedule(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.deleteSchedule(id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Schedule run deleted"));
+    }
+    async getCapacity(request, reply) {
+        const data = await planning_service_js_1.planningService.listCapacity(request.query?.plantId || request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getConstraints(request, reply) {
+        const data = await planning_service_js_1.planningService.listConstraints(request.query?.plantId || request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createConstraint(request, reply) {
+        const body = request.body;
+        const data = await planning_service_js_1.planningService.createConstraint({
+            type: body.type,
+            description: body.description,
+            line: body.line,
+            impact: body.impact,
+            risk: body.risk || "Medium",
+            plantId: body.plantId || request.user.plantId,
+        });
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Constraint registered"));
+    }
+    async resolveConstraint(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.resolveConstraint(id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Constraint marked resolved"));
+    }
+    async deleteConstraint(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.deleteConstraint(id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Constraint deleted"));
+    }
+    async applyRecovery(request, reply) {
+        const body = request.body;
+        const data = await planning_service_js_1.planningService.applyRecovery({
+            speedBoostPercent: Number(body.speedBoostPercent || body.speedBoost || 0),
+            overtimeHours: Number(body.overtimeHours || body.overtime || 0),
+            plantId: body.plantId || request.user.plantId,
+        });
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Recovery plan calculated & applied"));
+    }
 }
 exports.PlanningController = PlanningController;
 exports.planningController = new PlanningController();

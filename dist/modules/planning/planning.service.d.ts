@@ -95,6 +95,48 @@ export declare class PlanningService {
         status: string;
         recommendedRequisitionQty: number;
     }[]>;
+    listSchedules(plantId?: string): Promise<any[]>;
+    createSchedule(input: {
+        sku: string;
+        line: string;
+        quantity: number;
+        startTime: string;
+        endTime: string;
+        plantId?: string;
+    }): Promise<any>;
+    toggleScheduleLock(id: string, locked?: boolean): Promise<any>;
+    deleteSchedule(id: string): Promise<{
+        id: string;
+        deleted: boolean;
+    }>;
+    listCapacity(plantId?: string): Promise<any[]>;
+    listConstraints(plantId?: string): Promise<any[]>;
+    createConstraint(input: {
+        type: string;
+        description: string;
+        line: string;
+        impact: string;
+        risk: string;
+        plantId?: string;
+    }): Promise<any>;
+    resolveConstraint(id: string): Promise<any>;
+    deleteConstraint(id: string): Promise<{
+        id: string;
+        deleted: boolean;
+    }>;
+    applyRecovery(input: {
+        speedBoostPercent: number;
+        overtimeHours: number;
+        plantId?: string;
+    }): Promise<{
+        id: string;
+        speedBoostPercent: number;
+        overtimeHours: number;
+        projectedRecoveryUnits: number;
+        feasibilityPercent: number;
+        estimatedCostUsd: number;
+        status: string;
+    }>;
 }
 export declare const planningService: PlanningService;
 //# sourceMappingURL=planning.service.d.ts.map

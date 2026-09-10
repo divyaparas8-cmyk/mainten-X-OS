@@ -20,8 +20,8 @@ export declare class DashboardsService {
                 status: string;
             };
             total: {
-                target: number;
-                actual: number;
+                target: any;
+                actual: any;
                 netVariance: number;
                 shiftPacing: string;
                 eodProjection: number;
@@ -84,14 +84,18 @@ export declare class DashboardsService {
                 status: string;
             };
         };
-        hourlyLedger: {
-            hour: string;
-            target: number;
-            actual: number;
-            delta: string;
-            status: string;
-        }[];
+        hourlyLedger: any[];
     }>;
+    getExecutiveKPIs(plantId?: string): Promise<{
+        id: string;
+        title: string;
+        category: string;
+        current: string;
+        target: string;
+        variance: string;
+        status: string;
+        isPositive: boolean;
+    }[]>;
 }
 export declare const dashboardsService: DashboardsService;
 //# sourceMappingURL=dashboards.service.d.ts.map

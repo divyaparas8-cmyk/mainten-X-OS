@@ -172,11 +172,52 @@ export declare class MasterDataController {
     }>, reply: FastifyReply): Promise<never>;
     getSanitationClasses(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createSanitationClass(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSanitationClass(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteSanitationClass(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getAllergenRules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createAllergenRule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateAllergenRule(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAllergenRule(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getSkus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createSku(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSku(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteSku(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getBoms(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createBom(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateBom(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteBom(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getAssets(request: FastifyRequest<{
         Querystring: {
             plantId?: string;
@@ -188,6 +229,18 @@ export declare class MasterDataController {
         };
     }>, reply: FastifyReply): Promise<never>;
     getQualitySpecs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getLabourStandards(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createLabourStandard(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateLabourStandard(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteLabourStandard(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
 }
 export declare const masterDataController: MasterDataController;
 //# sourceMappingURL=masterData.controller.d.ts.map

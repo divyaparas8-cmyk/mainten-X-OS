@@ -24,6 +24,9 @@ const dashboards_routes_js_1 = require("./modules/dashboards/dashboards.routes.j
 const admin_routes_js_1 = require("./modules/admin/admin.routes.js");
 const notifications_routes_js_1 = require("./modules/notifications/notifications.routes.js");
 const search_routes_js_1 = require("./modules/search/search.routes.js");
+const ci_routes_js_1 = require("./modules/ci/ci.routes.js");
+const exceptions_routes_js_1 = require("./modules/exceptions/exceptions.routes.js");
+const ai_routes_js_1 = require("./modules/ai/ai.routes.js");
 async function buildApp() {
     const app = (0, fastify_1.default)({
         logger: {
@@ -75,6 +78,9 @@ async function buildApp() {
     await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/dashboards" });
     await app.register(notifications_routes_js_1.notificationsRoutes, { prefix: "/api/v1/notifications" });
     await app.register(search_routes_js_1.searchRoutes, { prefix: "/api/v1/search" });
+    await app.register(ci_routes_js_1.ciRoutes, { prefix: "/api/v1/ci" });
+    await app.register(exceptions_routes_js_1.exceptionsRoutes, { prefix: "/api/v1/exceptions" });
+    await app.register(ai_routes_js_1.aiRoutes, { prefix: "/api/v1/ai" });
     return app;
 }
 //# sourceMappingURL=app.js.map

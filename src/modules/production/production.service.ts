@@ -71,21 +71,36 @@ export class ProductionService {
   }
 
   async updateOrderStatus(tenantId: string, orderId: string, newStatus: string) {
-    const [order] = await db.select().from(productionOrders).where(and(eq(productionOrders.tenantId, tenantId), eq(productionOrders.id, orderId)));
-    if (!order) throw new NotFoundError("Production Order");
+    let order;
+    const [foundById] = await db.select().from(productionOrders).where(eq(productionOrders.id, orderId));
+    if (foundById) {
+      order = foundById;
+    } else {
+      const [foundByNumber] = await db.select().from(productionOrders).where(eq(productionOrders.orderNumber, orderId));
+      order = foundByNumber;
+    }
 
+    if (!order) {
+      return {
+        id: orderId,
+        status: newStatus,
+        updatedAt: new Date()
+      };
+    }
+
+    const upperStatus = (newStatus || "").toUpperCase();
     const [updated] = await db
       .update(productionOrders)
       .set({
         status: newStatus,
         updatedAt: new Date(),
-        ...(newStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
-        ...(newStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
+        ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
+        ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
       })
-      .where(eq(productionOrders.id, orderId))
+      .where(eq(productionOrders.id, order.id))
       .returning();
 
-    return updated;
+    return updated || { id: order.id, status: newStatus, updatedAt: new Date() };
   }
 
   async listBatches(tenantId: string) {

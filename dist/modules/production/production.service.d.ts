@@ -131,6 +131,10 @@ export declare class ProductionService {
         notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+    } | {
+        id: string;
+        status: string;
+        updatedAt: Date;
     }>;
     listBatches(tenantId: string): Promise<{
         status: string;

@@ -398,6 +398,11 @@ export class DashboardsController {
   }
 
   // ─── Operator Barcode & QR Scan ─────────────────────────────────────────────
+  async getBarcodeScanStatus(request: FastifyRequest, reply: FastifyReply) {
+    const data = await dashboardsService.getBarcodeScanStatus(request.user.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
   async parseBarcode(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
     const data = await dashboardsService.parseBarcode(request.user.tenantId, body);
@@ -411,6 +416,11 @@ export class DashboardsController {
   }
 
   // ─── Operator Report Issue & Safety Exception ──────────────────────────────
+  async getReportIssueStatus(request: FastifyRequest, reply: FastifyReply) {
+    const data = await dashboardsService.getReportIssueStatus(request.user.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
   async submitReportIssue(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
     const data = await dashboardsService.submitReportIssue(request.user.tenantId, body);
@@ -476,6 +486,11 @@ export class DashboardsController {
   }
 
   // ─── Operations Supervisor Command Center ──────────────────────────────────
+  async getSupervisorDashboard(request: FastifyRequest, reply: FastifyReply) {
+    const data = await dashboardsService.getSupervisorDashboard(request.user.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
   async authorizeSupervisorShift(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
     const data = await dashboardsService.authorizeSupervisorShift(request.user.tenantId, body);
@@ -760,6 +775,12 @@ export class DashboardsController {
   async getSupervisorReportsList(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getSupervisorReportsList(request.user.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  async printSupervisorReport(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.printSupervisorReport(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
   }
 
   // ─── Operations Supervisor Notifications ───────────────────────────────────

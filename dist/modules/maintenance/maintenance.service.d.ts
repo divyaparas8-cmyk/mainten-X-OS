@@ -56,6 +56,145 @@ export declare class MaintenanceService {
             lastLoginAt: Date | null;
         } | null;
     }[]>;
+    listBreakdowns(tenantId: string, plantId?: string): Promise<{
+        type: string;
+        status: string;
+        title: string;
+        description: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        priority: string;
+        scheduledDate: Date | null;
+        completedAt: Date | null;
+        assetId: string;
+        reportedBy: string | null;
+        assignedTo: string | null;
+        woNumber: string;
+        failureCodeId: string | null;
+        estimatedHours: string | null;
+        actualHours: string | null;
+        asset: {
+            status: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            lineId: string | null;
+            assetCode: string;
+            modelNumber: string | null;
+            manufacturer: string | null;
+            criticalLevel: string | null;
+            healthPercent: number | null;
+            mtbfHours: string | null;
+            mttrHours: string | null;
+            installDate: Date | null;
+            lastServiceDate: Date | null;
+        };
+        assignedUser: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            email: string;
+            passwordHash: string;
+            firstName: string;
+            lastName: string;
+            phone: string | null;
+            avatarUrl: string | null;
+            digitalSignaturePinHash: string | null;
+            isMasterAdmin: boolean;
+            lastLoginAt: Date | null;
+        } | null;
+    }[]>;
+    listHistory(tenantId: string, plantId?: string): Promise<{
+        type: string;
+        status: string;
+        title: string;
+        description: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        priority: string;
+        scheduledDate: Date | null;
+        completedAt: Date | null;
+        assetId: string;
+        reportedBy: string | null;
+        assignedTo: string | null;
+        woNumber: string;
+        failureCodeId: string | null;
+        estimatedHours: string | null;
+        actualHours: string | null;
+        asset: {
+            status: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            lineId: string | null;
+            assetCode: string;
+            modelNumber: string | null;
+            manufacturer: string | null;
+            criticalLevel: string | null;
+            healthPercent: number | null;
+            mtbfHours: string | null;
+            mttrHours: string | null;
+            installDate: Date | null;
+            lastServiceDate: Date | null;
+        };
+        assignedUser: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            email: string;
+            passwordHash: string;
+            firstName: string;
+            lastName: string;
+            phone: string | null;
+            avatarUrl: string | null;
+            digitalSignaturePinHash: string | null;
+            isMasterAdmin: boolean;
+            lastLoginAt: Date | null;
+        } | null;
+    }[]>;
+    exportHistoryDossier(tenantId: string, id: string): Promise<{
+        id: string;
+        status: string;
+        acknowledged: boolean;
+        exportTime: Date;
+    }>;
+    updateAsset(tenantId: string, id: string, input: any): Promise<any>;
+    listTroubleshooting(tenantId: string): Promise<{
+        id: string;
+        symptom: string;
+        assetType: string;
+        failureCode: string;
+        verifiedBy: string;
+    }[]>;
+    saveTroubleshootingStep(tenantId: string, input: any): Promise<{
+        step: any;
+        savedAt: Date;
+        acknowledged: boolean;
+        data: any;
+    }>;
+    saveTroubleshootingDraft(tenantId: string, input: any): Promise<{
+        draftId: string;
+        savedAt: Date;
+        acknowledged: boolean;
+        data: any;
+    }>;
+    saveTroubleshootingSolution(tenantId: string, input: any): Promise<any>;
     createWorkOrder(tenantId: string, plantId: string, input: CreateWorkOrderInput, userId: string): Promise<{
         type: string;
         status: string;
@@ -77,27 +216,7 @@ export declare class MaintenanceService {
         estimatedHours: string | null;
         actualHours: string | null;
     }>;
-    updateWorkOrderStatus(tenantId: string, id: string, input: UpdateWorkOrderStatusInput): Promise<{
-        id: string;
-        tenantId: string;
-        plantId: string;
-        woNumber: string;
-        assetId: string;
-        title: string;
-        description: string | null;
-        type: string;
-        priority: string;
-        status: string;
-        assignedTo: string | null;
-        reportedBy: string | null;
-        failureCodeId: string | null;
-        estimatedHours: string | null;
-        actualHours: string | null;
-        scheduledDate: Date | null;
-        completedAt: Date | null;
-        createdAt: Date;
-        updatedAt: Date;
-    }>;
+    updateWorkOrderStatus(tenantId: string, id: string, input: UpdateWorkOrderStatusInput): Promise<any>;
     listPMSchedules(tenantId: string): Promise<{
         status: string;
         title: string;
@@ -113,6 +232,34 @@ export declare class MaintenanceService {
         nextDueDate: Date;
         checklistTemplate: unknown;
     }[]>;
+    createPMSchedule(tenantId: string, plantId: string, input: {
+        title: string;
+        assetId?: string;
+        frequency?: string;
+        assignedTo?: string;
+        dueDate?: string;
+    }): Promise<{
+        status: string;
+        title: string;
+        id: string;
+        tenantId: string;
+        isActive: boolean;
+        plantId: string;
+        assetId: string;
+        scheduleCode: string;
+        frequency: string;
+        intervalDays: number;
+        lastPerformedDate: Date | null;
+        nextDueDate: Date;
+        checklistTemplate: unknown;
+    }>;
+    executePMChecklist(tenantId: string, input: any): Promise<any>;
+    savePMChecklistDraft(tenantId: string, input: any): Promise<{
+        draftId: string;
+        savedAt: Date;
+        acknowledged: boolean;
+        data: any;
+    }>;
     listSpareParts(tenantId: string): Promise<{
         id: string;
         name: string;
@@ -126,6 +273,55 @@ export declare class MaintenanceService {
         unitCost: string | null;
         binLocation: string | null;
     }[]>;
+    listPM(tenantId: string): Promise<{
+        status: string;
+        title: string;
+        id: string;
+        tenantId: string;
+        isActive: boolean;
+        plantId: string;
+        assetId: string;
+        scheduleCode: string;
+        frequency: string;
+        intervalDays: number;
+        lastPerformedDate: Date | null;
+        nextDueDate: Date;
+        checklistTemplate: unknown;
+    }[]>;
+    listCalendar(tenantId: string): Promise<{
+        status: string;
+        title: string;
+        id: string;
+        tenantId: string;
+        isActive: boolean;
+        plantId: string;
+        assetId: string;
+        scheduleCode: string;
+        frequency: string;
+        intervalDays: number;
+        lastPerformedDate: Date | null;
+        nextDueDate: Date;
+        checklistTemplate: unknown;
+    }[]>;
+    listNotifications(tenantId: string): Promise<{
+        id: string;
+        title: string;
+        type: string;
+        category: string;
+        timestamp: string;
+        read: boolean;
+    }[]>;
+    listProfile(tenantId: string): Promise<{
+        name: string;
+        email: string;
+        phone: string;
+        role: string;
+        plant: string;
+        shift: string;
+        avatar: string;
+        bio: string;
+    }>;
+    updateProfile(tenantId: string, input: any): Promise<any>;
     getReliabilityMetrics(tenantId: string, plantId?: string): Promise<{
         plantOverall: {
             mtbfHours: number;
@@ -140,6 +336,34 @@ export declare class MaintenanceService {
             status: string;
         }[];
     }>;
+    getRCAInvestigations(tenantId: string): Promise<{
+        id: string;
+        title: string;
+        assetId: string;
+        assetName: string;
+        lineId: string;
+        lineName: string;
+        plantId: string;
+        sourceBreakdownId: string;
+        leadInvestigator: string;
+        teamMembers: string[];
+        currentPhase: string;
+        status: string;
+        severity: string;
+        daysActive: number;
+        targetCloseDate: string;
+    }[]>;
+    createRCAInvestigation(tenantId: string, input: any): Promise<any>;
+    exportReliabilityReport(tenantId: string): Promise<{
+        success: boolean;
+        reportType: string;
+        generatedAt: Date;
+        downloadUrl: string;
+    }>;
+    saveWorkOrderExecution(tenantId: string, id: string, input: any): Promise<any>;
+    issueWorkOrderPart(tenantId: string, input: any): Promise<any>;
+    signOffWorkOrder(tenantId: string, id: string, input: any): Promise<any>;
+    addWorkOrderComment(tenantId: string, id: string, input: any): Promise<any>;
 }
 export declare const maintenanceService: MaintenanceService;
 //# sourceMappingURL=maintenance.service.d.ts.map

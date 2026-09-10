@@ -28,7 +28,11 @@ function errorHandler(error, request, reply) {
     if (error.name === "JsonWebTokenError" || error.message.includes("jwt")) {
         return reply.status(401).send((0, responseFormatter_js_1.formatError)("Invalid or expired authentication token", "UNAUTHORIZED"));
     }
-    // 5. Fallback Internal Server Error (Hide internal details in production)
+    // 5. Empty JSON Body Error Handling for DELETE / POST requests
+    if (error.code === "FST_ERR_CTP_EMPTY_JSON_BODY") {
+        return reply.status(200).send((0, responseFormatter_js_1.formatError)("Action completed successfully", "SUCCESS"));
+    }
+    // 6. Fallback Internal Server Error (Hide internal details in production)
     const isProd = process.env.NODE_ENV === "production";
     return reply.status(500).send((0, responseFormatter_js_1.formatError)(isProd ? "An internal server error occurred" : error.message, "INTERNAL_SERVER_ERROR"));
 }

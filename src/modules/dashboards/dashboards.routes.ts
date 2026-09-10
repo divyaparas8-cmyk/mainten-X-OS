@@ -156,11 +156,13 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.post("/operator/material-request/:id/confirm-receipt", { schema: { tags: ["Dashboards & Executive"], summary: "Confirm Material Receipt at Line" } }, dashboardsController.confirmMaterialReceipt.bind(dashboardsController));
 
   // ─── Operator Barcode & QR Scan Routes ──────────────────────────────────────
+  fastify.get("/operator/barcode-scan", { schema: { tags: ["Dashboards & Executive"], summary: "Get Barcode Scanner Status & Config" } }, dashboardsController.getBarcodeScanStatus.bind(dashboardsController));
   fastify.post("/operator/barcode-scan/parse", { schema: { tags: ["Dashboards & Executive"], summary: "Parse Barcode / QR Code GS1 Standard" } }, dashboardsController.parseBarcode.bind(dashboardsController));
 
   fastify.post("/operator/barcode-scan/attach-lot", { schema: { tags: ["Dashboards & Executive"], summary: "Attach Scanned Lot Tag to Active Batch" } }, dashboardsController.attachLotToBatch.bind(dashboardsController));
 
   // ─── Operator Report Issue & Safety Exception Routes ───────────────────────
+  fastify.get("/operator/report-issue", { schema: { tags: ["Dashboards & Executive"], summary: "Get Report Issue Categories & Active Hazards" } }, dashboardsController.getReportIssueStatus.bind(dashboardsController));
   fastify.post("/operator/report-issue/submit", { schema: { tags: ["Dashboards & Executive"], summary: "Log Operational Issue / Safety Exception Ticket" } }, dashboardsController.submitReportIssue.bind(dashboardsController));
 
   fastify.post("/operator/report-issue/emergency-call", { schema: { tags: ["Dashboards & Executive"], summary: "Trigger Priority P1 Emergency Maintenance Broadcast" } }, dashboardsController.triggerEmergencyCall.bind(dashboardsController));
@@ -187,6 +189,8 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.put("/operator/profile", { schema: { tags: ["Dashboards & Executive"], summary: "Update Operator Profile Information" } }, dashboardsController.updateOperatorProfile.bind(dashboardsController));
 
   // ─── Operations Supervisor Routes ──────────────────────────────────────────
+  fastify.get("/supervisor/dashboard", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Dashboard Telemetry" } }, dashboardsController.getSupervisorDashboard.bind(dashboardsController));
+
   fastify.post("/supervisor/authorize-shift", { schema: { tags: ["Dashboards & Executive"], summary: "Authorize Department Shift Start" } }, dashboardsController.authorizeSupervisorShift.bind(dashboardsController));
 
   fastify.get("/supervisor/dept-schedule", { schema: { tags: ["Dashboards & Executive"], summary: "Get Department Run Schedules" } }, dashboardsController.getSupervisorDeptSchedule.bind(dashboardsController));
@@ -270,6 +274,7 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.delete("/supervisor/quality/holds/:id/scrap", { schema: { tags: ["Dashboards & Executive"], summary: "Scrap Batch" } }, dashboardsController.scrapSupervisorHoldBatch.bind(dashboardsController));
 
   // ─── Operations Supervisor Departmental Recovery Steering ─────────────────
+  fastify.get("/supervisor/recovery", { schema: { tags: ["Dashboards & Executive"], summary: "Get Recovery Steering" } }, dashboardsController.getSupervisorRecoveryCountermeasures.bind(dashboardsController));
   fastify.get("/supervisor/recovery/countermeasures", { schema: { tags: ["Dashboards & Executive"], summary: "Get Countermeasures" } }, dashboardsController.getSupervisorRecoveryCountermeasures.bind(dashboardsController));
 
   fastify.post("/supervisor/recovery/countermeasures/:id/authorize", { schema: { tags: ["Dashboards & Executive"], summary: "Authorize Countermeasure" } }, dashboardsController.authorizeSupervisorRecoveryCountermeasure.bind(dashboardsController));
@@ -288,9 +293,13 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.post("/supervisor/approvals/bulk-approve", { schema: { tags: ["Dashboards & Executive"], summary: "Bulk Approve Shift Requests" } }, dashboardsController.bulkApproveSupervisorApprovals.bind(dashboardsController));
 
   // ─── Operations Supervisor Reports ─────────────────────────────────────────
+  fastify.get("/supervisor/reports", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Reports" } }, dashboardsController.getSupervisorReportsList.bind(dashboardsController));
   fastify.get("/supervisor/reports/list", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Reports List" } }, dashboardsController.getSupervisorReportsList.bind(dashboardsController));
 
+  fastify.post("/supervisor/reports/:id/print", { schema: { tags: ["Dashboards & Executive"], summary: "Print / Export Supervisor Report" } }, dashboardsController.printSupervisorReport.bind(dashboardsController));
+
   // ─── Operations Supervisor Notifications ───────────────────────────────────
+  fastify.get("/supervisor/notifications", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Notifications" } }, dashboardsController.getSupervisorNotificationsList.bind(dashboardsController));
   fastify.get("/supervisor/notifications/list", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Notifications List" } }, dashboardsController.getSupervisorNotificationsList.bind(dashboardsController));
 
   fastify.put("/supervisor/notifications/:id/read", { schema: { tags: ["Dashboards & Executive"], summary: "Mark Supervisor Notification Read" } }, dashboardsController.markSupervisorNotificationRead.bind(dashboardsController));

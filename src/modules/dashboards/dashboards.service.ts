@@ -694,46 +694,55 @@ export class DashboardsService {
   async getOperatorJobs(tenantId: string) {
     return [
       {
-        id: "ORD-904",
+        id: "PO-2026-904",
         orderNumber: "ORD-904-ASEPTIC-JUICE",
         productName: "Organic Cold-Pressed Orange Juice 500ml",
         productCode: "SKU-AJ-500ML-ORG",
-        status: "Completed",
+        status: "Running",
         line: "Line 1 (Aseptic Bottling)",
+        lineName: "Line 1 (Aseptic Bottling)",
         activeBatchId: "BAT-2026-0892",
-        producedQuantity: 18950,
+        batchCode: "BAT-2026-0892",
+        producedQuantity: 18450,
         targetQuantity: 24000,
         currentSpeedBPM: 580,
         targetSpeedBPM: 600,
-        unit: "Bottles"
+        unit: "Bottles",
+        unitName: "Bottles"
       },
       {
-        id: "ORD-905",
+        id: "PO-2026-905",
         orderNumber: "ORD-905-FORMULATION-BLEND",
         productName: "Artisan Ginger-Lime Concentrate Batch 5000L",
         productCode: "SKU-BLK-SYRUP-1000L",
-        status: "Completed",
+        status: "Paused - Equipment Breakdown",
         line: "Line 2 (Formulation & Blending)",
-        activeBatchId: "BAT-2026-0890",
+        lineName: "Line 2 (Formulation & Blending)",
+        activeBatchId: "BAT-2026-0898",
+        batchCode: "BAT-2026-0898",
         producedQuantity: 1200,
         targetQuantity: 5000,
         currentSpeedBPM: 0,
         targetSpeedBPM: 1200,
-        unit: "Liters"
+        unit: "Liters",
+        unitName: "Liters"
       },
       {
-        id: "ORD-906",
+        id: "PO-2026-906",
         orderNumber: "ORD-906-CAN-SPARKLING",
         productName: "Sparkling Yuzu Sparkling Tea 330ml Can",
-        productCode: "SKU-CAN-330ML-LEMI",
+        productCode: "SKU-CAN-330ML-LFM",
         status: "Completed",
         line: "Line 3 (Canning Line)",
+        lineName: "Line 3 (Canning Line)",
         activeBatchId: "BAT-2026-0885",
+        batchCode: "BAT-2026-0885",
         producedQuantity: 36000,
         targetQuantity: 36000,
         currentSpeedBPM: 0,
         targetSpeedBPM: 750,
-        unit: "Cans"
+        unit: "Cans",
+        unitName: "Cans"
       }
     ];
   }
@@ -899,6 +908,15 @@ export class DashboardsService {
   }
 
   // ─── Operator Barcode & QR Scan ─────────────────────────────────────────────
+  async getBarcodeScanStatus(tenantId: string) {
+    return {
+      status: "READY",
+      supportedStandards: ["GS1-128", "DataMatrix", "1D Barcode", "QR Code"],
+      cameraReady: true,
+      lastScanAt: new Date().toISOString()
+    };
+  }
+
   async parseBarcode(tenantId: string, payload: { code: string; type?: string }) {
     const code = payload.code || "LOT-ORG-442";
     const type = payload.type || (code.startsWith("PAL") ? "pallet" : code.startsWith("FM") ? "asset" : "lot");
@@ -945,6 +963,21 @@ export class DashboardsService {
   }
 
   // ─── Operator Report Issue & Safety Exception ──────────────────────────────
+  async getReportIssueStatus(tenantId: string) {
+    return {
+      status: "ACTIVE",
+      activeHazards: 0,
+      categories: [
+        "Mechanical breakdown",
+        "Safety risk / Near miss",
+        "Allergen / Sanitation defect",
+        "Raw material stockout",
+        "Quality CCP Deviation"
+      ],
+      updatedAt: new Date().toISOString()
+    };
+  }
+
   async submitReportIssue(tenantId: string, payload: { issueType: string; assetId: string; severity: string; description: string }) {
     const ticketId = `EXC-${Math.floor(100 + Math.random() * 900)}`;
     return {
@@ -1045,6 +1078,22 @@ export class DashboardsService {
   }
 
   // ─── Operations Supervisor Command Center ──────────────────────────────────
+  async getSupervisorDashboard(tenantId: string) {
+    return {
+      activeLines: 2,
+      totalLines: 6,
+      criticalAlarmsP1: 6,
+      activeHolds: 0,
+      pendingApprovals: 3,
+      shiftLead: "Elena Rostova",
+      handoffStatus: "SIGNED OFF",
+      activeSchedules: [
+        { line: "Line 1 (Aseptic Bottling)", status: "Running", order: "ORD-904" },
+        { line: "Line 2 (Blending)", status: "Paused - Mechanical", order: "ORD-905" }
+      ]
+    };
+  }
+
   async authorizeSupervisorShift(tenantId: string, payload: { shiftName: string }) {
     return {
       shiftName: payload.shiftName,
@@ -1461,6 +1510,14 @@ export class DashboardsService {
       { id: "SUP-02", name: "Allergen Sanitation Clean Log", category: "Sanitation", date: "2026-08-31", cadence: "Daily", format: "PDF / Audit Log" },
       { id: "SUP-03", name: "CCP Parameter Compliance Audit", category: "Quality Compliance", date: "2026-08-30", cadence: "Weekly", format: "PDF / Compliance Form" }
     ];
+  }
+
+  async printSupervisorReport(tenantId: string, id: string) {
+    return {
+      id,
+      printedAt: new Date().toISOString(),
+      message: `Report ${id} queued for print / PDF generation.`
+    };
   }
 
   // ─── Operations Supervisor Notifications ───────────────────────────────────

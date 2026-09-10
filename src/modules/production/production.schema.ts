@@ -33,12 +33,14 @@ export const updateOrderStatusSchema = z.object({
     if (s === "IN_PROGRESS" || s === "INPROGRESS" || s === "ACTIVE" || s === "START") return "RUNNING";
     if (s === "COMPLETE" || s === "DONE") return "COMPLETED";
     if (s === "PLAN") return "PLANNED";
+    if (s === "PAUSE" || s === "PAUSED" || s === "HOLD" || s === "ON_HOLD") return "PAUSED";
     return s;
   }, z.enum([
     "PLANNED",
     "SCHEDULED",
     "RELEASED",
     "RUNNING",
+    "PAUSED",
     "COMPLETED",
     "QA_PENDING",
     "RELEASED_TO_WAREHOUSE",

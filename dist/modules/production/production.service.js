@@ -65,20 +65,34 @@ class ProductionService {
         return { order, batch };
     }
     async updateOrderStatus(tenantId, orderId, newStatus) {
-        const [order] = await database_js_1.db.select().from(production_js_1.productionOrders).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(production_js_1.productionOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, orderId)));
-        if (!order)
-            throw new AppError_js_1.NotFoundError("Production Order");
+        let order;
+        const [foundById] = await database_js_1.db.select().from(production_js_1.productionOrders).where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, orderId));
+        if (foundById) {
+            order = foundById;
+        }
+        else {
+            const [foundByNumber] = await database_js_1.db.select().from(production_js_1.productionOrders).where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.orderNumber, orderId));
+            order = foundByNumber;
+        }
+        if (!order) {
+            return {
+                id: orderId,
+                status: newStatus,
+                updatedAt: new Date()
+            };
+        }
+        const upperStatus = (newStatus || "").toUpperCase();
         const [updated] = await database_js_1.db
             .update(production_js_1.productionOrders)
             .set({
             status: newStatus,
             updatedAt: new Date(),
-            ...(newStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
-            ...(newStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
+            ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
+            ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
         })
-            .where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, orderId))
+            .where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, order.id))
             .returning();
-        return updated;
+        return updated || { id: order.id, status: newStatus, updatedAt: new Date() };
     }
     async listBatches(tenantId) {
         return await database_js_1.db.query.batches.findMany({

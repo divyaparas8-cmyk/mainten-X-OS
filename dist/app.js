@@ -24,6 +24,7 @@ const dashboards_routes_js_1 = require("./modules/dashboards/dashboards.routes.j
 const admin_routes_js_1 = require("./modules/admin/admin.routes.js");
 const notifications_routes_js_1 = require("./modules/notifications/notifications.routes.js");
 const search_routes_js_1 = require("./modules/search/search.routes.js");
+const executive_routes_js_1 = require("./modules/executive/executive.routes.js");
 async function buildApp() {
     const app = (0, fastify_1.default)({
         logger: {
@@ -33,7 +34,7 @@ async function buildApp() {
     // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
     app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => {
         if (!body || body.trim().length === 0) {
-            done(null, undefined);
+            done(null, {});
             return;
         }
         try {
@@ -67,12 +68,16 @@ async function buildApp() {
     await app.register(admin_routes_js_1.adminRoutes, { prefix: "/api/v1/admin" });
     await app.register(masterData_routes_js_1.masterDataRoutes, { prefix: "/api/v1/master-data" });
     await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1/planning" });
+    await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1/planner" });
+    await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1" });
     await app.register(production_routes_js_1.productionRoutes, { prefix: "/api/v1/production" });
     await app.register(quality_routes_js_1.qualityRoutes, { prefix: "/api/v1/quality" });
     await app.register(warehouse_routes_js_1.warehouseRoutes, { prefix: "/api/v1/warehouse" });
     await app.register(traceability_routes_js_1.traceabilityRoutes, { prefix: "/api/v1/traceability" });
     await app.register(maintenance_routes_js_1.maintenanceRoutes, { prefix: "/api/v1/maintenance" });
     await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/dashboards" });
+    await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/executive" });
+    await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
     await app.register(notifications_routes_js_1.notificationsRoutes, { prefix: "/api/v1/notifications" });
     await app.register(search_routes_js_1.searchRoutes, { prefix: "/api/v1/search" });
     return app;

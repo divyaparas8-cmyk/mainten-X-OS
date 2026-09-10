@@ -361,6 +361,64 @@ export declare class MasterDataService {
             maxStockLevel: string | null;
         };
     }[]>;
+    getBomById(tenantId: string, id: string): Promise<{
+        status: string;
+        version: string;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        skuId: string;
+        batchSize: string;
+        batchUom: string;
+        yieldPercent: string | null;
+        isDefault: boolean;
+        items: {
+            id: string;
+            uom: string;
+            bomId: string;
+            componentSkuId: string;
+            quantity: string;
+            scrapPercentage: string | null;
+            sequence: number;
+            stage: string | null;
+            componentSku: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                tenantId: string;
+                isActive: boolean;
+                skuCode: string;
+                category: string;
+                familyId: string | null;
+                uom: string;
+                barcode: string | null;
+                standardCost: string | null;
+                shelfLifeDays: number | null;
+                minStockLevel: string | null;
+                maxStockLevel: string | null;
+            };
+        }[];
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
+    }>;
     createBom(tenantId: string | undefined, input: any): Promise<any>;
     updateBom(tenantId: string | undefined, id: string, input: any): Promise<any>;
     deleteBom(tenantId: string | undefined, id: string): Promise<{

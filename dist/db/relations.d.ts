@@ -73,4 +73,8 @@ export declare const routingStepsRelations: import("drizzle-orm").Relations<"rou
     routing: import("drizzle-orm").One<"routings", true>;
     workCenter: import("drizzle-orm").One<"work_centers", false>;
 }>;
+export declare const inventoryTransactionsRelations: import("drizzle-orm").Relations<"inventory_transactions", {
+    lot: import("drizzle-orm").One<"inventory_lots", true>;
+    performedByUser: import("drizzle-orm").One<"users", false>;
+}>;
 //# sourceMappingURL=relations.d.ts.map

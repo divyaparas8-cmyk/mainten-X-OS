@@ -6,6 +6,13 @@ export declare class NotificationsController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    markAllAsRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteNotification(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    clearAll(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const notificationsController: NotificationsController;
 export declare function notificationsRoutes(fastify: FastifyInstance): Promise<void>;

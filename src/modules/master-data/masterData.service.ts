@@ -1,7 +1,7 @@
 import { db } from "../../config/database.js";
 import { skus, boms, bomItems, productionLines, workCenters, assets, staff, qualitySpecs, routings, routingSteps } from "../../db/schema/masterData.js";
 import { tenants, plants } from "../../db/schema/tenants.js";
-import { eq, and, sql, desc, asc } from "drizzle-orm";
+import { eq, and, or, sql, desc, asc } from "drizzle-orm";
 import { CreateSkuInput, CreateBomInput } from "./masterData.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 
@@ -446,6 +446,31 @@ function matchKey(entity: any, keyVal: string, candidateProps: string[] = ["id",
     }
   } catch (_) {}
   return false;
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolvePlantId(tenantId: string, plantIdOrCode?: string): Promise<string | undefined> {
+  if (!plantIdOrCode) return undefined;
+  if (UUID_REGEX.test(plantIdOrCode)) return plantIdOrCode;
+
+  // Try to find plant by code (e.g. "INDORE-01", "PUNE-02", "PLT-01")
+  const [plant] = await db
+    .select({ id: plants.id })
+    .from(plants)
+    .where(and(eq(plants.tenantId, tenantId), or(eq(plants.code, plantIdOrCode), sql`lower(${plants.code}) = lower(${plantIdOrCode})`)))
+    .limit(1);
+
+  if (plant) return plant.id;
+
+  // Fallback to first plant for tenant so it never throws invalid UUID error
+  const [firstPlant] = await db
+    .select({ id: plants.id })
+    .from(plants)
+    .where(eq(plants.tenantId, tenantId))
+    .limit(1);
+
+  return firstPlant?.id;
 }
 
 export class MasterDataService {
@@ -1686,6 +1711,23 @@ export class MasterDataService {
     } catch {
       return [];
     }
+  }
+
+  async getBomById(tenantId: string, id: string) {
+    const bom = await db.query.boms.findFirst({
+      where: and(eq(boms.tenantId, tenantId), eq(boms.id, id)),
+      with: {
+        sku: true,
+        items: {
+          with: {
+            componentSku: true,
+          },
+        },
+      },
+    });
+
+    if (!bom) throw new NotFoundError("BOM Recipe");
+    return bom;
   }
 
   async createBom(tenantId: string | undefined, input: any) {

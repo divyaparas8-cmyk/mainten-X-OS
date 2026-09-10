@@ -19,6 +19,7 @@ import { dashboardsRoutes } from "./modules/dashboards/dashboards.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { notificationsRoutes } from "./modules/notifications/notifications.routes.js";
 import { searchRoutes } from "./modules/search/search.routes.js";
+import { executiveRoutes } from "./modules/executive/executive.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -30,7 +31,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Allow empty or null body on JSON content type without throwing FST_ERR_CTP_EMPTY_JSON_BODY
   app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body: string, done) => {
     if (!body || body.trim().length === 0) {
-      done(null, undefined);
+      done(null, {});
       return;
     }
     try {
@@ -67,12 +68,16 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(adminRoutes, { prefix: "/api/v1/admin" });
   await app.register(masterDataRoutes, { prefix: "/api/v1/master-data" });
   await app.register(planningRoutes, { prefix: "/api/v1/planning" });
+  await app.register(planningRoutes, { prefix: "/api/v1/planner" });
+  await app.register(planningRoutes, { prefix: "/api/v1" });
   await app.register(productionRoutes, { prefix: "/api/v1/production" });
   await app.register(qualityRoutes, { prefix: "/api/v1/quality" });
   await app.register(warehouseRoutes, { prefix: "/api/v1/warehouse" });
   await app.register(traceabilityRoutes, { prefix: "/api/v1/traceability" });
   await app.register(maintenanceRoutes, { prefix: "/api/v1/maintenance" });
   await app.register(dashboardsRoutes, { prefix: "/api/v1/dashboards" });
+  await app.register(executiveRoutes, { prefix: "/api/v1/executive" });
+  await app.register(executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
   await app.register(notificationsRoutes, { prefix: "/api/v1/notifications" });
   await app.register(searchRoutes, { prefix: "/api/v1/search" });
 

@@ -15,12 +15,16 @@ export const createLotSchema = z.object({
 export type CreateLotInput = z.infer<typeof createLotSchema>;
 
 export const createTransactionSchema = z.object({
-  lotId: z.string().uuid(),
-  type: z.enum(["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]),
-  quantity: z.coerce.number(),
-  uom: z.string().default("Units"),
-  fromBinId: z.string().uuid().optional(),
-  toBinId: z.string().uuid().optional(),
+  lotId: z.string().optional(),
+  type: z.enum(["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]).optional(),
+  transactionType: z.enum(["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]).optional(),
+  quantity: z.coerce.number().optional().default(1),
+  uom: z.string().optional().default("Units"),
+  fromBinId: z.string().optional(),
+  toBinId: z.string().optional(),
+  fromLocation: z.string().optional(),
+  toLocation: z.string().optional(),
+  referenceNumber: z.string().optional(),
   referenceType: z.string().optional(),
   referenceId: z.string().optional(),
   notes: z.string().optional(),

@@ -42,6 +42,7 @@ const pg_1 = __importDefault(require("pg"));
 const node_postgres_1 = require("drizzle-orm/node-postgres");
 const env_js_1 = require("./env.js");
 const schema = __importStar(require("../db/schema/index.js"));
+const relations = __importStar(require("../db/relations.js"));
 const { Pool } = pg_1.default;
 exports.pool = new Pool({
     connectionString: env_js_1.env.DATABASE_URL,
@@ -49,7 +50,7 @@ exports.pool = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
 });
-exports.db = (0, node_postgres_1.drizzle)(exports.pool, { schema });
+exports.db = (0, node_postgres_1.drizzle)(exports.pool, { schema: { ...schema, ...relations } });
 async function checkDatabaseConnection() {
     try {
         const client = await exports.pool.connect();

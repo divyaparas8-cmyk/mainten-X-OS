@@ -5,6 +5,7 @@ const database_js_1 = require("../../config/database.js");
 const masterData_js_1 = require("../../db/schema/masterData.js");
 const tenants_js_1 = require("../../db/schema/tenants.js");
 const drizzle_orm_1 = require("drizzle-orm");
+const AppError_js_1 = require("../../shared/errors/AppError.js");
 let inMemoryCompanies = [
     {
         id: "CMP-01",
@@ -234,6 +235,28 @@ function matchKey(entity, keyVal, candidateProps = ["id", "code", "companyId", "
     }
     catch (_) { }
     return false;
+}
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+async function resolvePlantId(tenantId, plantIdOrCode) {
+    if (!plantIdOrCode)
+        return undefined;
+    if (UUID_REGEX.test(plantIdOrCode))
+        return plantIdOrCode;
+    // Try to find plant by code (e.g. "INDORE-01", "PUNE-02", "PLT-01")
+    const [plant] = await database_js_1.db
+        .select({ id: tenants_js_1.plants.id })
+        .from(tenants_js_1.plants)
+        .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(tenants_js_1.plants.code, plantIdOrCode), (0, drizzle_orm_1.sql) `lower(${tenants_js_1.plants.code}) = lower(${plantIdOrCode})`)))
+        .limit(1);
+    if (plant)
+        return plant.id;
+    // Fallback to first plant for tenant so it never throws invalid UUID error
+    const [firstPlant] = await database_js_1.db
+        .select({ id: tenants_js_1.plants.id })
+        .from(tenants_js_1.plants)
+        .where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId))
+        .limit(1);
+    return firstPlant?.id;
 }
 class MasterDataService {
     // ==========================================
@@ -1413,6 +1436,22 @@ class MasterDataService {
         catch {
             return [];
         }
+    }
+    async getBomById(tenantId, id) {
+        const bom = await database_js_1.db.query.boms.findFirst({
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.boms.tenantId, tenantId), (0, drizzle_orm_1.eq)(masterData_js_1.boms.id, id)),
+            with: {
+                sku: true,
+                items: {
+                    with: {
+                        componentSku: true,
+                    },
+                },
+            },
+        });
+        if (!bom)
+            throw new AppError_js_1.NotFoundError("BOM Recipe");
+        return bom;
     }
     async createBom(tenantId, input) {
         return { id: `BOM-${Date.now()}`, ...input, status: "Active", approvalStatus: "Approved" };

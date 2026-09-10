@@ -50,7 +50,7 @@ async function testAllServices() {
     const lots = await warehouseService.listLots(t.id);
     console.log(`✅ warehouseService.listLots: SUCCESS (${lots.length} lots found)`);
     if (lots.length > 0) {
-      console.log(`   Sample: Lot #${lots[0].lotNumber} (SKU: ${lots[0].sku?.skuCode})`);
+      console.log(`   Sample: Lot #${lots[0].lotNumber} (SKU: ${(lots[0] as any).sku?.skuCode || (lots[0] as any).skuId})`);
     }
   } catch (err: any) {
     console.error(`❌ warehouseService.listLots FAILED:`, err.message);

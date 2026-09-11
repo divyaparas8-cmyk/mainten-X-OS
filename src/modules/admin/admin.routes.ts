@@ -250,6 +250,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.scanDataHealth.bind(adminController)
   );
 
+  fastify.post(
+    "/data-health/remediate",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Remediate Data Health Anomaly in Database",
+      },
+    },
+    adminController.remediateDataHealth.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/delete",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Data Health Anomaly Record",
+      },
+    },
+    adminController.deleteDataHealth.bind(adminController)
+  );
+
   // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
   fastify.get(
     "/integrations/iot",

@@ -21,6 +21,8 @@ export declare class AdminController {
     updateUserRoleMapping(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getApprovalRules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     scanDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    remediateDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getIoTGateways(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createIoTGateway(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateIoTGateway(request: FastifyRequest, reply: FastifyReply): Promise<never>;

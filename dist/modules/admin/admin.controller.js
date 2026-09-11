@@ -124,6 +124,18 @@ class AdminController {
         const result = await admin_service_js_1.adminService.scanDataHealth(user?.tenantId);
         return reply.status(200).send({ success: true, data: result });
     }
+    async remediateDataHealth(request, reply) {
+        const user = request.user;
+        const body = request.body;
+        const result = await admin_service_js_1.adminService.remediateDataHealthItem(user?.tenantId, body);
+        return reply.status(200).send(result);
+    }
+    async deleteDataHealth(request, reply) {
+        const user = request.user;
+        const body = request.body;
+        const result = await admin_service_js_1.adminService.deleteDataHealthItem(user?.tenantId, body);
+        return reply.status(200).send(result);
+    }
     // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
     async getIoTGateways(request, reply) {
         const user = request.user;

@@ -144,6 +144,20 @@ export class AdminController {
     return reply.status(200).send({ success: true, data: result });
   }
 
+  async remediateDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const result = await adminService.remediateDataHealthItem(user?.tenantId, body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const result = await adminService.deleteDataHealthItem(user?.tenantId, body);
+    return reply.status(200).send(result);
+  }
+
   // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
   async getIoTGateways(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;

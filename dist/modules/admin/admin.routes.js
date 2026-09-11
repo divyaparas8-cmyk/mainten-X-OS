@@ -141,6 +141,18 @@ async function adminRoutes(fastify) {
             summary: "Scan All Master Data Tables for Anomalies — Missing, Duplicates, Stale, Invalid, Broken",
         },
     }, admin_controller_js_1.adminController.scanDataHealth.bind(admin_controller_js_1.adminController));
+    fastify.post("/data-health/remediate", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Remediate Data Health Anomaly in Database",
+        },
+    }, admin_controller_js_1.adminController.remediateDataHealth.bind(admin_controller_js_1.adminController));
+    fastify.post("/data-health/delete", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Delete Data Health Anomaly Record",
+        },
+    }, admin_controller_js_1.adminController.deleteDataHealth.bind(admin_controller_js_1.adminController));
     // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
     fastify.get("/integrations/iot", {
         schema: {

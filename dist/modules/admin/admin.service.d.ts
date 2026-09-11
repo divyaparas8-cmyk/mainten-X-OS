@@ -537,6 +537,26 @@ export declare class AdminService {
         invalidReferences: any[];
         brokenRelationships: any[];
     }>;
+    remediateDataHealthItem(tenantId: string | undefined, input: {
+        type?: string;
+        id: string;
+        recordKey?: string;
+        resolution?: string;
+    }): Promise<{
+        success: boolean;
+        id: string;
+        status: string;
+        message: string;
+    }>;
+    deleteDataHealthItem(tenantId: string | undefined, input: {
+        type?: string;
+        id: string;
+        recordKey?: string;
+    }): Promise<{
+        success: boolean;
+        id: string;
+        message: string;
+    }>;
     private inMemoryIoTGateways;
     getIoTGateways(_tenantId?: string): Promise<{
         id: string;

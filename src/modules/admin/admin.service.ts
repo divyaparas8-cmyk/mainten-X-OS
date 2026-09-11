@@ -185,7 +185,7 @@ export class AdminService {
     };
   }
 
-  async provisionUser(tenantId: string, input: { name: string; email: string; role: string; department?: string; plant?: string; status?: string }) {
+  async provisionUser(tenantId: string, input: { name: string; email: string; role: string; department?: string; plant?: string; status?: string; password?: string }) {
     if (!input.name || !input.email) {
       throw new ValidationError("Name and email are required for provisioning");
     }
@@ -200,7 +200,8 @@ export class AdminService {
     const firstName = nameParts[0] || input.name;
     const lastName = nameParts.slice(1).join(" ") || "User";
 
-    const passwordHash = await bcrypt.hash("Password@123", 10);
+    const rawPassword = input.password && input.password.trim().length >= 6 ? input.password.trim() : "Password@123";
+    const passwordHash = await bcrypt.hash(rawPassword, 10);
     const pinHash = await bcrypt.hash("1234", 10);
 
     // Get active tenant if not provided
@@ -257,7 +258,7 @@ export class AdminService {
       // non-blocking
     }
 
-    return {
+    const resultUser = {
       id: createdUser.id,
       name: `${createdUser.firstName} ${createdUser.lastName}`,
       email: createdUser.email,
@@ -269,6 +270,9 @@ export class AdminService {
       lastLogin: "Just now",
       createdAt: createdUser.createdAt,
     };
+
+    inMemoryUsers.unshift(resultUser);
+    return resultUser;
   }
 
   async getAllUsers(tenantId?: string) {

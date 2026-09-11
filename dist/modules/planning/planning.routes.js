@@ -31,7 +31,6 @@ async function planningRoutes(fastify) {
     fastify.patch("/shipments/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Outbound Shipment Status" } }, planning_controller_js_1.planningController.updateShipmentStatus.bind(planning_controller_js_1.planningController));
     // Forecast Engine & APS & MRP
     fastify.post("/forecast/run", { schema: { tags: ["Planning & Demand"], summary: "Execute Statistical Forecast Engine" } }, planning_controller_js_1.planningController.runForecast.bind(planning_controller_js_1.planningController));
-    fastify.get("/forecasts", { schema: { tags: ["Planning & Demand"], summary: "List Saved Forecasts from Database" } }, planning_controller_js_1.planningController.getForecasts.bind(planning_controller_js_1.planningController));
     fastify.get("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "List Multi-Line APS Gantt Schedules" } }, planning_controller_js_1.planningController.getApsSchedules.bind(planning_controller_js_1.planningController));
     fastify.post("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "Publish APS Schedule" } }, planning_controller_js_1.planningController.createApsSchedule.bind(planning_controller_js_1.planningController));
     fastify.patch("/aps/schedules/:id/reschedule", { schema: { tags: ["Planning & Demand"], summary: "Reschedule APS Order" } }, planning_controller_js_1.planningController.rescheduleApsSchedule.bind(planning_controller_js_1.planningController));

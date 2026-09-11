@@ -37,7 +37,6 @@ export async function planningRoutes(fastify: FastifyInstance) {
 
   // Forecast Engine & APS & MRP
   fastify.post("/forecast/run", { schema: { tags: ["Planning & Demand"], summary: "Execute Statistical Forecast Engine" } }, planningController.runForecast.bind(planningController));
-  fastify.get("/forecasts", { schema: { tags: ["Planning & Demand"], summary: "List Saved Forecasts from Database" } }, planningController.getForecasts.bind(planningController));
   fastify.get("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "List Multi-Line APS Gantt Schedules" } }, planningController.getApsSchedules.bind(planningController));
   fastify.post("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "Publish APS Schedule" } }, planningController.createApsSchedule.bind(planningController));
   fastify.patch("/aps/schedules/:id/reschedule", { schema: { tags: ["Planning & Demand"], summary: "Reschedule APS Order" } }, planningController.rescheduleApsSchedule.bind(planningController));

@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { aiService } from "./ai.service.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
+import { ValidationError } from "../../shared/errors/AppError.js";
 
 export class AIController {
   async getInsights(request: FastifyRequest, reply: FastifyReply) {
@@ -19,8 +20,15 @@ export class AIController {
   }
 
   async chat(request: FastifyRequest, reply: FastifyReply) {
-    const { query } = request.body as any;
-    const data = await aiService.chatQuery(query || "");
+    const body = request.body as any;
+    const query = body?.query;
+
+    if (!query || typeof query !== "string" || !query.trim()) {
+      throw new ValidationError("Query parameter is required and must not be empty.");
+    }
+
+    const tenantId = (request.user as any)?.tenantId;
+    const data = await aiService.chatQuery(query.trim(), tenantId);
     return reply.send(formatSuccess(data));
   }
 }

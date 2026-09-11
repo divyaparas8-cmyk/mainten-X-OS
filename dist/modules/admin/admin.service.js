@@ -177,9 +177,6 @@ class AdminService {
         }
         const email = input.email.toLowerCase().trim();
         const [existing] = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.email, email)).limit(1);
-        if (existing) {
-            throw new AppError_js_1.ConflictError(`User with email ${email} already exists.`);
-        }
         const nameParts = input.name.trim().split(" ");
         const firstName = nameParts[0] || input.name;
         const lastName = nameParts.slice(1).join(" ") || "User";
@@ -191,6 +188,98 @@ class AdminService {
         if (!activeTenantId) {
             const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
             activeTenantId = demoTenant?.id;
+        }
+        // Resolve assigned plant from plantId or plant name
+        let assignedPlant = null;
+        if (input.plantId) {
+            const [pById] = await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.sql) `${index_js_1.plants.id}::text = ${input.plantId} OR ${index_js_1.plants.code} = ${input.plantId}`).limit(1);
+            if (pById)
+                assignedPlant = pById;
+        }
+        if (!assignedPlant && input.plant) {
+            const [pByName] = await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.sql) `LOWER(${index_js_1.plants.name}) LIKE ${`%${input.plant.toLowerCase()}%`}`).limit(1);
+            if (pByName)
+                assignedPlant = pByName;
+        }
+        if (!assignedPlant) {
+            const [defaultPlant] = await database_js_1.db.select().from(index_js_1.plants).limit(1);
+            assignedPlant = defaultPlant;
+        }
+        // Find or map role
+        const rLower = input.role.toLowerCase().trim();
+        const roleKey = rLower.replace(/[^a-z0-9]/g, "_");
+        const allRoles = await database_js_1.db.select().from(index_js_1.roles);
+        let matchedRole = allRoles.find((r) => r.name.toLowerCase() === rLower ||
+            r.code.toLowerCase() === roleKey ||
+            r.name.toLowerCase().includes(rLower) ||
+            rLower.includes(r.name.toLowerCase()));
+        if (!matchedRole) {
+            if (rLower.includes("qual")) {
+                matchedRole = allRoles.find((r) => r.code === "quality");
+            }
+            else if (rLower.includes("maint")) {
+                matchedRole = allRoles.find((r) => r.code === "maintenance");
+            }
+            else if (rLower.includes("operat")) {
+                matchedRole = allRoles.find((r) => r.code === "operator");
+            }
+            else if (rLower.includes("plant")) {
+                matchedRole = allRoles.find((r) => r.code === "plant_manager");
+            }
+            else if (rLower.includes("admin")) {
+                matchedRole = allRoles.find((r) => r.code === "admin");
+            }
+        }
+        if (!matchedRole && allRoles.length > 0) {
+            matchedRole = allRoles[0];
+        }
+        if (existing) {
+            // Seamlessly update existing user credentials, status and assignment
+            const updates = {
+                firstName,
+                lastName,
+                status: input.status === "Pending Invite" || input.status === "Pending" ? "PENDING" : "ACTIVE",
+                updatedAt: new Date(),
+            };
+            if (input.password && input.password.trim().length >= 6) {
+                updates.passwordHash = passwordHash;
+            }
+            if (activeTenantId && !existing.tenantId) {
+                updates.tenantId = activeTenantId;
+            }
+            const [updatedUser] = await database_js_1.db
+                .update(index_js_1.users)
+                .set(updates)
+                .where((0, drizzle_orm_1.eq)(index_js_1.users.id, existing.id))
+                .returning();
+            if (matchedRole) {
+                await database_js_1.db.delete(index_js_1.userRoles).where((0, drizzle_orm_1.eq)(index_js_1.userRoles.userId, existing.id));
+                await database_js_1.db.insert(index_js_1.userRoles).values({
+                    userId: existing.id,
+                    roleId: matchedRole.id,
+                    plantId: assignedPlant?.id,
+                });
+            }
+            const resultUser = {
+                id: updatedUser.id,
+                name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+                email: updatedUser.email,
+                role: matchedRole?.name || input.role,
+                roleCode: matchedRole?.code || roleKey,
+                department: input.department || "Operations",
+                plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
+                status: updatedUser.status === "ACTIVE" ? "Active" : "Suspended",
+                lastLogin: "Just now",
+                createdAt: updatedUser.createdAt,
+            };
+            const memIdx = inMemoryUsers.findIndex((u) => u.id === existing.id || u.email.toLowerCase() === email);
+            if (memIdx !== -1) {
+                inMemoryUsers[memIdx] = resultUser;
+            }
+            else {
+                inMemoryUsers.unshift(resultUser);
+            }
+            return resultUser;
         }
         const [createdUser] = await database_js_1.db
             .insert(index_js_1.users)
@@ -204,26 +293,18 @@ class AdminService {
             status: input.status === "Pending Invite" || input.status === "Pending" ? "PENDING" : "ACTIVE",
         })
             .returning();
-        // Find or map role
-        const roleKey = input.role.toLowerCase().replace(/[^a-z0-9]/g, "_");
-        const [matchedRole] = await database_js_1.db
-            .select()
-            .from(index_js_1.roles)
-            .where((0, drizzle_orm_1.sql) `LOWER(${index_js_1.roles.name}) LIKE ${`%${input.role.toLowerCase()}%`} OR ${index_js_1.roles.code} = ${roleKey}`)
-            .limit(1);
-        const [defaultPlant] = await database_js_1.db.select().from(index_js_1.plants).limit(1);
         if (matchedRole) {
             await database_js_1.db.insert(index_js_1.userRoles).values({
                 userId: createdUser.id,
                 roleId: matchedRole.id,
-                plantId: defaultPlant?.id,
+                plantId: assignedPlant?.id,
             });
         }
         // Log to audit trail
         try {
             await database_js_1.db.insert(index_js_1.auditLogs).values({
                 tenantId: activeTenantId,
-                plantId: defaultPlant?.id,
+                plantId: assignedPlant?.id,
                 userId: createdUser.id,
                 action: "PROVISION_USER",
                 entityType: "User",
@@ -242,7 +323,7 @@ class AdminService {
             role: matchedRole?.name || input.role,
             roleCode: matchedRole?.code || roleKey,
             department: input.department || "Operations",
-            plant: input.plant || defaultPlant?.name || "Indore Plant",
+            plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
             status: createdUser.status === "ACTIVE" ? "Active" : "Suspended",
             lastLogin: "Just now",
             createdAt: createdUser.createdAt,

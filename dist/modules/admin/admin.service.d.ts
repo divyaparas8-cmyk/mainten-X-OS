@@ -102,6 +102,7 @@ export declare class AdminService {
         role: string;
         department?: string;
         plant?: string;
+        plantId?: string;
         status?: string;
         password?: string;
     }): Promise<{
@@ -111,7 +112,7 @@ export declare class AdminService {
         role: string;
         roleCode: string;
         department: string;
-        plant: string;
+        plant: any;
         status: string;
         lastLogin: string;
         createdAt: Date;

@@ -185,16 +185,13 @@ export class AdminService {
     };
   }
 
-  async provisionUser(tenantId: string, input: { name: string; email: string; role: string; department?: string; plant?: string; status?: string; password?: string }) {
+  async provisionUser(tenantId: string, input: { name: string; email: string; role: string; department?: string; plant?: string; plantId?: string; status?: string; password?: string }) {
     if (!input.name || !input.email) {
       throw new ValidationError("Name and email are required for provisioning");
     }
 
     const email = input.email.toLowerCase().trim();
     const [existing] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    if (existing) {
-      throw new ConflictError(`User with email ${email} already exists.`);
-    }
 
     const nameParts = input.name.trim().split(" ");
     const firstName = nameParts[0] || input.name;
@@ -211,6 +208,102 @@ export class AdminService {
       activeTenantId = demoTenant?.id;
     }
 
+    // Resolve assigned plant from plantId or plant name
+    let assignedPlant: any = null;
+    if (input.plantId) {
+      const [pById] = await db.select().from(plants).where(sql`${plants.id}::text = ${input.plantId} OR ${plants.code} = ${input.plantId}`).limit(1);
+      if (pById) assignedPlant = pById;
+    }
+    if (!assignedPlant && input.plant) {
+      const [pByName] = await db.select().from(plants).where(sql`LOWER(${plants.name}) LIKE ${`%${input.plant.toLowerCase()}%`}`).limit(1);
+      if (pByName) assignedPlant = pByName;
+    }
+    if (!assignedPlant) {
+      const [defaultPlant] = await db.select().from(plants).limit(1);
+      assignedPlant = defaultPlant;
+    }
+
+    // Find or map role
+    const rLower = input.role.toLowerCase().trim();
+    const roleKey = rLower.replace(/[^a-z0-9]/g, "_");
+    const allRoles = await db.select().from(roles);
+    let matchedRole = allRoles.find(
+      (r) =>
+        r.name.toLowerCase() === rLower ||
+        r.code.toLowerCase() === roleKey ||
+        r.name.toLowerCase().includes(rLower) ||
+        rLower.includes(r.name.toLowerCase())
+    );
+
+    if (!matchedRole) {
+      if (rLower.includes("qual")) {
+        matchedRole = allRoles.find((r) => r.code === "quality");
+      } else if (rLower.includes("maint")) {
+        matchedRole = allRoles.find((r) => r.code === "maintenance");
+      } else if (rLower.includes("operat")) {
+        matchedRole = allRoles.find((r) => r.code === "operator");
+      } else if (rLower.includes("plant")) {
+        matchedRole = allRoles.find((r) => r.code === "plant_manager");
+      } else if (rLower.includes("admin")) {
+        matchedRole = allRoles.find((r) => r.code === "admin");
+      }
+    }
+    if (!matchedRole && allRoles.length > 0) {
+      matchedRole = allRoles[0];
+    }
+
+    if (existing) {
+      // Seamlessly update existing user credentials, status and assignment
+      const updates: any = {
+        firstName,
+        lastName,
+        status: input.status === "Pending Invite" || input.status === "Pending" ? "PENDING" : "ACTIVE",
+        updatedAt: new Date(),
+      };
+      if (input.password && input.password.trim().length >= 6) {
+        updates.passwordHash = passwordHash;
+      }
+      if (activeTenantId && !existing.tenantId) {
+        updates.tenantId = activeTenantId;
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, existing.id))
+        .returning();
+
+      if (matchedRole) {
+        await db.delete(userRoles).where(eq(userRoles.userId, existing.id));
+        await db.insert(userRoles).values({
+          userId: existing.id,
+          roleId: matchedRole.id,
+          plantId: assignedPlant?.id,
+        });
+      }
+
+      const resultUser = {
+        id: updatedUser.id,
+        name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+        email: updatedUser.email,
+        role: matchedRole?.name || input.role,
+        roleCode: matchedRole?.code || roleKey,
+        department: input.department || "Operations",
+        plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
+        status: updatedUser.status === "ACTIVE" ? "Active" : "Suspended",
+        lastLogin: "Just now",
+        createdAt: updatedUser.createdAt,
+      };
+
+      const memIdx = inMemoryUsers.findIndex((u) => u.id === existing.id || u.email.toLowerCase() === email);
+      if (memIdx !== -1) {
+        inMemoryUsers[memIdx] = resultUser;
+      } else {
+        inMemoryUsers.unshift(resultUser);
+      }
+      return resultUser;
+    }
+
     const [createdUser] = await db
       .insert(users)
       .values({
@@ -224,21 +317,11 @@ export class AdminService {
       })
       .returning();
 
-    // Find or map role
-    const roleKey = input.role.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    const [matchedRole] = await db
-      .select()
-      .from(roles)
-      .where(sql`LOWER(${roles.name}) LIKE ${`%${input.role.toLowerCase()}%`} OR ${roles.code} = ${roleKey}`)
-      .limit(1);
-
-    const [defaultPlant] = await db.select().from(plants).limit(1);
-
     if (matchedRole) {
       await db.insert(userRoles).values({
         userId: createdUser.id,
         roleId: matchedRole.id,
-        plantId: defaultPlant?.id,
+        plantId: assignedPlant?.id,
       });
     }
 
@@ -246,7 +329,7 @@ export class AdminService {
     try {
       await db.insert(auditLogs).values({
         tenantId: activeTenantId,
-        plantId: defaultPlant?.id,
+        plantId: assignedPlant?.id,
         userId: createdUser.id,
         action: "PROVISION_USER",
         entityType: "User",
@@ -265,7 +348,7 @@ export class AdminService {
       role: matchedRole?.name || input.role,
       roleCode: matchedRole?.code || roleKey,
       department: input.department || "Operations",
-      plant: input.plant || defaultPlant?.name || "Indore Plant",
+      plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
       status: createdUser.status === "ACTIVE" ? "Active" : "Suspended",
       lastLogin: "Just now",
       createdAt: createdUser.createdAt,

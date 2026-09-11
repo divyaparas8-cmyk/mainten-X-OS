@@ -2,6 +2,7 @@ import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { env } from "./env.js";
 import * as schema from "../db/schema/index.js";
+import * as relations from "../db/relations.js";
 
 const { Pool } = pg;
 
@@ -12,7 +13,7 @@ export const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-export const db = drizzle(pool, { schema });
+export const db = drizzle(pool, { schema: { ...schema, ...relations } });
 
 export async function checkDatabaseConnection(): Promise<boolean> {
   try {

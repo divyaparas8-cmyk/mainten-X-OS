@@ -175,3 +175,22 @@ export const routingSteps = pgTable("routing_steps", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const changeoverRules = pgTable("changeover_rules", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  matrixId: varchar("matrix_id", { length: 64 }),
+  fromSkuId: varchar("from_sku_id", { length: 64 }),
+  fromSkuCode: varchar("from_sku_code", { length: 64 }),
+  fromFamily: varchar("from_family", { length: 128 }),
+  toSkuId: varchar("to_sku_id", { length: 64 }),
+  toSkuCode: varchar("to_sku_code", { length: 64 }),
+  toFamily: varchar("to_family", { length: 128 }),
+  changeoverDurationMin: integer("changeover_duration_min").default(30),
+  sanitationClass: varchar("sanitation_class", { length: 255 }),
+  allergenCleaningRequired: boolean("allergen_cleaning_required").default(false),
+  notes: text("notes"),
+  status: varchar("status", { length: 32 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+

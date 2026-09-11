@@ -32,35 +32,47 @@ export declare const createLotSchema: z.ZodObject<{
 }>;
 export type CreateLotInput = z.infer<typeof createLotSchema>;
 export declare const createTransactionSchema: z.ZodObject<{
-    lotId: z.ZodString;
-    type: z.ZodEnum<["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]>;
-    quantity: z.ZodNumber;
-    uom: z.ZodDefault<z.ZodString>;
+    lotId: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodEnum<["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]>>;
+    transactionType: z.ZodOptional<z.ZodEnum<["RECEIPT", "TRANSFER", "RESERVATION", "ISSUE", "CONSUMPTION", "ADJUSTMENT", "SHIPMENT"]>>;
+    quantity: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    uom: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     fromBinId: z.ZodOptional<z.ZodString>;
     toBinId: z.ZodOptional<z.ZodString>;
+    fromLocation: z.ZodOptional<z.ZodString>;
+    toLocation: z.ZodOptional<z.ZodString>;
+    referenceNumber: z.ZodOptional<z.ZodString>;
     referenceType: z.ZodOptional<z.ZodString>;
     referenceId: z.ZodOptional<z.ZodString>;
     notes: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    type: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT";
     uom: string;
     quantity: number;
-    lotId: string;
+    type?: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT" | undefined;
     notes?: string | undefined;
+    lotId?: string | undefined;
     fromBinId?: string | undefined;
     toBinId?: string | undefined;
     referenceType?: string | undefined;
     referenceId?: string | undefined;
+    transactionType?: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT" | undefined;
+    fromLocation?: string | undefined;
+    toLocation?: string | undefined;
+    referenceNumber?: string | undefined;
 }, {
-    type: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT";
-    quantity: number;
-    lotId: string;
+    type?: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT" | undefined;
     uom?: string | undefined;
+    quantity?: number | undefined;
     notes?: string | undefined;
+    lotId?: string | undefined;
     fromBinId?: string | undefined;
     toBinId?: string | undefined;
     referenceType?: string | undefined;
     referenceId?: string | undefined;
+    transactionType?: "RECEIPT" | "TRANSFER" | "RESERVATION" | "ISSUE" | "CONSUMPTION" | "ADJUSTMENT" | "SHIPMENT" | undefined;
+    fromLocation?: string | undefined;
+    toLocation?: string | undefined;
+    referenceNumber?: string | undefined;
 }>;
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 //# sourceMappingURL=warehouse.schema.d.ts.map

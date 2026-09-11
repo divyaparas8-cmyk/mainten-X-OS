@@ -42,6 +42,18 @@ async function adminRoutes(fastify) {
             summary: "Update User Account Lockout / Active Status",
         },
     }, admin_controller_js_1.adminController.updateUserStatus.bind(admin_controller_js_1.adminController));
+    fastify.put("/users/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Edit Enterprise User Details",
+        },
+    }, admin_controller_js_1.adminController.editUser.bind(admin_controller_js_1.adminController));
+    fastify.delete("/users/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Delete Enterprise User Account",
+        },
+    }, admin_controller_js_1.adminController.deleteUser.bind(admin_controller_js_1.adminController));
     fastify.post("/users/bulk-status", {
         schema: {
             tags: ["System Administration"],

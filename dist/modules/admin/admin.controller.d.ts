@@ -5,6 +5,8 @@ export declare class AdminController {
     provisionUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getUsers(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateUserStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    editUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     bulkUpdateUserStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getInvitations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createInvitation(request: FastifyRequest, reply: FastifyReply): Promise<never>;

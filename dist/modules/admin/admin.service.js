@@ -352,7 +352,9 @@ class AdminService {
                     executive: "Executive Leadership",
                     master_admin: "Global Governance",
                 };
-                return userList.map((u, index) => {
+                return userList
+                    .filter((u) => u.status !== "DELETED")
+                    .map((u, index) => {
                     const uRole = userRoleList.find((ur) => ur.userId === u.id);
                     const roleObj = uRole ? roleList.find((r) => r.id === uRole.roleId) : null;
                     const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "operator");
@@ -442,6 +444,145 @@ class AdminService {
             };
         }
         throw new AppError_js_1.NotFoundError(`User with ID ${userId} not found.`);
+    }
+    async editUser(tenantId, userId, input) {
+        // Find target user by ID or email
+        let [targetUser] = await database_js_1.db
+            .select()
+            .from(index_js_1.users)
+            .where((0, drizzle_orm_1.sql) `${index_js_1.users.id}::text = ${userId} OR ${index_js_1.users.email} = ${userId}`)
+            .limit(1);
+        if (!targetUser) {
+            const all = await database_js_1.db.select().from(index_js_1.users);
+            targetUser = all.find((u) => u.id === userId || u.email.toLowerCase() === userId.toLowerCase());
+        }
+        if (!targetUser) {
+            throw new AppError_js_1.NotFoundError(`User with ID ${userId} not found.`);
+        }
+        const updates = {
+            updatedAt: new Date(),
+        };
+        if (input.name && input.name.trim()) {
+            const nameParts = input.name.trim().split(" ");
+            updates.firstName = nameParts[0] || input.name.trim();
+            updates.lastName = nameParts.slice(1).join(" ") || "User";
+        }
+        if (input.email && input.email.trim()) {
+            const newEmail = input.email.toLowerCase().trim();
+            if (newEmail !== targetUser.email) {
+                const [existingEmail] = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.email, newEmail)).limit(1);
+                if (existingEmail && existingEmail.id !== targetUser.id) {
+                    throw new AppError_js_1.ConflictError(`Email ${newEmail} is already in use by another user.`);
+                }
+                updates.email = newEmail;
+            }
+        }
+        if (input.status) {
+            updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
+        }
+        if (input.password && input.password.trim().length >= 6) {
+            updates.passwordHash = await bcryptjs_1.default.hash(input.password.trim(), 10);
+        }
+        const [updatedUser] = await database_js_1.db
+            .update(index_js_1.users)
+            .set(updates)
+            .where((0, drizzle_orm_1.eq)(index_js_1.users.id, targetUser.id))
+            .returning();
+        // Resolve assigned plant
+        let assignedPlant = null;
+        if (input.plantId) {
+            const [pById] = await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.sql) `${index_js_1.plants.id}::text = ${input.plantId} OR ${index_js_1.plants.code} = ${input.plantId}`).limit(1);
+            if (pById)
+                assignedPlant = pById;
+        }
+        if (!assignedPlant && input.plant) {
+            const [pByName] = await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.sql) `LOWER(${index_js_1.plants.name}) LIKE ${`%${input.plant.toLowerCase()}%`}`).limit(1);
+            if (pByName)
+                assignedPlant = pByName;
+        }
+        if (!assignedPlant) {
+            const [defaultPlant] = await database_js_1.db.select().from(index_js_1.plants).limit(1);
+            assignedPlant = defaultPlant;
+        }
+        // Role mapping
+        let matchedRole = null;
+        if (input.role) {
+            const rLower = input.role.toLowerCase().trim();
+            const roleKey = rLower.replace(/[^a-z0-9]/g, "_");
+            const allRoles = await database_js_1.db.select().from(index_js_1.roles);
+            matchedRole = allRoles.find((r) => r.name.toLowerCase() === rLower ||
+                r.code.toLowerCase() === roleKey ||
+                r.name.toLowerCase().includes(rLower) ||
+                rLower.includes(r.name.toLowerCase()));
+            if (!matchedRole) {
+                if (rLower.includes("qual"))
+                    matchedRole = allRoles.find((r) => r.code === "quality");
+                else if (rLower.includes("maint"))
+                    matchedRole = allRoles.find((r) => r.code === "maintenance");
+                else if (rLower.includes("operat"))
+                    matchedRole = allRoles.find((r) => r.code === "operator");
+                else if (rLower.includes("plant"))
+                    matchedRole = allRoles.find((r) => r.code === "plant_manager");
+                else if (rLower.includes("admin"))
+                    matchedRole = allRoles.find((r) => r.code === "admin");
+            }
+        }
+        if (matchedRole) {
+            await database_js_1.db.delete(index_js_1.userRoles).where((0, drizzle_orm_1.eq)(index_js_1.userRoles.userId, targetUser.id));
+            await database_js_1.db.insert(index_js_1.userRoles).values({
+                userId: targetUser.id,
+                roleId: matchedRole.id,
+                plantId: assignedPlant?.id,
+            });
+        }
+        const resultUser = {
+            id: updatedUser.id,
+            name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+            email: updatedUser.email,
+            role: matchedRole?.name || input.role || "Line Operator",
+            roleCode: matchedRole?.code || "operator",
+            department: input.department || "Operations",
+            plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
+            status: updatedUser.status === "ACTIVE" ? "Active" : "Suspended",
+            lastLogin: "Just now",
+            createdAt: updatedUser.createdAt,
+        };
+        const memIdx = inMemoryUsers.findIndex((u) => u.id === targetUser.id || u.email.toLowerCase() === targetUser.email.toLowerCase());
+        if (memIdx !== -1) {
+            inMemoryUsers[memIdx] = resultUser;
+        }
+        return resultUser;
+    }
+    async deleteUser(tenantId, userId) {
+        let [targetUser] = await database_js_1.db
+            .select()
+            .from(index_js_1.users)
+            .where((0, drizzle_orm_1.sql) `${index_js_1.users.id}::text = ${userId} OR ${index_js_1.users.email} = ${userId}`)
+            .limit(1);
+        if (!targetUser) {
+            const all = await database_js_1.db.select().from(index_js_1.users);
+            targetUser = all.find((u) => u.id === userId || u.email.toLowerCase() === userId.toLowerCase());
+        }
+        if (!targetUser) {
+            throw new AppError_js_1.NotFoundError(`User with ID ${userId} not found.`);
+        }
+        try {
+            // Remove role associations first
+            await database_js_1.db.delete(index_js_1.userRoles).where((0, drizzle_orm_1.eq)(index_js_1.userRoles.userId, targetUser.id));
+            // Delete user
+            await database_js_1.db.delete(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.id, targetUser.id));
+        }
+        catch (err) {
+            // If foreign key constraint prevents hard delete, soft delete
+            await database_js_1.db.update(index_js_1.users).set({ status: "DELETED", updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(index_js_1.users.id, targetUser.id));
+        }
+        // Remove from in-memory if present
+        inMemoryUsers = inMemoryUsers.filter((u) => u.id !== targetUser.id && u.email.toLowerCase() !== targetUser.email.toLowerCase());
+        return {
+            success: true,
+            message: `User ${targetUser.firstName} ${targetUser.lastName} (${targetUser.email}) successfully deleted.`,
+            deletedId: targetUser.id,
+        };
     }
     async bulkUpdateUserStatus(tenantId, action) {
         const isActivate = action.toUpperCase().includes("ACTIVATE");

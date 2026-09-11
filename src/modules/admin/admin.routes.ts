@@ -71,6 +71,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.updateUserStatus.bind(adminController)
   );
 
+  fastify.put(
+    "/users/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Edit Enterprise User Details",
+      },
+    },
+    adminController.editUser.bind(adminController)
+  );
+
+  fastify.delete(
+    "/users/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Enterprise User Account",
+      },
+    },
+    adminController.deleteUser.bind(adminController)
+  );
+
   fastify.post(
     "/users/bulk-status",
     {

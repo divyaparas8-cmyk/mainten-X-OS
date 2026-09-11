@@ -31,6 +31,19 @@ class AdminController {
         const updated = await admin_service_js_1.adminService.updateUserStatus(user?.tenantId, id, status);
         return reply.status(200).send(updated);
     }
+    async editUser(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const updated = await admin_service_js_1.adminService.editUser(user?.tenantId, id, body);
+        return reply.status(200).send(updated);
+    }
+    async deleteUser(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteUser(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
     async bulkUpdateUserStatus(request, reply) {
         const user = request.user;
         const { action } = request.body || {};

@@ -35,6 +35,21 @@ export class AdminController {
     return reply.status(200).send(updated);
   }
 
+  async editUser(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const updated = await adminService.editUser(user?.tenantId, id, body);
+    return reply.status(200).send(updated);
+  }
+
+  async deleteUser(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteUser(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
   async bulkUpdateUserStatus(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const { action } = (request.body as any) || {};

@@ -381,7 +381,9 @@ export class AdminService {
           master_admin: "Global Governance",
         };
 
-        return userList.map((u, index) => {
+        return userList
+          .filter((u) => u.status !== "DELETED")
+          .map((u, index) => {
           const uRole = userRoleList.find((ur) => ur.userId === u.id);
           const roleObj = uRole ? roleList.find((r) => r.id === uRole.roleId) : null;
           const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "operator");
@@ -479,6 +481,162 @@ export class AdminService {
     }
 
     throw new NotFoundError(`User with ID ${userId} not found.`);
+  }
+
+  async editUser(tenantId: string | undefined, userId: string, input: { name?: string; email?: string; role?: string; department?: string; plant?: string; plantId?: string; status?: string; password?: string }) {
+    // Find target user by ID or email
+    let [targetUser] = await db
+      .select()
+      .from(users)
+      .where(sql`${users.id}::text = ${userId} OR ${users.email} = ${userId}`)
+      .limit(1);
+
+    if (!targetUser) {
+      const all = await db.select().from(users);
+      targetUser = all.find((u) => u.id === userId || u.email.toLowerCase() === userId.toLowerCase())!;
+    }
+
+    if (!targetUser) {
+      throw new NotFoundError(`User with ID ${userId} not found.`);
+    }
+
+    const updates: any = {
+      updatedAt: new Date(),
+    };
+
+    if (input.name && input.name.trim()) {
+      const nameParts = input.name.trim().split(" ");
+      updates.firstName = nameParts[0] || input.name.trim();
+      updates.lastName = nameParts.slice(1).join(" ") || "User";
+    }
+
+    if (input.email && input.email.trim()) {
+      const newEmail = input.email.toLowerCase().trim();
+      if (newEmail !== targetUser.email) {
+        const [existingEmail] = await db.select().from(users).where(eq(users.email, newEmail)).limit(1);
+        if (existingEmail && existingEmail.id !== targetUser.id) {
+          throw new ConflictError(`Email ${newEmail} is already in use by another user.`);
+        }
+        updates.email = newEmail;
+      }
+    }
+
+    if (input.status) {
+      updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
+    }
+
+    if (input.password && input.password.trim().length >= 6) {
+      updates.passwordHash = await bcrypt.hash(input.password.trim(), 10);
+    }
+
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, targetUser.id))
+      .returning();
+
+    // Resolve assigned plant
+    let assignedPlant: any = null;
+    if (input.plantId) {
+      const [pById] = await db.select().from(plants).where(sql`${plants.id}::text = ${input.plantId} OR ${plants.code} = ${input.plantId}`).limit(1);
+      if (pById) assignedPlant = pById;
+    }
+    if (!assignedPlant && input.plant) {
+      const [pByName] = await db.select().from(plants).where(sql`LOWER(${plants.name}) LIKE ${`%${input.plant.toLowerCase()}%`}`).limit(1);
+      if (pByName) assignedPlant = pByName;
+    }
+    if (!assignedPlant) {
+      const [defaultPlant] = await db.select().from(plants).limit(1);
+      assignedPlant = defaultPlant;
+    }
+
+    // Role mapping
+    let matchedRole: any = null;
+    if (input.role) {
+      const rLower = input.role.toLowerCase().trim();
+      const roleKey = rLower.replace(/[^a-z0-9]/g, "_");
+      const allRoles = await db.select().from(roles);
+      matchedRole = allRoles.find(
+        (r) =>
+          r.name.toLowerCase() === rLower ||
+          r.code.toLowerCase() === roleKey ||
+          r.name.toLowerCase().includes(rLower) ||
+          rLower.includes(r.name.toLowerCase())
+      );
+
+      if (!matchedRole) {
+        if (rLower.includes("qual")) matchedRole = allRoles.find((r) => r.code === "quality");
+        else if (rLower.includes("maint")) matchedRole = allRoles.find((r) => r.code === "maintenance");
+        else if (rLower.includes("operat")) matchedRole = allRoles.find((r) => r.code === "operator");
+        else if (rLower.includes("plant")) matchedRole = allRoles.find((r) => r.code === "plant_manager");
+        else if (rLower.includes("admin")) matchedRole = allRoles.find((r) => r.code === "admin");
+      }
+    }
+
+    if (matchedRole) {
+      await db.delete(userRoles).where(eq(userRoles.userId, targetUser.id));
+      await db.insert(userRoles).values({
+        userId: targetUser.id,
+        roleId: matchedRole.id,
+        plantId: assignedPlant?.id,
+      });
+    }
+
+    const resultUser = {
+      id: updatedUser.id,
+      name: `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+      email: updatedUser.email,
+      role: matchedRole?.name || input.role || "Line Operator",
+      roleCode: matchedRole?.code || "operator",
+      department: input.department || "Operations",
+      plant: assignedPlant?.name?.split(" - ")[0] || input.plant || "Indore Plant",
+      status: updatedUser.status === "ACTIVE" ? "Active" : "Suspended",
+      lastLogin: "Just now",
+      createdAt: updatedUser.createdAt,
+    };
+
+    const memIdx = inMemoryUsers.findIndex((u) => u.id === targetUser.id || u.email.toLowerCase() === targetUser.email.toLowerCase());
+    if (memIdx !== -1) {
+      inMemoryUsers[memIdx] = resultUser;
+    }
+
+    return resultUser;
+  }
+
+  async deleteUser(tenantId: string | undefined, userId: string) {
+    let [targetUser] = await db
+      .select()
+      .from(users)
+      .where(sql`${users.id}::text = ${userId} OR ${users.email} = ${userId}`)
+      .limit(1);
+
+    if (!targetUser) {
+      const all = await db.select().from(users);
+      targetUser = all.find((u) => u.id === userId || u.email.toLowerCase() === userId.toLowerCase())!;
+    }
+
+    if (!targetUser) {
+      throw new NotFoundError(`User with ID ${userId} not found.`);
+    }
+
+    try {
+      // Remove role associations first
+      await db.delete(userRoles).where(eq(userRoles.userId, targetUser.id));
+      // Delete user
+      await db.delete(users).where(eq(users.id, targetUser.id));
+    } catch (err: any) {
+      // If foreign key constraint prevents hard delete, soft delete
+      await db.update(users).set({ status: "DELETED", updatedAt: new Date() }).where(eq(users.id, targetUser.id));
+    }
+
+    // Remove from in-memory if present
+    inMemoryUsers = inMemoryUsers.filter((u) => u.id !== targetUser.id && u.email.toLowerCase() !== targetUser.email.toLowerCase());
+
+    return {
+      success: true,
+      message: `User ${targetUser.firstName} ${targetUser.lastName} (${targetUser.email}) successfully deleted.`,
+      deletedId: targetUser.id,
+    };
   }
 
   async bulkUpdateUserStatus(tenantId: string | undefined, action: string) {

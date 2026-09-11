@@ -131,6 +131,32 @@ export declare class AdminService {
         status: string;
         updatedAt: string;
     }>;
+    editUser(tenantId: string | undefined, userId: string, input: {
+        name?: string;
+        email?: string;
+        role?: string;
+        department?: string;
+        plant?: string;
+        plantId?: string;
+        status?: string;
+        password?: string;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: any;
+        roleCode: any;
+        department: string;
+        plant: any;
+        status: string;
+        lastLogin: string;
+        createdAt: Date;
+    }>;
+    deleteUser(tenantId: string | undefined, userId: string): Promise<{
+        success: boolean;
+        message: string;
+        deletedId: string;
+    }>;
     bulkUpdateUserStatus(tenantId: string | undefined, action: string): Promise<{
         success: boolean;
         action: string;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createShipmentSchema = exports.publishScheduleSchema = exports.validateScheduleSchema = exports.createScheduleVersionSchema = exports.mitigateServiceRiskSchema = exports.updateSafetyStockPolicySchema = exports.expediteShortageSchema = exports.createPurchaseRequisitionSchema = exports.runMrpEngineSchema = exports.updateShipmentStatusSchema = exports.optimizeApsScheduleSchema = exports.splitApsScheduleSchema = exports.rescheduleApsScheduleSchema = exports.createApsScheduleSchema = exports.updatePromotionSchema = exports.createPromotionSchema = exports.runForecastSchema = exports.updateForecastSchema = exports.createForecastSchema = exports.updateCustomerOrderSchema = exports.createCustomerOrderSchema = void 0;
+exports.createShipmentSchema = exports.publishScheduleSchema = exports.validateScheduleSchema = exports.createScheduleVersionSchema = exports.mitigateServiceRiskSchema = exports.updateSafetyStockPolicySchema = exports.expediteShortageSchema = exports.createPurchaseRequisitionSchema = exports.runMrpEngineSchema = exports.updateShipmentStatusSchema = exports.optimizeApsScheduleSchema = exports.splitApsScheduleSchema = exports.rescheduleApsScheduleSchema = exports.createPromotionCampaignSchema = exports.createApsScheduleSchema = exports.updatePromotionSchema = exports.createPromotionSchema = exports.runForecastSchema = exports.updateForecastSchema = exports.createForecastSchema = exports.updateCustomerOrderSchema = exports.createCustomerOrderSchema = void 0;
 const zod_1 = require("zod");
 const customerOrderBaseSchema = zod_1.z.object({
     orderNumber: zod_1.z.string().optional(),
@@ -11,17 +11,7 @@ const customerOrderBaseSchema = zod_1.z.object({
     productName: zod_1.z.string().optional(),
     quantity: zod_1.z.coerce.number().positive(),
     uom: zod_1.z.string().optional(),
-    priority: zod_1.z.preprocess((val) => {
-        if (typeof val === "string") {
-            const clean = val.toUpperCase().trim();
-            if (clean === "HIGH" || clean === "URGENT")
-                return "URGENT";
-            if (clean === "LOW")
-                return "LOW";
-            return "NORMAL";
-        }
-        return val;
-    }, zod_1.z.enum(["URGENT", "NORMAL", "LOW"]).default("NORMAL")),
+    priority: zod_1.z.preprocess((val) => (typeof val === "string" ? val.toUpperCase().trim() : "NORMAL"), zod_1.z.string().default("NORMAL")),
     requestedDate: zod_1.z.string().optional(),
     requestedShipDate: zod_1.z.string().optional(),
     deliveryAddress: zod_1.z.string().optional(),
@@ -83,6 +73,7 @@ exports.runForecastSchema = zod_1.z.object({
     period: zod_1.z.string().default("2026-W36"),
     alpha: zod_1.z.coerce.number().min(0.01).max(1.0).default(0.25),
     promoUpliftPercent: zod_1.z.coerce.number().default(0),
+    method: zod_1.z.string().optional(),
 });
 exports.createPromotionSchema = zod_1.z.object({
     title: zod_1.z.string().optional(),
@@ -120,6 +111,17 @@ exports.createApsScheduleSchema = zod_1.z.object({
     runRate: zod_1.z.coerce.number().default(500),
     changeoverMinutes: zod_1.z.coerce.number().default(30),
     cipRequired: zod_1.z.boolean().default(false),
+});
+exports.createPromotionCampaignSchema = zod_1.z.object({
+    name: zod_1.z.string().min(2),
+    skuId: zod_1.z.string().min(1),
+    upliftPercent: zod_1.z.coerce.number().min(0),
+    incrementalUnits: zod_1.z.coerce.number().optional(),
+    startDate: zod_1.z.string().optional(),
+    endDate: zod_1.z.string().optional(),
+    duration: zod_1.z.string().optional(),
+    channel: zod_1.z.string().optional(),
+    status: zod_1.z.string().optional(),
 });
 exports.rescheduleApsScheduleSchema = zod_1.z.object({
     scheduleId: zod_1.z.string().optional(),

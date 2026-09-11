@@ -82,3 +82,19 @@ export const purchaseRequisitions = pgTable("purchase_requisitions", {
   status: varchar("status", { length: 50 }).default("PENDING_APPROVAL"), // "PENDING_APPROVAL", "PO_CREATED", "REJECTED"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const promotionCampaigns = pgTable("promotion_campaigns", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  skuId: uuid("sku_id").references(() => skus.id, { onDelete: "restrict" }).notNull(),
+  upliftPercent: numeric("uplift_percent", { precision: 5, scale: 2 }).notNull(),
+  incrementalUnits: numeric("incremental_units", { precision: 14, scale: 2 }).default("0.00"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  channel: varchar("channel", { length: 100 }).default("Wholesale Club Flyer"),
+  status: varchar("status", { length: 50 }).default("SCHEDULED").notNull(), // "ACTIVE", "SCHEDULED", "EXPIRED", "CANCELLED"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

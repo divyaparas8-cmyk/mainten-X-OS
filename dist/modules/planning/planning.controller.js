@@ -25,7 +25,7 @@ class PlanningController {
     }
     async deleteCustomerOrder(request, reply) {
         const data = await planning_service_js_1.planningService.deleteCustomerOrder(request.user.tenantId, request.params.id);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Customer demand order cancelled successfully"));
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Customer demand order deleted successfully"));
     }
     // Forecasts & Overrides
     async getForecasts(request, reply) {
@@ -135,6 +135,28 @@ class PlanningController {
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await planning_service_js_1.planningService.runMrpExplosion(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Net Requirements calculated"));
+    }
+    async getPromotionCampaigns(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await planning_service_js_1.planningService.listPromotionCampaigns(request.user.tenantId, plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Promotion campaigns retrieved from database"));
+    }
+    async createPromotionCampaign(request, reply) {
+        const input = planning_schema_js_1.createPromotionCampaignSchema.parse(request.body);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await planning_service_js_1.planningService.createPromotionCampaign(request.user.tenantId, plantId, input);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Promotion campaign registered in database"));
+    }
+    async updatePromotionCampaign(request, reply) {
+        const { id } = request.params;
+        const input = planning_schema_js_1.createPromotionCampaignSchema.partial().parse(request.body);
+        const data = await planning_service_js_1.planningService.updatePromotionCampaign(request.user.tenantId, id, input);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Promotion campaign updated in database"));
+    }
+    async deletePromotionCampaign(request, reply) {
+        const { id } = request.params;
+        await planning_service_js_1.planningService.deletePromotionCampaign(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(null, "Promotion campaign deleted from database"));
     }
     // MRP Engine Run Simulation
     async runMrpEngine(request, reply) {

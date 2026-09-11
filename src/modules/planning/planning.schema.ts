@@ -10,16 +10,8 @@ const customerOrderBaseSchema = z.object({
   quantity: z.coerce.number().positive(),
   uom: z.string().optional(),
   priority: z.preprocess(
-    (val) => {
-      if (typeof val === "string") {
-        const clean = val.toUpperCase().trim();
-        if (clean === "HIGH" || clean === "URGENT") return "URGENT";
-        if (clean === "LOW") return "LOW";
-        return "NORMAL";
-      }
-      return val;
-    },
-    z.enum(["URGENT", "NORMAL", "LOW"]).default("NORMAL")
+    (val) => (typeof val === "string" ? val.toUpperCase().trim() : "NORMAL"),
+    z.string().default("NORMAL")
   ),
   requestedDate: z.string().optional(),
   requestedShipDate: z.string().optional(),
@@ -95,6 +87,7 @@ export const runForecastSchema = z.object({
   period: z.string().default("2026-W36"),
   alpha: z.coerce.number().min(0.01).max(1.0).default(0.25),
   promoUpliftPercent: z.coerce.number().default(0),
+  method: z.string().optional(),
 });
 
 export type RunForecastInput = z.infer<typeof runForecastSchema>;
@@ -144,6 +137,20 @@ export const createApsScheduleSchema = z.object({
 });
 
 export type CreateApsScheduleInput = z.infer<typeof createApsScheduleSchema>;
+
+export const createPromotionCampaignSchema = z.object({
+  name: z.string().min(2),
+  skuId: z.string().min(1),
+  upliftPercent: z.coerce.number().min(0),
+  incrementalUnits: z.coerce.number().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  duration: z.string().optional(),
+  channel: z.string().optional(),
+  status: z.string().optional(),
+});
+
+export type CreatePromotionCampaignInput = z.infer<typeof createPromotionCampaignSchema>;
 
 export const rescheduleApsScheduleSchema = z.object({
   scheduleId: z.string().optional(),

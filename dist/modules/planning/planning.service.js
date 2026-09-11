@@ -9,6 +9,7 @@ const warehouse_js_1 = require("../../db/schema/warehouse.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const forecastEngine_js_1 = require("../../shared/engines/forecastEngine.js");
 const mrpEngine_js_1 = require("../../shared/engines/mrpEngine.js");
+const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 let serviceRisksList = [
     {
         id: "RSK-01",
@@ -517,12 +518,10 @@ class PlanningService {
     }
     async deleteCustomerOrder(tenantId, id) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-        if (isUuid) {
-            await database_js_1.db.update(planning_js_1.customerOrders).set({ status: "Cancelled" }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.id, id)));
-        }
-        else {
-            await database_js_1.db.update(planning_js_1.customerOrders).set({ status: "Cancelled" }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.orderNumber, id)));
-        }
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.customerOrders.orderNumber, id));
+        await database_js_1.db.delete(planning_js_1.customerOrders).where(condition);
         return { success: true, id };
     }
     // ============================================================
@@ -571,6 +570,30 @@ class PlanningService {
                     finalForecast: "39000.00",
                     mapeAccuracy: "94.70",
                     modelType: "Trend Analysis"
+                },
+                {
+                    tenantId,
+                    plantId: resolvedPlant,
+                    skuId: defaultSku.id,
+                    period: "2026-W39 (Sep 22 - Sep 28)",
+                    baselineDemand: "42000.00",
+                    promoUplift: "0.00",
+                    overrideQuantity: "0.00",
+                    finalForecast: "42000.00",
+                    mapeAccuracy: "96.40",
+                    modelType: "Moving Average (4-Week)"
+                },
+                {
+                    tenantId,
+                    plantId: resolvedPlant,
+                    skuId: defaultSku.id,
+                    period: "2026-W40 (Sep 29 - Oct 5)",
+                    baselineDemand: "60000.00",
+                    promoUplift: "6000.00",
+                    overrideQuantity: "6000.00",
+                    finalForecast: "66000.00",
+                    mapeAccuracy: "95.20",
+                    modelType: "Moving Average (4-Week)"
                 }
             ];
             fcRows = await database_js_1.db.insert(planning_js_1.forecasts).values(seedForecasts).returning();
@@ -580,89 +603,101 @@ class PlanningService {
             return {
                 id: f.id,
                 period: f.period,
-                plantId: f.plantId,
                 skuId: f.skuId,
                 productCode: sku?.skuCode || "SKU-5001",
                 productName: sku?.name || "500ml Sparkling Citrus Soda",
-                uom: sku?.uom || "Bottles",
-                historicalDemand: Number(f.baselineDemand) - 5000 > 0 ? Number(f.baselineDemand) - 5000 : 45000,
-                baselineForecast: Number(f.baselineDemand),
-                overrideQuantity: f.overrideQuantity ? Number(f.overrideQuantity) : 0,
-                finalForecast: Number(f.finalForecast),
-                method: f.modelType || "Historical Average + Promo Uplift",
-                reason: "Retail Demand Projection",
-                owner: "Alexander Vance",
-                status: f.overrideQuantity && Number(f.overrideQuantity) > 0 ? "Approved" : "Approved",
-                createdDate: f.createdAt ? new Date(f.createdAt).toISOString().substring(0, 10) : "2026-08-25",
-                lastUpdated: f.createdAt ? new Date(f.createdAt).toISOString().substring(0, 10) : "2026-08-30"
+                historicalDemand: Number(f.baselineDemand || 45000) * 0.95,
+                baselineForecast: Number(f.baselineDemand || 0),
+                baselineDemand: Number(f.baselineDemand || 0),
+                overrideQuantity: Number(f.overrideQuantity || 0),
+                finalForecast: Number(f.finalForecast || f.baselineDemand || 0),
+                method: f.modelType || "Holt-Winters Seasonal",
+                modelType: f.modelType || "Moving Average (4-Week)",
+                mapeAccuracy: f.mapeAccuracy ? Number(f.mapeAccuracy) : 96.5,
+                reason: Number(f.overrideQuantity || 0) > 0 ? "Retailer promotion uplift expected" : "System baseline unadjusted",
+                owner: "Elena Vance (Lead Planner)",
+                status: "Approved",
+                updatedAt: f.createdAt ? f.createdAt.toISOString() : new Date().toISOString()
             };
         });
     }
     async createForecast(tenantId, plantId, input) {
         const resolvedPlant = await this.resolvePlantId(tenantId, input.plantId || plantId);
-        const resolvedSku = await this.resolveSkuId(tenantId, input.skuId || input.productCode || input.productName);
-        const baseDemand = input.baselineForecast || input.baselineDemand || 40000;
-        const override = input.overrideQuantity || 0;
-        const finalVal = input.finalForecast || (baseDemand + override);
-        const [saved] = await database_js_1.db
+        const resolvedSku = await this.resolveSkuId(tenantId, input.skuId || input.productCode);
+        const base = Number(input.baselineDemand || input.baselineForecast || 40000);
+        const override = Number(input.overrideQuantity || 0);
+        const finalVal = override > 0 ? override : base;
+        const [fc] = await database_js_1.db
             .insert(planning_js_1.forecasts)
             .values({
             tenantId,
             plantId: resolvedPlant,
             skuId: resolvedSku.id,
-            period: input.period,
-            baselineDemand: baseDemand.toString(),
-            promoUplift: "0.00",
+            period: input.period || "2026-W36",
+            baselineDemand: base.toString(),
             overrideQuantity: override.toString(),
             finalForecast: finalVal.toString(),
-            modelType: input.method || input.modelType || "Manual Override",
-            mapeAccuracy: "95.00"
+            modelType: input.method || input.modelType || "Moving Average (4-Week)",
+            mapeAccuracy: "96.50",
         })
             .returning();
         return {
-            id: saved.id,
-            period: saved.period,
-            plantId: saved.plantId,
-            skuId: saved.skuId,
+            id: fc.id,
+            period: fc.period,
+            skuId: fc.skuId,
             productCode: resolvedSku.skuCode,
             productName: resolvedSku.name,
-            uom: resolvedSku.uom,
-            historicalDemand: input.historicalDemand || baseDemand,
-            baselineForecast: Number(saved.baselineDemand),
-            overrideQuantity: Number(saved.overrideQuantity || 0),
-            finalForecast: Number(saved.finalForecast),
-            method: saved.modelType,
-            reason: input.reason || "Planner Adjustment",
-            owner: input.owner || "Alexander Vance",
-            status: input.status || "Approved",
-            createdDate: new Date().toISOString().substring(0, 10),
-            lastUpdated: new Date().toISOString().substring(0, 10)
+            historicalDemand: base * 0.95,
+            baselineForecast: base,
+            baselineDemand: base,
+            overrideQuantity: override,
+            finalForecast: finalVal,
+            method: fc.modelType,
+            modelType: fc.modelType,
+            mapeAccuracy: 96.5,
+            reason: input.reason || "Planner revision",
+            owner: input.owner || "Current User",
+            status: input.status || "Submitted",
+            updatedAt: fc.createdAt ? fc.createdAt.toISOString() : new Date().toISOString()
         };
     }
     async updateForecast(tenantId, id, input) {
-        const updateValues = {};
-        if (input.baselineForecast !== undefined || input.baselineDemand !== undefined) {
-            updateValues.baselineDemand = (input.baselineForecast || input.baselineDemand).toString();
+        const updateValues = { updatedAt: new Date() };
+        if (input.baselineDemand !== undefined || input.baselineForecast !== undefined) {
+            updateValues.baselineDemand = (input.baselineDemand || input.baselineForecast).toString();
         }
         if (input.overrideQuantity !== undefined) {
             updateValues.overrideQuantity = input.overrideQuantity.toString();
+            updateValues.finalForecast = input.overrideQuantity.toString();
         }
         if (input.finalForecast !== undefined) {
             updateValues.finalForecast = input.finalForecast.toString();
         }
-        if (input.method) {
-            updateValues.modelType = input.method;
+        if (input.method || input.reason) {
+            updateValues.modelType = input.method || input.reason;
         }
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-        if (isUuid && Object.keys(updateValues).length > 0) {
-            await database_js_1.db.update(planning_js_1.forecasts).set(updateValues).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.forecasts.id, id)));
+        if (isUuid) {
+            const [updated] = await database_js_1.db
+                .update(planning_js_1.forecasts)
+                .set(updateValues)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.forecasts.id, id)))
+                .returning();
+            if (updated) {
+                return {
+                    id: updated.id,
+                    period: updated.period,
+                    baselineForecast: Number(updated.baselineDemand),
+                    baselineDemand: Number(updated.baselineDemand),
+                    overrideQuantity: Number(updated.overrideQuantity || 0),
+                    finalForecast: Number(updated.finalForecast),
+                    reason: input.reason || "Manual Override updated",
+                    owner: input.owner || "Elena Vance",
+                    status: input.status || "Approved"
+                };
+            }
         }
-        return {
-            id,
-            ...input,
-            status: input.status || "Approved",
-            lastUpdated: new Date().toISOString().substring(0, 10)
-        };
+        return { id, ...input };
     }
     async deleteForecast(tenantId, id) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
@@ -672,29 +707,55 @@ class PlanningService {
         return { success: true, id };
     }
     // ============================================================
-    // 3. DEMAND HISTORY & PROMOTIONS
+    // 2B. DEMAND HISTORY & ACCURACY
     // ============================================================
     async listDemandHistory(tenantId, plantId) {
         return demandHistory;
     }
+    // ============================================================
+    // 3. PROMOTIONS & UPLIFT
+    // ============================================================
     async listPromotions(tenantId, plantId) {
+        try {
+            const dbCampaigns = await this.listPromotionCampaigns(tenantId, plantId);
+            if (dbCampaigns && dbCampaigns.length > 0)
+                return dbCampaigns;
+        }
+        catch (e) {
+            console.warn("DB listPromotionCampaigns fallback:", e);
+        }
         return promotionsList;
     }
     async createPromotion(tenantId, input) {
-        const resolvedSku = await this.resolveSkuId(tenantId, input.skuId || input.productCode);
-        const newId = `PRM-${Math.floor(100 + Math.random() * 900)}`;
+        try {
+            const dbRes = await this.createPromotionCampaign(tenantId, "PLT-01", {
+                name: input.title || input.name || "Campaign",
+                skuId: input.skuId || input.productCode || "SKU-5001",
+                upliftPercent: input.upliftPercent || 10,
+                incrementalUnits: input.projectedUnits || 5000,
+                startDate: input.startDate,
+                endDate: input.endDate,
+                channel: input.channel,
+                status: input.status,
+            });
+            if (dbRes)
+                return dbRes;
+        }
+        catch (e) {
+            console.warn("DB createPromotion fallback:", e);
+        }
         const newPromo = {
-            id: newId,
-            title: input.title || input.name || "Special Campaign",
-            skuId: resolvedSku.id,
-            productCode: resolvedSku.skuCode,
-            productName: resolvedSku.name,
+            id: `PRM-${Math.floor(1000 + Math.random() * 9000)}`,
+            title: input.title || input.name || "Summer Endcap Blast",
+            skuId: input.skuId || "SKU-5001",
+            productCode: input.productCode || "SKU-5001",
+            productName: input.productName || "500ml Sparkling Citrus Soda",
             upliftPercent: input.upliftPercent || 10,
             projectedUnits: input.projectedUnits || 5000,
-            startDate: input.startDate || new Date().toISOString().substring(0, 10),
-            endDate: input.endDate || new Date(Date.now() + 14 * 86400000).toISOString().substring(0, 10),
-            channel: input.channel || "Retail Display",
-            status: input.status || "ACTIVE"
+            startDate: input.startDate || "2026-09-01",
+            endDate: input.endDate || "2026-09-14",
+            channel: input.channel || "Retail Endcap",
+            status: input.status || "ACTIVE",
         };
         promotionsList = [newPromo, ...promotionsList];
         return newPromo;
@@ -703,6 +764,161 @@ class PlanningService {
         promotionsList = promotionsList.map(p => (p.id === id ? { ...p, ...input } : p));
         const found = promotionsList.find(p => p.id === id);
         return found || { id, ...input };
+    }
+    async listPromotionCampaigns(tenantId, plantId) {
+        const campaigns = await database_js_1.db
+            .select({
+            id: planning_js_1.promotionCampaigns.id,
+            tenantId: planning_js_1.promotionCampaigns.tenantId,
+            plantId: planning_js_1.promotionCampaigns.plantId,
+            name: planning_js_1.promotionCampaigns.name,
+            skuId: planning_js_1.promotionCampaigns.skuId,
+            upliftPercent: planning_js_1.promotionCampaigns.upliftPercent,
+            incrementalUnits: planning_js_1.promotionCampaigns.incrementalUnits,
+            startDate: planning_js_1.promotionCampaigns.startDate,
+            endDate: planning_js_1.promotionCampaigns.endDate,
+            channel: planning_js_1.promotionCampaigns.channel,
+            status: planning_js_1.promotionCampaigns.status,
+            createdAt: planning_js_1.promotionCampaigns.createdAt,
+            skuCode: masterData_js_1.skus.skuCode,
+            skuName: masterData_js_1.skus.name,
+        })
+            .from(planning_js_1.promotionCampaigns)
+            .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.skuId, masterData_js_1.skus.id))
+            .where((0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.tenantId, tenantId))
+            .orderBy((0, drizzle_orm_1.sql) `${planning_js_1.promotionCampaigns.createdAt} DESC`);
+        return campaigns.map((c) => {
+            const startStr = c.startDate ? new Date(c.startDate).toISOString().slice(0, 10) : "";
+            const endStr = c.endDate ? new Date(c.endDate).toISOString().slice(0, 10) : "";
+            const duration = startStr && endStr ? `${startStr} to ${endStr}` : "Active Horizon";
+            return {
+                id: c.id,
+                name: c.name,
+                skuId: c.skuId,
+                productCode: c.skuCode || "SKU-PROMO",
+                productName: c.skuName || "Promotional Item",
+                upliftPercent: Number(c.upliftPercent) || 0,
+                incrementalUnits: Number(c.incrementalUnits) || 0,
+                startDate: c.startDate,
+                endDate: c.endDate,
+                duration,
+                channel: c.channel || "Wholesale Club Flyer",
+                status: c.status ? (c.status.charAt(0).toUpperCase() + c.status.slice(1).toLowerCase()) : "Scheduled",
+                createdAt: c.createdAt,
+            };
+        });
+    }
+    async createPromotionCampaign(tenantId, plantId, input) {
+        let resolvedSkuId = input.skuId;
+        if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
+            const [foundSku] = await database_js_1.db
+                .select()
+                .from(masterData_js_1.skus)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuId), (0, drizzle_orm_1.eq)(masterData_js_1.skus.name, input.skuId))))
+                .limit(1);
+            if (foundSku) {
+                resolvedSkuId = foundSku.id;
+            }
+            else {
+                const [firstSku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId)).limit(1);
+                if (firstSku)
+                    resolvedSkuId = firstSku.id;
+            }
+        }
+        let startDate = new Date();
+        let endDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+        if (input.startDate) {
+            startDate = new Date(input.startDate);
+        }
+        else if (input.duration && input.duration.includes("to")) {
+            const parts = input.duration.split("to").map((s) => s.trim());
+            if (parts[0] && !isNaN(Date.parse(parts[0])))
+                startDate = new Date(parts[0]);
+            if (parts[1] && !isNaN(Date.parse(parts[1])))
+                endDate = new Date(parts[1]);
+        }
+        if (input.endDate) {
+            endDate = new Date(input.endDate);
+        }
+        const incUnits = input.incrementalUnits !== undefined
+            ? input.incrementalUnits
+            : Math.round(40000 * (Number(input.upliftPercent) / 100));
+        const [campaign] = await database_js_1.db
+            .insert(planning_js_1.promotionCampaigns)
+            .values({
+            tenantId,
+            plantId,
+            name: input.name,
+            skuId: resolvedSkuId,
+            upliftPercent: input.upliftPercent.toString(),
+            incrementalUnits: incUnits.toString(),
+            startDate,
+            endDate,
+            channel: input.channel || "Retail Endcap",
+            status: input.status ? input.status.toUpperCase() : "SCHEDULED",
+        })
+            .returning();
+        return campaign;
+    }
+    async updatePromotionCampaign(tenantId, id, input) {
+        if (!(0, tenantContext_js_1.isValidUuid)(id))
+            return null;
+        const updateValues = { updatedAt: new Date() };
+        if (input.name)
+            updateValues.name = input.name;
+        if (input.upliftPercent !== undefined) {
+            updateValues.upliftPercent = input.upliftPercent.toString();
+            if (input.incrementalUnits !== undefined) {
+                updateValues.incrementalUnits = input.incrementalUnits.toString();
+            }
+            else {
+                updateValues.incrementalUnits = Math.round(40000 * (Number(input.upliftPercent) / 100)).toString();
+            }
+        }
+        else if (input.incrementalUnits !== undefined) {
+            updateValues.incrementalUnits = input.incrementalUnits.toString();
+        }
+        if (input.channel)
+            updateValues.channel = input.channel;
+        if (input.status)
+            updateValues.status = input.status.toUpperCase();
+        if (input.startDate)
+            updateValues.startDate = new Date(input.startDate);
+        if (input.endDate)
+            updateValues.endDate = new Date(input.endDate);
+        if (input.duration && input.duration.includes("to")) {
+            const parts = input.duration.split("to").map((s) => s.trim());
+            if (parts[0] && !isNaN(Date.parse(parts[0])))
+                updateValues.startDate = new Date(parts[0]);
+            if (parts[1] && !isNaN(Date.parse(parts[1])))
+                updateValues.endDate = new Date(parts[1]);
+        }
+        if (input.skuId) {
+            let resolvedSkuId = input.skuId;
+            if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
+                const [foundSku] = await database_js_1.db
+                    .select()
+                    .from(masterData_js_1.skus)
+                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, input.skuId), (0, drizzle_orm_1.eq)(masterData_js_1.skus.name, input.skuId))))
+                    .limit(1);
+                if (foundSku)
+                    resolvedSkuId = foundSku.id;
+            }
+            updateValues.skuId = resolvedSkuId;
+        }
+        const [updated] = await database_js_1.db
+            .update(planning_js_1.promotionCampaigns)
+            .set(updateValues)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.id, id)))
+            .returning();
+        return updated;
+    }
+    async deletePromotionCampaign(tenantId, id) {
+        if (!(0, tenantContext_js_1.isValidUuid)(id))
+            return;
+        await database_js_1.db
+            .delete(planning_js_1.promotionCampaigns)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.id, id)));
     }
     // ============================================================
     // 4. SHIPMENTS
@@ -737,7 +953,33 @@ class PlanningService {
     async runStatisticalForecast(tenantId, plantId, input) {
         const resolvedSku = await this.resolveSkuId(tenantId, input.skuId);
         const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
-        const historicalDemand = [14200, 15100, 13900, 16200, 14800, 15500];
+        let historicalDemand = [14200, 15100, 13900, 16200, 14800, 15500];
+        try {
+            const targetCode = resolvedSku?.skuCode;
+            const allMatchingSkus = await database_js_1.db
+                .select({ id: masterData_js_1.skus.id })
+                .from(masterData_js_1.skus)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, targetCode || ""), (0, drizzle_orm_1.eq)(masterData_js_1.skus.id, resolvedSku.id))));
+            const matchingIds = allMatchingSkus.map((s) => s.id);
+            const skuOrders = await database_js_1.db
+                .select()
+                .from(planning_js_1.customerOrders)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId), (0, drizzle_orm_1.inArray)(planning_js_1.customerOrders.skuId, matchingIds.length > 0 ? matchingIds : [resolvedSku.id])));
+            const actualTotalDemand = skuOrders.reduce((sum, o) => sum + Number(o.quantity || 0), 0);
+            if (actualTotalDemand > 0) {
+                historicalDemand = [
+                    Math.round(actualTotalDemand * 0.94),
+                    Math.round(actualTotalDemand * 0.98),
+                    Math.round(actualTotalDemand * 0.91),
+                    Math.round(actualTotalDemand * 1.04),
+                    Math.round(actualTotalDemand * 0.97),
+                    actualTotalDemand,
+                ];
+            }
+        }
+        catch (err) {
+            console.warn("Dynamic historical demand fallback:", err);
+        }
         const result = (0, forecastEngine_js_1.calculateExponentialSmoothingForecast)({
             historicalDemand,
             alpha: input.alpha || 0.25,
@@ -754,6 +996,7 @@ class PlanningService {
             promoUplift: result.promoUpliftUnits.toString(),
             finalForecast: result.finalForecast.toString(),
             mapeAccuracy: result.mapeAccuracy.toString(),
+            modelType: input.method || "Moving Average (4-Week Rolling)",
         })
             .returning();
         return {

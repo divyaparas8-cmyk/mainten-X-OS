@@ -1,0 +1,46 @@
+import { FastifyRequest, FastifyReply } from "fastify";
+export declare class ExecutiveController {
+    getDashboardSummary(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    syncDashboardData(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    exportBoardReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    approveAiRecommendation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMultiPlantKpis(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    initiatePlantAudit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getManufacturingCosts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getCostVariance(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    validateVarianceTargets(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMaterialCosts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateContractRates(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getLabourCosts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    auditLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMachineCosts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    auditMachineEfficiency(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getScrapReworkCosts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    auditScrapEvent(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getCiSavings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    verifyCiProjectSavings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getBusinessTrends(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    simulateBusinessTrends(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getCustomerDemand(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    syncCustomerDemand(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getServiceLevel(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getShipmentPerformance(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getRisks(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    addRisk(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    mitigateRisk(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getOpportunities(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    approveOpportunity(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getAiBriefing(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    generateAiBriefing(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getReports(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    exportReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    markNotificationRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    markAllNotificationsRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteNotification(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    clearAllNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+}
+export declare const executiveController: ExecutiveController;
+//# sourceMappingURL=executive.controller.d.ts.map

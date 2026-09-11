@@ -11,8 +11,9 @@ async function planningRoutes(fastify) {
     // Demand & Forecast
     fastify.get("/demand/orders", { schema: { tags: ["Planning & Demand"], summary: "List Customer Demand Orders" } }, planning_controller_js_1.planningController.getCustomerOrders.bind(planning_controller_js_1.planningController));
     fastify.post("/demand/orders", { schema: { tags: ["Planning & Demand"], summary: "Create Customer Demand Order" } }, planning_controller_js_1.planningController.createCustomerOrder.bind(planning_controller_js_1.planningController));
+    fastify.put("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Customer Demand Order" } }, planning_controller_js_1.planningController.updateCustomerOrder.bind(planning_controller_js_1.planningController));
     fastify.patch("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Customer Demand Order" } }, planning_controller_js_1.planningController.updateCustomerOrder.bind(planning_controller_js_1.planningController));
-    fastify.delete("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Cancel/Delete Customer Demand Order" } }, planning_controller_js_1.planningController.deleteCustomerOrder.bind(planning_controller_js_1.planningController));
+    fastify.delete("/demand/orders/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Customer Demand Order" } }, planning_controller_js_1.planningController.deleteCustomerOrder.bind(planning_controller_js_1.planningController));
     // Forecasts & Overrides CRUD
     fastify.get("/forecasts", { schema: { tags: ["Planning & Demand"], summary: "List Demand Forecasts & Overrides" } }, planning_controller_js_1.planningController.getForecasts.bind(planning_controller_js_1.planningController));
     fastify.post("/forecasts", { schema: { tags: ["Planning & Demand"], summary: "Create Demand Forecast Record" } }, planning_controller_js_1.planningController.createForecast.bind(planning_controller_js_1.planningController));
@@ -30,6 +31,7 @@ async function planningRoutes(fastify) {
     fastify.patch("/shipments/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Outbound Shipment Status" } }, planning_controller_js_1.planningController.updateShipmentStatus.bind(planning_controller_js_1.planningController));
     // Forecast Engine & APS & MRP
     fastify.post("/forecast/run", { schema: { tags: ["Planning & Demand"], summary: "Execute Statistical Forecast Engine" } }, planning_controller_js_1.planningController.runForecast.bind(planning_controller_js_1.planningController));
+    fastify.get("/forecasts", { schema: { tags: ["Planning & Demand"], summary: "List Saved Forecasts from Database" } }, planning_controller_js_1.planningController.getForecasts.bind(planning_controller_js_1.planningController));
     fastify.get("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "List Multi-Line APS Gantt Schedules" } }, planning_controller_js_1.planningController.getApsSchedules.bind(planning_controller_js_1.planningController));
     fastify.post("/aps/schedules", { schema: { tags: ["Planning & Demand"], summary: "Publish APS Schedule" } }, planning_controller_js_1.planningController.createApsSchedule.bind(planning_controller_js_1.planningController));
     fastify.patch("/aps/schedules/:id/reschedule", { schema: { tags: ["Planning & Demand"], summary: "Reschedule APS Order" } }, planning_controller_js_1.planningController.rescheduleApsSchedule.bind(planning_controller_js_1.planningController));
@@ -43,6 +45,10 @@ async function planningRoutes(fastify) {
     fastify.post("/aps/changeovers", { schema: { tags: ["Planning & Demand"], summary: "Create APS Changeover Matrix Rule" } }, planning_controller_js_1.planningController.createChangeover.bind(planning_controller_js_1.planningController));
     fastify.get("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planning_controller_js_1.planningController.getMrpExplosion.bind(planning_controller_js_1.planningController));
     fastify.post("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planning_controller_js_1.planningController.getMrpExplosion.bind(planning_controller_js_1.planningController));
+    fastify.get("/promotions", { schema: { tags: ["Planning & Demand"], summary: "List Promotion Campaigns" } }, planning_controller_js_1.planningController.getPromotionCampaigns.bind(planning_controller_js_1.planningController));
+    fastify.post("/promotions", { schema: { tags: ["Planning & Demand"], summary: "Create Promotion Campaign" } }, planning_controller_js_1.planningController.createPromotionCampaign.bind(planning_controller_js_1.planningController));
+    fastify.put("/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Promotion Campaign" } }, planning_controller_js_1.planningController.updatePromotionCampaign.bind(planning_controller_js_1.planningController));
+    fastify.delete("/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Promotion Campaign" } }, planning_controller_js_1.planningController.deletePromotionCampaign.bind(planning_controller_js_1.planningController));
     // MRP Engine BOM Explosion
     fastify.post("/mrp/run", { schema: { tags: ["Planning & Demand"], summary: "Execute Multi-Level BOM Explosion MRP Calculation" } }, planning_controller_js_1.planningController.runMrpEngine.bind(planning_controller_js_1.planningController));
     fastify.post("/mrp/calculate", { schema: { tags: ["Planning & Demand"], summary: "Execute Multi-Level BOM Explosion MRP Calculation" } }, planning_controller_js_1.planningController.runMrpEngine.bind(planning_controller_js_1.planningController));

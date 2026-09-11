@@ -1,4 +1,4 @@
-import { CreateCustomerOrderInput, UpdateCustomerOrderInput, CreateForecastInput, UpdateForecastInput, RunForecastInput, CreatePromotionInput, UpdatePromotionInput, CreateApsScheduleInput, RescheduleApsScheduleInput, SplitApsScheduleInput, OptimizeApsScheduleInput, RunMrpEngineInput, CreatePurchaseRequisitionInput, ExpediteShortageInput, UpdateSafetyStockPolicyInput, MitigateServiceRiskInput, CreateScheduleVersionInput, ValidateScheduleInput, PublishScheduleInput } from "./planning.schema.js";
+import { CreateCustomerOrderInput, UpdateCustomerOrderInput, CreateForecastInput, UpdateForecastInput, RunForecastInput, CreatePromotionInput, UpdatePromotionInput, CreateApsScheduleInput, CreatePromotionCampaignInput, RescheduleApsScheduleInput, SplitApsScheduleInput, OptimizeApsScheduleInput, RunMrpEngineInput, CreatePurchaseRequisitionInput, ExpediteShortageInput, UpdateSafetyStockPolicyInput, MitigateServiceRiskInput, CreateScheduleVersionInput, ValidateScheduleInput, PublishScheduleInput } from "./planning.schema.js";
 interface ServiceRiskRecord {
     id: string;
     customer: string;
@@ -95,44 +95,43 @@ export declare class PlanningService {
     listForecasts(tenantId: string, plantId?: string): Promise<{
         id: string;
         period: string;
-        plantId: string;
         skuId: string;
         productCode: string;
         productName: string;
-        uom: string;
         historicalDemand: number;
         baselineForecast: number;
+        baselineDemand: number;
         overrideQuantity: number;
         finalForecast: number;
         method: string;
+        modelType: string;
+        mapeAccuracy: number;
         reason: string;
         owner: string;
         status: string;
-        createdDate: string;
-        lastUpdated: string;
+        updatedAt: string;
     }[]>;
     createForecast(tenantId: string, plantId: string, input: CreateForecastInput): Promise<{
         id: string;
         period: string;
-        plantId: string;
         skuId: string;
         productCode: string;
         productName: string;
-        uom: string;
         historicalDemand: number;
         baselineForecast: number;
+        baselineDemand: number;
         overrideQuantity: number;
         finalForecast: number;
         method: string | null;
+        modelType: string | null;
+        mapeAccuracy: number;
         reason: string;
         owner: string;
         status: string;
-        createdDate: string;
-        lastUpdated: string;
+        updatedAt: string;
     }>;
     updateForecast(tenantId: string, id: string, input: UpdateForecastInput): Promise<{
-        status: string;
-        lastUpdated: string;
+        status?: string | undefined;
         method?: string | undefined;
         skuId?: string | undefined;
         period?: string | undefined;
@@ -173,8 +172,36 @@ export declare class PlanningService {
         endDate: string;
         channel: string;
         status: string;
+    }[] | {
+        id: string;
+        name: string;
+        skuId: string;
+        productCode: string;
+        productName: string;
+        upliftPercent: number;
+        incrementalUnits: number;
+        startDate: Date;
+        endDate: Date;
+        duration: string;
+        channel: string;
+        status: string;
+        createdAt: Date;
     }[]>;
     createPromotion(tenantId: string, input: CreatePromotionInput): Promise<{
+        status: string;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        skuId: string;
+        upliftPercent: string;
+        incrementalUnits: string | null;
+        startDate: Date;
+        endDate: Date;
+        channel: string | null;
+    } | {
         id: string;
         title: string;
         skuId: string;
@@ -206,6 +233,52 @@ export declare class PlanningService {
         projectedUnits?: number | undefined;
         id: string;
     }>;
+    listPromotionCampaigns(tenantId: string, plantId?: string): Promise<{
+        id: string;
+        name: string;
+        skuId: string;
+        productCode: string;
+        productName: string;
+        upliftPercent: number;
+        incrementalUnits: number;
+        startDate: Date;
+        endDate: Date;
+        duration: string;
+        channel: string;
+        status: string;
+        createdAt: Date;
+    }[]>;
+    createPromotionCampaign(tenantId: string, plantId: string, input: CreatePromotionCampaignInput): Promise<{
+        status: string;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        skuId: string;
+        upliftPercent: string;
+        incrementalUnits: string | null;
+        startDate: Date;
+        endDate: Date;
+        channel: string | null;
+    }>;
+    updatePromotionCampaign(tenantId: string, id: string, input: Partial<CreatePromotionCampaignInput>): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        name: string;
+        skuId: string;
+        upliftPercent: string;
+        incrementalUnits: string | null;
+        startDate: Date;
+        endDate: Date;
+        channel: string | null;
+        status: string;
+        createdAt: Date;
+        updatedAt: Date;
+    } | null>;
+    deletePromotionCampaign(tenantId: string, id: string): Promise<void>;
     listShipments(tenantId: string, plantId?: string): Promise<{
         id: string;
         orderRef: string;

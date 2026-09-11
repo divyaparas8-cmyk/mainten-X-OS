@@ -8,7 +8,7 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     productName: z.ZodOptional<z.ZodString>;
     quantity: z.ZodNumber;
     uom: z.ZodOptional<z.ZodString>;
-    priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["URGENT", "NORMAL", "LOW"]>>, "NORMAL" | "URGENT" | "LOW", unknown>;
+    priority: z.ZodEffects<z.ZodDefault<z.ZodString>, string, unknown>;
     requestedDate: z.ZodOptional<z.ZodString>;
     requestedShipDate: z.ZodOptional<z.ZodString>;
     deliveryAddress: z.ZodOptional<z.ZodString>;
@@ -17,7 +17,7 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodDefault<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     quantity: number;
-    priority: "NORMAL" | "URGENT" | "LOW";
+    priority: string;
     status?: string | undefined;
     plantId?: string | undefined;
     uom?: string | undefined;
@@ -57,7 +57,7 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     productName: z.ZodOptional<z.ZodString>;
     quantity: z.ZodNumber;
     uom: z.ZodOptional<z.ZodString>;
-    priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["URGENT", "NORMAL", "LOW"]>>, "NORMAL" | "URGENT" | "LOW", unknown>;
+    priority: z.ZodEffects<z.ZodDefault<z.ZodString>, string, unknown>;
     requestedDate: z.ZodOptional<z.ZodString>;
     requestedShipDate: z.ZodOptional<z.ZodString>;
     deliveryAddress: z.ZodOptional<z.ZodString>;
@@ -66,7 +66,7 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     status: z.ZodOptional<z.ZodDefault<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     quantity: number;
-    priority: "NORMAL" | "URGENT" | "LOW";
+    priority: string;
     status?: string | undefined;
     plantId?: string | undefined;
     uom?: string | undefined;
@@ -98,7 +98,7 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     requestedShipDate?: string | undefined;
 }>, {
     quantity: number;
-    priority: "NORMAL" | "URGENT" | "LOW";
+    priority: string;
     status?: string | undefined;
     plantId?: string | undefined;
     uom?: string | undefined;
@@ -270,12 +270,15 @@ export declare const runForecastSchema: z.ZodObject<{
     period: z.ZodDefault<z.ZodString>;
     alpha: z.ZodDefault<z.ZodNumber>;
     promoUpliftPercent: z.ZodDefault<z.ZodNumber>;
+    method: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     period: string;
     alpha: number;
     promoUpliftPercent: number;
+    method?: string | undefined;
     skuId?: string | undefined;
 }, {
+    method?: string | undefined;
     skuId?: string | undefined;
     period?: string | undefined;
     alpha?: number | undefined;
@@ -302,22 +305,22 @@ export declare const createPromotionSchema: z.ZodObject<{
     name?: string | undefined;
     skuId?: string | undefined;
     startDate?: string | undefined;
-    productCode?: string | undefined;
-    productName?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
+    productCode?: string | undefined;
+    productName?: string | undefined;
 }, {
     status?: string | undefined;
     title?: string | undefined;
     name?: string | undefined;
     skuId?: string | undefined;
-    startDate?: string | undefined;
-    productCode?: string | undefined;
-    productName?: string | undefined;
     upliftPercent?: number | undefined;
-    projectedUnits?: number | undefined;
+    startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
+    productCode?: string | undefined;
+    productName?: string | undefined;
+    projectedUnits?: number | undefined;
 }>;
 export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
 export declare const updatePromotionSchema: z.ZodObject<{
@@ -390,6 +393,38 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     runRate?: number | undefined;
 }>;
 export type CreateApsScheduleInput = z.infer<typeof createApsScheduleSchema>;
+export declare const createPromotionCampaignSchema: z.ZodObject<{
+    name: z.ZodString;
+    skuId: z.ZodString;
+    upliftPercent: z.ZodNumber;
+    incrementalUnits: z.ZodOptional<z.ZodNumber>;
+    startDate: z.ZodOptional<z.ZodString>;
+    endDate: z.ZodOptional<z.ZodString>;
+    duration: z.ZodOptional<z.ZodString>;
+    channel: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    skuId: string;
+    upliftPercent: number;
+    status?: string | undefined;
+    incrementalUnits?: number | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
+    channel?: string | undefined;
+    duration?: string | undefined;
+}, {
+    name: string;
+    skuId: string;
+    upliftPercent: number;
+    status?: string | undefined;
+    incrementalUnits?: number | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
+    channel?: string | undefined;
+    duration?: string | undefined;
+}>;
+export type CreatePromotionCampaignInput = z.infer<typeof createPromotionCampaignSchema>;
 export declare const rescheduleApsScheduleSchema: z.ZodObject<{
     scheduleId: z.ZodOptional<z.ZodString>;
     lineId: z.ZodString;

@@ -103,6 +103,7 @@ export declare class AdminService {
         department?: string;
         plant?: string;
         status?: string;
+        password?: string;
     }): Promise<{
         id: string;
         name: string;

@@ -190,7 +190,7 @@ export class MasterAdminService {
     }
 
     const userCounts = new Map<string, number>();
-    const tenantAdmins = new Map<string, { name: string; email: string; lastLogin?: string }>();
+    const tenantAdmins = new Map<string, { name: string; email: string; phone?: string; lastLogin?: string }>();
     for (const u of allUsers) {
       userCounts.set(u.tenantId, (userCounts.get(u.tenantId) || 0) + 1);
       // Pick first user or admin as primary contact

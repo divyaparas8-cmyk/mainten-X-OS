@@ -33,11 +33,24 @@ export declare class AIService {
         id: string;
         status: string;
     }>;
-    chatQuery(query: string): Promise<{
+    chatQuery(query: string, tenantId?: string): Promise<{
         query: string;
         reply: string;
         tag: string;
+        confidence: number | undefined;
+        sources: string[];
+        provider: string;
+        modelUsed: string | undefined;
         timestamp: string;
+    } | {
+        query: string;
+        reply: string;
+        tag: string;
+        confidence: number;
+        sources: string[];
+        provider: string;
+        timestamp: string;
+        modelUsed?: undefined;
     }>;
 }
 export declare const aiService: AIService;

@@ -22,6 +22,9 @@ import { searchRoutes } from "./modules/search/search.routes.js";
 import { ciRoutes } from "./modules/ci/ci.routes.js";
 import { exceptionsRoutes } from "./modules/exceptions/exceptions.routes.js";
 import { aiRoutes } from "./modules/ai/ai.routes.js";
+import { billingRoutes } from "./modules/billing/billing.routes.js";
+import { iotRoutes } from "./modules/iot/iot.routes.js";
+import { masterRoutes } from "./modules/master/master.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -81,6 +84,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(ciRoutes, { prefix: "/api/v1/ci" });
   await app.register(exceptionsRoutes, { prefix: "/api/v1/exceptions" });
   await app.register(aiRoutes, { prefix: "/api/v1/ai" });
+  await app.register(billingRoutes, { prefix: "/api/v1/billing" });
+  await app.register(iotRoutes, { prefix: "/api/v1/iot" });
+  await app.register(masterRoutes, { prefix: "/api/v1/master" });
 
   return app;
 }

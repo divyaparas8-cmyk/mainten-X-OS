@@ -2226,8 +2226,9 @@ class MasterDataService {
         FROM public.changeover_rules
         ORDER BY created_at ASC
       `);
-            if (res.rows) {
-                return res.rows.map((r) => ({
+            const rows = res?.rows || (Array.isArray(res) ? res : []);
+            if (rows && rows.length > 0) {
+                return rows.map((r) => ({
                     id: r.id,
                     matrixId: r.matrixId || r.id,
                     fromSkuId: r.fromSkuId || "SKU-001",
@@ -2252,7 +2253,7 @@ class MasterDataService {
         return inMemoryChangeoverRules;
     }
     async createChangeoverRule(tenantId, input) {
-        const newId = input.id || input.matrixId || `CO-0${inMemoryChangeoverRules.length + 1}`;
+        const newId = input.id || input.matrixId || `CO-${Math.floor(1000 + Math.random() * 9000)}`;
         const matrixId = input.matrixId || newId;
         const fromSkuId = input.fromSkuId || "SKU-001";
         const fromSkuCode = input.fromSkuCode || "SKU-5001";

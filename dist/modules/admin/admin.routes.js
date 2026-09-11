@@ -241,5 +241,82 @@ async function adminRoutes(fastify) {
             summary: "Revoke Enterprise Integration API Key",
         },
     }, admin_controller_js_1.adminController.revokeApiKey.bind(admin_controller_js_1.adminController));
+    // ── 8. SECURITY POLICIES ──────────────────────────────────────────
+    fastify.get("/security/policies", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get Enterprise Security & Authentication Policies",
+        },
+    }, admin_controller_js_1.adminController.getSecurityPolicies.bind(admin_controller_js_1.adminController));
+    fastify.post("/security/policies", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Save Enterprise Security & Authentication Policies",
+        },
+    }, admin_controller_js_1.adminController.saveSecurityPolicies.bind(admin_controller_js_1.adminController));
+    // ── 9. SYSTEM CONFIGURATION ───────────────────────────────────────
+    fastify.get("/config", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get Global System Parameters & Configuration",
+        },
+    }, admin_controller_js_1.adminController.getSystemConfig.bind(admin_controller_js_1.adminController));
+    fastify.post("/config", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Save Global System Parameters & Configuration",
+        },
+    }, admin_controller_js_1.adminController.saveSystemConfig.bind(admin_controller_js_1.adminController));
+    // ── 10. AUDIT LOGS ────────────────────────────────────────────────
+    fastify.get("/audit-logs", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get Master Governance Audit Ledger",
+        },
+    }, admin_controller_js_1.adminController.getAuditLogs.bind(admin_controller_js_1.adminController));
+    fastify.delete("/audit-logs/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Delete Audit Log Record",
+        },
+    }, admin_controller_js_1.adminController.deleteAuditLog.bind(admin_controller_js_1.adminController));
+    // ── 7. DATA REMEDIATION ───────────────────────────────────────────
+    fastify.get("/data-health/remediation-log", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get Self-Healing Execution Log",
+        },
+    }, admin_controller_js_1.adminController.getRemediationLog.bind(admin_controller_js_1.adminController));
+    fastify.post("/data-health/execute-remediation", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Execute Automated Data Remediation Engine",
+        },
+    }, admin_controller_js_1.adminController.executeRemediationEngine.bind(admin_controller_js_1.adminController));
+    fastify.delete("/data-health/remediation-log/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Delete Remediation Execution Log Item",
+        },
+    }, admin_controller_js_1.adminController.deleteRemediationLog.bind(admin_controller_js_1.adminController));
+    // ── 11. DATA MIGRATION ────────────────────────────────────────────
+    fastify.get("/migration/batches", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get Migration Ingestion Batches",
+        },
+    }, admin_controller_js_1.adminController.getMigrationBatches.bind(admin_controller_js_1.adminController));
+    fastify.post("/migration/execute", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Execute and Commit Migration Batch",
+        },
+    }, admin_controller_js_1.adminController.executeMigrationBatch.bind(admin_controller_js_1.adminController));
+    fastify.delete("/migration/batches/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Delete Migration Batch Record",
+        },
+    }, admin_controller_js_1.adminController.deleteMigrationBatch.bind(admin_controller_js_1.adminController));
 }
 //# sourceMappingURL=admin.routes.js.map

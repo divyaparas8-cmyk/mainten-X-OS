@@ -219,6 +219,75 @@ class AdminController {
         const result = await admin_service_js_1.adminService.revokeApiKey(user?.tenantId, id);
         return reply.status(200).send(result);
     }
+    // ── SECURITY POLICIES ──────────────────────────────────────────────
+    async getSecurityPolicies(request, reply) {
+        const user = request.user;
+        const policies = await admin_service_js_1.adminService.getSecurityPolicies(user?.tenantId);
+        return reply.status(200).send(policies);
+    }
+    async saveSecurityPolicies(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.saveSecurityPolicies(user?.tenantId, request.body);
+        return reply.status(200).send(result);
+    }
+    // ── SYSTEM CONFIGURATION ───────────────────────────────────────────
+    async getSystemConfig(request, reply) {
+        const user = request.user;
+        const config = await admin_service_js_1.adminService.getSystemConfig(user?.tenantId);
+        return reply.status(200).send(config);
+    }
+    async saveSystemConfig(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.saveSystemConfig(user?.tenantId, request.body);
+        return reply.status(200).send(result);
+    }
+    // ── AUDIT LOGS ─────────────────────────────────────────────────────
+    async getAuditLogs(request, reply) {
+        const user = request.user;
+        const { query } = request.query;
+        const logs = await admin_service_js_1.adminService.getAuditLogs(user?.tenantId, query);
+        return reply.status(200).send(logs);
+    }
+    async deleteAuditLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteAuditLog(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
+    // ── DATA REMEDIATION ───────────────────────────────────────────────
+    async getRemediationLog(request, reply) {
+        const user = request.user;
+        const logs = await admin_service_js_1.adminService.getRemediationLog(user?.tenantId);
+        return reply.status(200).send(logs);
+    }
+    async executeRemediationEngine(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.executeRemediationEngine(user?.tenantId);
+        return reply.status(200).send(result);
+    }
+    async deleteRemediationLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteRemediationLog(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
+    // ── DATA MIGRATION ─────────────────────────────────────────────────
+    async getMigrationBatches(request, reply) {
+        const user = request.user;
+        const batches = await admin_service_js_1.adminService.getMigrationBatches(user?.tenantId);
+        return reply.status(200).send(batches);
+    }
+    async executeMigrationBatch(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.executeMigrationBatch(user?.tenantId, request.body);
+        return reply.status(200).send(result);
+    }
+    async deleteMigrationBatch(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteMigrationBatch(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
 }
 exports.AdminController = AdminController;
 exports.adminController = new AdminController();

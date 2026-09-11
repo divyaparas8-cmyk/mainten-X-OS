@@ -37,6 +37,18 @@ export declare class AdminController {
     getApiKeys(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createApiKey(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     revokeApiKey(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSecurityPolicies(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    saveSecurityPolicies(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    saveSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getAuditLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getRemediationLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    executeRemediationEngine(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteRemediationLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMigrationBatches(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    executeMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const adminController: AdminController;
 //# sourceMappingURL=admin.controller.d.ts.map

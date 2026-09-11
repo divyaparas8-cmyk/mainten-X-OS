@@ -254,6 +254,87 @@ export class AdminController {
     const result = await adminService.revokeApiKey(user?.tenantId, id);
     return reply.status(200).send(result);
   }
+
+  // ── SECURITY POLICIES ──────────────────────────────────────────────
+  async getSecurityPolicies(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const policies = await adminService.getSecurityPolicies(user?.tenantId);
+    return reply.status(200).send(policies);
+  }
+
+  async saveSecurityPolicies(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.saveSecurityPolicies(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  // ── SYSTEM CONFIGURATION ───────────────────────────────────────────
+  async getSystemConfig(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const config = await adminService.getSystemConfig(user?.tenantId);
+    return reply.status(200).send(config);
+  }
+
+  async saveSystemConfig(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.saveSystemConfig(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  // ── AUDIT LOGS ─────────────────────────────────────────────────────
+  async getAuditLogs(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { query } = request.query as { query?: string };
+    const logs = await adminService.getAuditLogs(user?.tenantId, query);
+    return reply.status(200).send(logs);
+  }
+
+  async deleteAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteAuditLog(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── DATA REMEDIATION ───────────────────────────────────────────────
+  async getRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const logs = await adminService.getRemediationLog(user?.tenantId);
+    return reply.status(200).send(logs);
+  }
+
+  async executeRemediationEngine(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.executeRemediationEngine(user?.tenantId);
+    return reply.status(200).send(result);
+  }
+
+  async deleteRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteRemediationLog(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── DATA MIGRATION ─────────────────────────────────────────────────
+  async getMigrationBatches(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const batches = await adminService.getMigrationBatches(user?.tenantId);
+    return reply.status(200).send(batches);
+  }
+
+  async executeMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.executeMigrationBatch(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteMigrationBatch(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
 }
 
 export const adminController = new AdminController();

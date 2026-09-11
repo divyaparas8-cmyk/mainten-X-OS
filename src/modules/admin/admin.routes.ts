@@ -429,6 +429,143 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     adminController.revokeApiKey.bind(adminController)
   );
+
+  // ── 8. SECURITY POLICIES ──────────────────────────────────────────
+  fastify.get(
+    "/security/policies",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Enterprise Security & Authentication Policies",
+      },
+    },
+    adminController.getSecurityPolicies.bind(adminController)
+  );
+
+  fastify.post(
+    "/security/policies",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Save Enterprise Security & Authentication Policies",
+      },
+    },
+    adminController.saveSecurityPolicies.bind(adminController)
+  );
+
+  // ── 9. SYSTEM CONFIGURATION ───────────────────────────────────────
+  fastify.get(
+    "/config",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Global System Parameters & Configuration",
+      },
+    },
+    adminController.getSystemConfig.bind(adminController)
+  );
+
+  fastify.post(
+    "/config",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Save Global System Parameters & Configuration",
+      },
+    },
+    adminController.saveSystemConfig.bind(adminController)
+  );
+
+  // ── 10. AUDIT LOGS ────────────────────────────────────────────────
+  fastify.get(
+    "/audit-logs",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Master Governance Audit Ledger",
+      },
+    },
+    adminController.getAuditLogs.bind(adminController)
+  );
+
+  fastify.delete(
+    "/audit-logs/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Audit Log Record",
+      },
+    },
+    adminController.deleteAuditLog.bind(adminController)
+  );
+
+  // ── 7. DATA REMEDIATION ───────────────────────────────────────────
+  fastify.get(
+    "/data-health/remediation-log",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Self-Healing Execution Log",
+      },
+    },
+    adminController.getRemediationLog.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/execute-remediation",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Execute Automated Data Remediation Engine",
+      },
+    },
+    adminController.executeRemediationEngine.bind(adminController)
+  );
+
+  fastify.delete(
+    "/data-health/remediation-log/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Remediation Execution Log Item",
+      },
+    },
+    adminController.deleteRemediationLog.bind(adminController)
+  );
+
+  // ── 11. DATA MIGRATION ────────────────────────────────────────────
+  fastify.get(
+    "/migration/batches",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Migration Ingestion Batches",
+      },
+    },
+    adminController.getMigrationBatches.bind(adminController)
+  );
+
+  fastify.post(
+    "/migration/execute",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Execute and Commit Migration Batch",
+      },
+    },
+    adminController.executeMigrationBatch.bind(adminController)
+  );
+
+  fastify.delete(
+    "/migration/batches/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Migration Batch Record",
+      },
+    },
+    adminController.deleteMigrationBatch.bind(adminController)
+  );
 }
 
 

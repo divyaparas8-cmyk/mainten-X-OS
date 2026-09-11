@@ -660,6 +660,41 @@ export declare class AdminService {
         success: boolean;
         id: string;
     }>;
+    getSecurityPolicies(tenantId?: string): Promise<any>;
+    saveSecurityPolicies(tenantId?: string, policies?: any): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getSystemConfig(tenantId?: string): Promise<any>;
+    saveSystemConfig(tenantId?: string, config?: any): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getAuditLogs(tenantId?: string, query?: string): Promise<any[]>;
+    deleteAuditLog(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    getRemediationLog(tenantId?: string): Promise<any[]>;
+    executeRemediationEngine(tenantId?: string): Promise<{
+        success: boolean;
+        message: string;
+        timestamp: string;
+    }>;
+    deleteRemediationLog(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    getMigrationBatches(tenantId?: string): Promise<any[]>;
+    executeMigrationBatch(tenantId: string | undefined, batchData: any): Promise<{
+        success: boolean;
+        batchRunId: string;
+        message: string;
+    }>;
+    deleteMigrationBatch(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
 }
 export declare const adminService: AdminService;
 export {};

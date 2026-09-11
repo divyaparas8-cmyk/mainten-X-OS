@@ -1,0 +1,1646 @@
+[
+  {
+    "path": "/",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/landing",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/home",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/features",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/why-us",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/pricing",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/contact",
+    "component": "LandingPage"
+  },
+  {
+    "path": "/login",
+    "component": "Login"
+  },
+  {
+    "path": "/app",
+    "component": "Navigate"
+  },
+  {
+    "path": "/master/dashboard",
+    "component": "MasterDashboard"
+  },
+  {
+    "path": "/master/companies",
+    "component": "CompaniesList"
+  },
+  {
+    "path": "/master/companies/add",
+    "component": "Navigate"
+  },
+  {
+    "path": "/master/companies/:id",
+    "component": "CompanyDetails"
+  },
+  {
+    "path": "/master/company-admins",
+    "component": "CompanyAdmins"
+  },
+  {
+    "path": "/master/plans-pricing",
+    "component": "PlansPricing"
+  },
+  {
+    "path": "/master/subscriptions",
+    "component": "ManageSubscriptions"
+  },
+  {
+    "path": "/master/payments",
+    "component": "PaymentsPage"
+  },
+  {
+    "path": "/master/modules",
+    "component": "ManageModules"
+  },
+  {
+    "path": "/master/platform-users",
+    "component": "MasterUsers"
+  },
+  {
+    "path": "/master/analytics",
+    "component": "PlatformAnalytics"
+  },
+  {
+    "path": "/master/audit-logs",
+    "component": "MasterAuditLogs"
+  },
+  {
+    "path": "/master/support-tickets",
+    "component": "SupportTickets"
+  },
+  {
+    "path": "/master/settings",
+    "component": "PlatformSettings"
+  },
+  {
+    "path": "/dashboard",
+    "component": "DashboardDispatcher"
+  },
+  {
+    "path": "/admin",
+    "component": "AdminDashboard"
+  },
+  {
+    "path": "/admin/console",
+    "component": "AdminDashboard"
+  },
+  {
+    "path": "/admin/dashboard",
+    "component": "AdminDashboard"
+  },
+  {
+    "path": "/users",
+    "component": "UsersPage"
+  },
+  {
+    "path": "/admin/users",
+    "component": "UsersPage"
+  },
+  {
+    "path": "/users/invitations",
+    "component": "UserInvitationsPage"
+  },
+  {
+    "path": "/users/status",
+    "component": "UserStatusPage"
+  },
+  {
+    "path": "/users/activity",
+    "component": "UserActivityPage"
+  },
+  {
+    "path": "/roles",
+    "component": "RolesPage"
+  },
+  {
+    "path": "/admin/roles",
+    "component": "RolesPage"
+  },
+  {
+    "path": "/roles/permissions",
+    "component": "PermissionsMatrixPage"
+  },
+  {
+    "path": "/roles/mapping",
+    "component": "RoleMappingPage"
+  },
+  {
+    "path": "/roles/approval-permissions",
+    "component": "ApprovalPermissionsPage"
+  },
+  {
+    "path": "/admin/config",
+    "component": "ConfigurationPage"
+  },
+  {
+    "path": "/admin/devices",
+    "component": "IoTIntegrationPage"
+  },
+  {
+    "path": "/organization",
+    "component": "Navigate"
+  },
+  {
+    "path": "/organization/companies",
+    "component": "CompaniesPage"
+  },
+  {
+    "path": "/organization/plants",
+    "component": "PlantsPage"
+  },
+  {
+    "path": "/organization/departments",
+    "component": "DepartmentsPage"
+  },
+  {
+    "path": "/organization/lines",
+    "component": "LinesPage"
+  },
+  {
+    "path": "/organization/work-centers",
+    "component": "OrgWorkCentersPage"
+  },
+  {
+    "path": "/master-data",
+    "component": "Navigate"
+  },
+  {
+    "path": "/master-data/items",
+    "component": "ItemMasterPage"
+  },
+  {
+    "path": "/master-data/product-families",
+    "component": "ProductFamiliesPage"
+  },
+  {
+    "path": "/master-data/uom",
+    "component": "UOMPage"
+  },
+  {
+    "path": "/master-data/packaging",
+    "component": "PackagingMasterPage"
+  },
+  {
+    "path": "/master-data/bom",
+    "component": "BOMRecipesPage"
+  },
+  {
+    "path": "/master-data/routings",
+    "component": "RoutingsPage"
+  },
+  {
+    "path": "/master-data/operations",
+    "component": "OperationsPage"
+  },
+  {
+    "path": "/master-data/work-centers",
+    "component": "WorkCentersMasterPage"
+  },
+  {
+    "path": "/master-data/line-targets",
+    "component": "LineTargetsPage"
+  },
+  {
+    "path": "/master-data/changeover-matrix",
+    "component": "ChangeoverMatrixPage"
+  },
+  {
+    "path": "/master-data/sanitation-allergens",
+    "component": "SanitationAllergensPage"
+  },
+  {
+    "path": "/master-data/labour-standards",
+    "component": "LabourStandardsPage"
+  },
+  {
+    "path": "/master-data/skills",
+    "component": "SkillsMasterPage"
+  },
+  {
+    "path": "/master-data/quality-specs",
+    "component": "QualitySpecsPage"
+  },
+  {
+    "path": "/master-data/ccp-limits",
+    "component": "CCPLimitsPage"
+  },
+  {
+    "path": "/master-data/machine-capability",
+    "component": "MachineCapabilityPage"
+  },
+  {
+    "path": "/master-data/storage-resources",
+    "component": "StorageResourcesPage"
+  },
+  {
+    "path": "/integrations",
+    "component": "Navigate"
+  },
+  {
+    "path": "/integrations/erp",
+    "component": "ERPIntegrationPage"
+  },
+  {
+    "path": "/integrations/iot",
+    "component": "IoTIntegrationPage"
+  },
+  {
+    "path": "/integrations/barcode",
+    "component": "BarcodeIntegrationPage"
+  },
+  {
+    "path": "/integrations/apis",
+    "component": "APIsIntegrationPage"
+  },
+  {
+    "path": "/data-health",
+    "component": "Navigate"
+  },
+  {
+    "path": "/data-health/missing-data",
+    "component": "MissingDataPage"
+  },
+  {
+    "path": "/data-health/duplicates",
+    "component": "DuplicatesPage"
+  },
+  {
+    "path": "/data-health/invalid-references",
+    "component": "InvalidReferencesPage"
+  },
+  {
+    "path": "/data-health/broken-relationships",
+    "component": "BrokenRelationshipsPage"
+  },
+  {
+    "path": "/data-health/stale-records",
+    "component": "StaleRecordsPage"
+  },
+  {
+    "path": "/data-health/remediation",
+    "component": "DataRemediationPage"
+  },
+  {
+    "path": "/security",
+    "component": "SecurityPage"
+  },
+  {
+    "path": "/configuration",
+    "component": "ConfigurationPage"
+  },
+  {
+    "path": "/audit-logs",
+    "component": "AuditLogsPage"
+  },
+  {
+    "path": "/migration",
+    "component": "MigrationPage"
+  },
+  {
+    "path": "/system-reports",
+    "component": "SystemReportsPage"
+  },
+  {
+    "path": "/maintenance",
+    "component": "MaintenanceDashboard"
+  },
+  {
+    "path": "/maintenance/dashboard",
+    "component": "MaintenanceDashboard"
+  },
+  {
+    "path": "/maintenance/assets",
+    "component": "AssetList"
+  },
+  {
+    "path": "/maintenance/asset-detail",
+    "component": "AssetDetail"
+  },
+  {
+    "path": "/maintenance/asset-detail/:id",
+    "component": "AssetDetail"
+  },
+  {
+    "path": "/maintenance/asset-360",
+    "component": "Asset360"
+  },
+  {
+    "path": "/maintenance/asset-360/:id",
+    "component": "Asset360"
+  },
+  {
+    "path": "/maintenance/assets/:id",
+    "component": "Asset360"
+  },
+  {
+    "path": "/maintenance/pm",
+    "component": "PMScheduleList"
+  },
+  {
+    "path": "/maintenance/pm-schedules",
+    "component": "PMScheduleList"
+  },
+  {
+    "path": "/maintenance/pm-checklists",
+    "component": "PMChecklistList"
+  },
+  {
+    "path": "/maintenance/pm-execute",
+    "component": "PMChecklistExecute"
+  },
+  {
+    "path": "/maintenance/work-orders",
+    "component": "WorkOrderList"
+  },
+  {
+    "path": "/maintenance/work-orders/:id",
+    "component": "WorkOrderDetail"
+  },
+  {
+    "path": "/maintenance/calendar",
+    "component": "PMScheduleList"
+  },
+  {
+    "path": "/maintenance/breakdowns",
+    "component": "BreakdownList"
+  },
+  {
+    "path": "/maintenance/breakdowns/:id",
+    "component": "BreakdownDetail"
+  },
+  {
+    "path": "/maintenance/history",
+    "component": "MaintenanceHistory"
+  },
+  {
+    "path": "/maintenance/reliability",
+    "component": "ReliabilityAnalytics"
+  },
+  {
+    "path": "/maintenance/repeat-failures",
+    "component": "RepeatFailures"
+  },
+  {
+    "path": "/maintenance/troubleshooting",
+    "component": "TroubleshootingWizard"
+  },
+  {
+    "path": "/maintenance/verified-solutions",
+    "component": "MaintenanceVerifiedSolutions"
+  },
+  {
+    "path": "/maintenance/spare-parts",
+    "component": "SparePartsInventory"
+  },
+  {
+    "path": "/maintenance/calibration",
+    "component": "CalibrationCenter"
+  },
+  {
+    "path": "/maintenance/failure-codes",
+    "component": "FailureCodes"
+  },
+  {
+    "path": "/machine-iot",
+    "component": "MachineIoTPage"
+  },
+  {
+    "path": "/maintenance-labour",
+    "component": "MaintenanceLabourPage"
+  },
+  {
+    "path": "/repeat-failures",
+    "component": "RepeatFailures"
+  },
+  {
+    "path": "/verified-solutions",
+    "component": "MaintenanceVerifiedSolutions"
+  },
+  {
+    "path": "/work-orders/open",
+    "component": "Navigate"
+  },
+  {
+    "path": "/assets/register",
+    "component": "Navigate"
+  },
+  {
+    "path": "/assets/360",
+    "component": "Navigate"
+  },
+  {
+    "path": "/breakdowns/analysis",
+    "component": "Navigate"
+  },
+  {
+    "path": "/maintenance/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/maintenance/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/command-center",
+    "component": "CommandCenter"
+  },
+  {
+    "path": "/oee-performance",
+    "component": "OEEPerformance"
+  },
+  {
+    "path": "/kpi-analytics",
+    "component": "KPIAnalytics"
+  },
+  {
+    "path": "/ai-analytics",
+    "component": "AIAnalytics"
+  },
+  {
+    "path": "/exception-control-tower",
+    "component": "ExceptionControlTower"
+  },
+  {
+    "path": "/performance/oee",
+    "component": "OEEPage"
+  },
+  {
+    "path": "/performance/hb-management",
+    "component": "HBManagementPage"
+  },
+  {
+    "path": "/performance/kpi-analytics",
+    "component": "KPIAnalyticsPage"
+  },
+  {
+    "path": "/performance/production-performance",
+    "component": "ProductionPerformancePage"
+  },
+  {
+    "path": "/planning/schedule",
+    "component": "SchedulePage"
+  },
+  {
+    "path": "/planning/capacity",
+    "component": "CapacityPage"
+  },
+  {
+    "path": "/planning/constraints",
+    "component": "ConstraintsPage"
+  },
+  {
+    "path": "/planning/recovery",
+    "component": "RecoveryPage"
+  },
+  {
+    "path": "/production",
+    "component": "ProductionDashboard"
+  },
+  {
+    "path": "/production/orders",
+    "component": "ProductionOrdersPage"
+  },
+  {
+    "path": "/production/batches",
+    "component": "BatchesPage"
+  },
+  {
+    "path": "/production/downtime-loss",
+    "component": "DowntimeLossPage"
+  },
+  {
+    "path": "/production/shift-performance",
+    "component": "ShiftPerformancePage"
+  },
+  {
+    "path": "/quality",
+    "component": "QualityDashboard"
+  },
+  {
+    "path": "/quality/dashboard",
+    "component": "QualityDashboard"
+  },
+  {
+    "path": "/quality/checks/product",
+    "component": "QualityProductChecks"
+  },
+  {
+    "path": "/quality/checks/ccp",
+    "component": "QualityCCPChecks"
+  },
+  {
+    "path": "/quality/sanitation/preop",
+    "component": "QualityPreOpChecklist"
+  },
+  {
+    "path": "/quality/events/holds",
+    "component": "QualityHolds"
+  },
+  {
+    "path": "/quality/events/deviations",
+    "component": "QualityDeviations"
+  },
+  {
+    "path": "/quality/events/investigations",
+    "component": "QualityInvestigations"
+  },
+  {
+    "path": "/quality/release/queue",
+    "component": "QualityReleaseQueue"
+  },
+  {
+    "path": "/quality/release/review",
+    "component": "QualityReleaseReview"
+  },
+  {
+    "path": "/quality/disposition/release",
+    "component": "QualityDispositionRelease"
+  },
+  {
+    "path": "/quality/batch/records",
+    "component": "QualityQualityRecords"
+  },
+  {
+    "path": "/quality/status",
+    "component": "QualityStatusPage"
+  },
+  {
+    "path": "/quality/qa-release",
+    "component": "QAReleasePage"
+  },
+  {
+    "path": "/quality/trends",
+    "component": "QualityTrendsPage"
+  },
+  {
+    "path": "/maintenance/asset-health",
+    "component": "AssetHealthPage"
+  },
+  {
+    "path": "/maintenance/work-orders-overview",
+    "component": "WorkOrdersOverviewPage"
+  },
+  {
+    "path": "/maintenance/breakdowns-overview",
+    "component": "BreakdownsOverviewPage"
+  },
+  {
+    "path": "/maintenance/reliability-overview",
+    "component": "ReliabilityOverviewPage"
+  },
+  {
+    "path": "/labour",
+    "component": "StaffingPage"
+  },
+  {
+    "path": "/labour/staffing",
+    "component": "StaffingPage"
+  },
+  {
+    "path": "/labour/performance",
+    "component": "LabourPerformancePage"
+  },
+  {
+    "path": "/labour/hours",
+    "component": "LabourHoursPage"
+  },
+  {
+    "path": "/inventory",
+    "component": "WarehouseInventoryPage"
+  },
+  {
+    "path": "/warehouse/inventory",
+    "component": "WarehouseInventoryPage"
+  },
+  {
+    "path": "/warehouse/material-shortage",
+    "component": "MaterialShortagePage"
+  },
+  {
+    "path": "/warehouse/finished-goods",
+    "component": "FinishedGoodsPage"
+  },
+  {
+    "path": "/reports",
+    "component": "ReportsPage"
+  },
+  {
+    "path": "/operator/dashboard",
+    "component": "OperatorDashboard"
+  },
+  {
+    "path": "/operator/my-jobs",
+    "component": "MyJobs"
+  },
+  {
+    "path": "/operator/work-instructions",
+    "component": "WorkInstructions"
+  },
+  {
+    "path": "/operator/production-entry",
+    "component": "ProductionEntry"
+  },
+  {
+    "path": "/operator/downtime-loss",
+    "component": "DowntimeLoss"
+  },
+  {
+    "path": "/operator/quality-checks",
+    "component": "QualityChecks"
+  },
+  {
+    "path": "/operator/material-request",
+    "component": "MaterialRequest"
+  },
+  {
+    "path": "/operator/barcode-scan",
+    "component": "BarcodeScan"
+  },
+  {
+    "path": "/operator/report-issue",
+    "component": "ReportIssue"
+  },
+  {
+    "path": "/operator/shift-handoff",
+    "component": "ShiftHandoff"
+  },
+  {
+    "path": "/operator/notifications",
+    "component": "OperatorNotifications"
+  },
+  {
+    "path": "/operator/profile",
+    "component": "OperatorProfile"
+  },
+  {
+    "path": "/linelead/dashboard",
+    "component": "LineLeadDashboard"
+  },
+  {
+    "path": "/linelead/hb-management",
+    "component": "LineLeadHBManagement"
+  },
+  {
+    "path": "/linelead/production-orders",
+    "component": "LineLeadProductionOrders"
+  },
+  {
+    "path": "/linelead/line-schedule",
+    "component": "LineLeadLineSchedule"
+  },
+  {
+    "path": "/linelead/downtime-loss",
+    "component": "LineLeadDowntimeLoss"
+  },
+  {
+    "path": "/linelead/changeover",
+    "component": "LineLeadChangeover"
+  },
+  {
+    "path": "/linelead/staffing",
+    "component": "LineLeadStaffing"
+  },
+  {
+    "path": "/linelead/production-performance",
+    "component": "LineLeadProductionPerformance"
+  },
+  {
+    "path": "/linelead/quality-events",
+    "component": "LineLeadQualityEvents"
+  },
+  {
+    "path": "/linelead/material-status",
+    "component": "LineLeadMaterialStatus"
+  },
+  {
+    "path": "/linelead/maintenance-issues",
+    "component": "LineLeadMaintenanceIssues"
+  },
+  {
+    "path": "/linelead/recovery-management",
+    "component": "LineLeadRecoveryManagement"
+  },
+  {
+    "path": "/linelead/escalations",
+    "component": "LineLeadEscalations"
+  },
+  {
+    "path": "/linelead/shift-handoff",
+    "component": "LineLeadShiftHandoff"
+  },
+  {
+    "path": "/linelead/notifications",
+    "component": "LineLeadNotifications"
+  },
+  {
+    "path": "/linelead/profile",
+    "component": "LineLeadProfile"
+  },
+  {
+    "path": "/supervisor/dashboard",
+    "component": "SupervisorDashboard"
+  },
+  {
+    "path": "/supervisor/dept-schedule",
+    "component": "SupervisorDeptSchedule"
+  },
+  {
+    "path": "/supervisor/hb-management",
+    "component": "SupervisorHBManagement"
+  },
+  {
+    "path": "/supervisor/production/orders",
+    "component": "SupervisorProductionOrders"
+  },
+  {
+    "path": "/supervisor/production/batches",
+    "component": "SupervisorBatches"
+  },
+  {
+    "path": "/supervisor/production/performance",
+    "component": "SupervisorProductionPerformance"
+  },
+  {
+    "path": "/supervisor/production/downtime-loss",
+    "component": "SupervisorDowntimeLoss"
+  },
+  {
+    "path": "/supervisor/labour/workforce",
+    "component": "SupervisorWorkforce"
+  },
+  {
+    "path": "/supervisor/labour/staffing",
+    "component": "SupervisorStaffing"
+  },
+  {
+    "path": "/supervisor/labour/time",
+    "component": "SupervisorLabourTime"
+  },
+  {
+    "path": "/supervisor/labour/skills",
+    "component": "SupervisorSkillsTraining"
+  },
+  {
+    "path": "/supervisor/labour/training",
+    "component": "SupervisorTraining"
+  },
+  {
+    "path": "/supervisor/labour/performance",
+    "component": "LabourPerformancePage"
+  },
+  {
+    "path": "/people/employees",
+    "component": "SupervisorWorkforce"
+  },
+  {
+    "path": "/people/labour",
+    "component": "SupervisorLabourTime"
+  },
+  {
+    "path": "/people/live-hb",
+    "component": "SupervisorHBManagement"
+  },
+  {
+    "path": "/people/skills",
+    "component": "SupervisorSkillsTraining"
+  },
+  {
+    "path": "/people/training",
+    "component": "SupervisorTraining"
+  },
+  {
+    "path": "/people/productivity",
+    "component": "LabourPerformancePage"
+  },
+  {
+    "path": "/people/shifts",
+    "component": "SupervisorStaffing"
+  },
+  {
+    "path": "/labour/training",
+    "component": "SupervisorTraining"
+  },
+  {
+    "path": "/supervisor/quality/status",
+    "component": "SupervisorQualityStatus"
+  },
+  {
+    "path": "/supervisor/quality/holds",
+    "component": "SupervisorHolds"
+  },
+  {
+    "path": "/supervisor/quality/events",
+    "component": "SupervisorQualityEvents"
+  },
+  {
+    "path": "/supervisor/recovery",
+    "component": "SupervisorRecovery"
+  },
+  {
+    "path": "/supervisor/shift-handoff",
+    "component": "SupervisorShiftHandoff"
+  },
+  {
+    "path": "/supervisor/approvals",
+    "component": "SupervisorApprovals"
+  },
+  {
+    "path": "/supervisor/exceptions",
+    "component": "SupervisorExceptions"
+  },
+  {
+    "path": "/supervisor/reports",
+    "component": "SupervisorReports"
+  },
+  {
+    "path": "/supervisor/notifications",
+    "component": "SupervisorNotifications"
+  },
+  {
+    "path": "/supervisor/profile",
+    "component": "SupervisorProfile"
+  },
+  {
+    "path": "/planner/dashboard",
+    "component": "PlannerDashboard"
+  },
+  {
+    "path": "/planner/demand/customer-orders",
+    "component": "PlannerCustomerOrders"
+  },
+  {
+    "path": "/planner/demand/order-status",
+    "component": "PlannerOrderStatus"
+  },
+  {
+    "path": "/planner/demand/shipments",
+    "component": "PlannerShipmentsDemand"
+  },
+  {
+    "path": "/planner/forecast/history",
+    "component": "PlannerDemandHistory"
+  },
+  {
+    "path": "/planner/forecast/run",
+    "component": "PlannerForecastRun"
+  },
+  {
+    "path": "/planner/forecast/overrides",
+    "component": "PlannerForecastOverrides"
+  },
+  {
+    "path": "/planner/forecast/promotions",
+    "component": "PlannerPromotionsUplift"
+  },
+  {
+    "path": "/planner/mrp/net-requirements",
+    "component": "PlannerNetRequirements"
+  },
+  {
+    "path": "/planner/mrp/shortages",
+    "component": "PlannerMaterialShortages"
+  },
+  {
+    "path": "/planner/mrp/safety-stock",
+    "component": "PlannerSafetyStock"
+  },
+  {
+    "path": "/planner/mrp/supply-demand",
+    "component": "PlannerSupplyDemand"
+  },
+  {
+    "path": "/planner/mrp/service-risk",
+    "component": "PlannerServiceRisk"
+  },
+  {
+    "path": "/planner/aps/capacity",
+    "component": "PlannerCapacityPlanning"
+  },
+  {
+    "path": "/planner/aps/scheduler",
+    "component": "PlannerAPSScheduler"
+  },
+  {
+    "path": "/planner/aps/work-centers",
+    "component": "PlannerWorkCenterCapacity"
+  },
+  {
+    "path": "/planner/aps/changeovers",
+    "component": "PlannerChangeovers"
+  },
+  {
+    "path": "/planner/aps/versions",
+    "component": "PlannerScheduleVersions"
+  },
+  {
+    "path": "/planner/aps/validation",
+    "component": "PlannerScheduleValidation"
+  },
+  {
+    "path": "/planner/aps/publish",
+    "component": "PlannerPublishSchedule"
+  },
+  {
+    "path": "/planner/production-orders",
+    "component": "PlannerProductionOrders"
+  },
+  {
+    "path": "/planner/material-reservation",
+    "component": "PlannerMaterialReservation"
+  },
+  {
+    "path": "/planner/planning-reports",
+    "component": "PlannerPlanningReports"
+  },
+  {
+    "path": "/planner/ai-assistant",
+    "component": "PlannerAIPlanningAssistant"
+  },
+  {
+    "path": "/planner/notifications",
+    "component": "PlannerNotifications"
+  },
+  {
+    "path": "/planner/profile",
+    "component": "PlannerProfile"
+  },
+  {
+    "path": "/warehouse/dashboard",
+    "component": "WarehouseDashboard"
+  },
+  {
+    "path": "/warehouse/purchasing",
+    "component": "PurchasingSupplierHub"
+  },
+  {
+    "path": "/warehouse/suppliers",
+    "component": "PurchasingSupplierHub"
+  },
+  {
+    "path": "/purchasing",
+    "component": "PurchasingSupplierHub"
+  },
+  {
+    "path": "/warehouse/inventory",
+    "component": "WarehouseInventoryPage"
+  },
+  {
+    "path": "/warehouse/locations",
+    "component": "WarehouseList"
+  },
+  {
+    "path": "/warehouse/locations/list",
+    "component": "WarehouseList"
+  },
+  {
+    "path": "/warehouse/wms",
+    "component": "WMSOperationsPage"
+  },
+  {
+    "path": "/warehouse/receiving/incoming",
+    "component": "WarehouseIncomingDeliveries"
+  },
+  {
+    "path": "/warehouse/receiving/receive",
+    "component": "WarehouseReceiveMaterial"
+  },
+  {
+    "path": "/warehouse/receiving/scan",
+    "component": "WarehouseBarcodeScan"
+  },
+  {
+    "path": "/warehouse/inventory/raw",
+    "component": "WarehouseRawMaterials"
+  },
+  {
+    "path": "/warehouse/inventory/packaging",
+    "component": "WarehousePackagingMaterials"
+  },
+  {
+    "path": "/warehouse/inventory/finished-goods",
+    "component": "WarehouseFinishedGoods"
+  },
+  {
+    "path": "/warehouse/finished-goods",
+    "component": "WarehouseFinishedGoods"
+  },
+  {
+    "path": "/warehouse/inventory/lots",
+    "component": "WarehouseLots"
+  },
+  {
+    "path": "/warehouse/inventory/status",
+    "component": "WarehouseInventoryStatus"
+  },
+  {
+    "path": "/warehouse/locations/bins",
+    "component": "WarehouseBinsRacks"
+  },
+  {
+    "path": "/warehouse/locations/staging",
+    "component": "WarehouseStaging"
+  },
+  {
+    "path": "/warehouse/locations/transfers",
+    "component": "WarehouseLocationTransfers"
+  },
+  {
+    "path": "/warehouse/ops/movements",
+    "component": "WarehouseMaterialMovements"
+  },
+  {
+    "path": "/warehouse/ops/transfers",
+    "component": "WarehouseTransfers"
+  },
+  {
+    "path": "/warehouse/ops/cycle-counts",
+    "component": "WarehouseCycleCounts"
+  },
+  {
+    "path": "/warehouse/ops/adjustments",
+    "component": "WarehouseAdjustments"
+  },
+  {
+    "path": "/warehouse/picking/lists",
+    "component": "WarehousePickLists"
+  },
+  {
+    "path": "/warehouse/picking/execution",
+    "component": "WarehousePickingExecution"
+  },
+  {
+    "path": "/warehouse/pallets-containers",
+    "component": "WarehousePalletsContainers"
+  },
+  {
+    "path": "/warehouse/shipping",
+    "component": "WarehouseShipmentOrders"
+  },
+  {
+    "path": "/warehouse/shipping/orders",
+    "component": "WarehouseShipmentOrders"
+  },
+  {
+    "path": "/warehouse/shipping/dispatch",
+    "component": "WarehouseDispatch"
+  },
+  {
+    "path": "/warehouse/shipping/tracking",
+    "component": "WarehouseShipmentTracking"
+  },
+  {
+    "path": "/warehouse/traceability",
+    "component": "WarehouseTraceability"
+  },
+  {
+    "path": "/warehouse/reports",
+    "component": "WarehouseReports"
+  },
+  {
+    "path": "/warehouse/notifications",
+    "component": "WarehouseNotifications"
+  },
+  {
+    "path": "/warehouse/profile",
+    "component": "WarehouseProfile"
+  },
+  {
+    "path": "/quality/dashboard",
+    "component": "QualityDashboard"
+  },
+  {
+    "path": "/quality/sanitation/preop",
+    "component": "QualityPreOpChecklist"
+  },
+  {
+    "path": "/quality/sanitation/checklist",
+    "component": "QualitySanitationChecklist"
+  },
+  {
+    "path": "/quality/sanitation/allergen",
+    "component": "QualityAllergenChecks"
+  },
+  {
+    "path": "/quality/sanitation/readiness",
+    "component": "QualityLineReadiness"
+  },
+  {
+    "path": "/quality/sanitation/verification",
+    "component": "QualityCleaningVerification"
+  },
+  {
+    "path": "/quality/checks/ccp",
+    "component": "QualityCCPChecks"
+  },
+  {
+    "path": "/quality/checks/process",
+    "component": "QualityProcessChecks"
+  },
+  {
+    "path": "/quality/checks/product",
+    "component": "QualityProductChecks"
+  },
+  {
+    "path": "/quality/checks/specs",
+    "component": "QualitySpecifications"
+  },
+  {
+    "path": "/quality/events/deviations",
+    "component": "QualityDeviations"
+  },
+  {
+    "path": "/quality/events/nonconformance",
+    "component": "QualityNonConformance"
+  },
+  {
+    "path": "/quality/events/holds",
+    "component": "QualityHolds"
+  },
+  {
+    "path": "/quality/events/investigations",
+    "component": "QualityInvestigations"
+  },
+  {
+    "path": "/quality/batch/review",
+    "component": "QualityBatchReview"
+  },
+  {
+    "path": "/quality/batch/history",
+    "component": "QualityBatchHistory"
+  },
+  {
+    "path": "/quality/batch/records",
+    "component": "QualityQualityRecords"
+  },
+  {
+    "path": "/quality/release/queue",
+    "component": "QualityReleaseQueue"
+  },
+  {
+    "path": "/quality/release/review",
+    "component": "QualityReleaseReview"
+  },
+  {
+    "path": "/quality/release/approved",
+    "component": "QualityApprovedReleases"
+  },
+  {
+    "path": "/quality/release/blocked",
+    "component": "QualityBlockedBatches"
+  },
+  {
+    "path": "/quality/disposition/release",
+    "component": "QualityDispositionRelease"
+  },
+  {
+    "path": "/quality/disposition/rework",
+    "component": "QualityRework"
+  },
+  {
+    "path": "/quality/disposition/reject",
+    "component": "QualityReject"
+  },
+  {
+    "path": "/quality/disposition/downgrade",
+    "component": "QualityDowngrade"
+  },
+  {
+    "path": "/quality/rca-capa",
+    "component": "QualityRCACAPAPage"
+  },
+  {
+    "path": "/quality/audit-trail",
+    "component": "QualityAuditTrail"
+  },
+  {
+    "path": "/quality/reports",
+    "component": "QualityReports"
+  },
+  {
+    "path": "/quality/notifications",
+    "component": "QualityNotifications"
+  },
+  {
+    "path": "/quality/profile",
+    "component": "QualityProfile"
+  },
+  {
+    "path": "/ci/dashboard",
+    "component": "CIDashboard"
+  },
+  {
+    "path": "/ci/rca/investigations",
+    "component": "CIInvestigations"
+  },
+  {
+    "path": "/ci/rca/evidence",
+    "component": "CIEvidence"
+  },
+  {
+    "path": "/ci/rca/hypothesis",
+    "component": "CIHypothesisTests"
+  },
+  {
+    "path": "/ci/rca/occurrence",
+    "component": "CIOccurrenceCause"
+  },
+  {
+    "path": "/ci/rca/escape",
+    "component": "CIEscapeCause"
+  },
+  {
+    "path": "/ci/capa/corrective",
+    "component": "CICorrectiveActions"
+  },
+  {
+    "path": "/ci/capa/preventive",
+    "component": "CIPreventiveActions"
+  },
+  {
+    "path": "/ci/capa/owners",
+    "component": "CIOwnersDueDates"
+  },
+  {
+    "path": "/ci/capa/verification",
+    "component": "CIEffectivenessVerification"
+  },
+  {
+    "path": "/ci/loss/production",
+    "component": "CIProductionLoss"
+  },
+  {
+    "path": "/ci/loss/downtime",
+    "component": "CIDowntimeLoss"
+  },
+  {
+    "path": "/ci/loss/quality",
+    "component": "CIQualityLoss"
+  },
+  {
+    "path": "/ci/loss/yield",
+    "component": "CIYieldLoss"
+  },
+  {
+    "path": "/ci/loss/scrap",
+    "component": "CIScrapReworkLoss"
+  },
+  {
+    "path": "/ci/projects/list",
+    "component": "CIProjectsList"
+  },
+  {
+    "path": "/ci/projects/actions",
+    "component": "CIProjectActions"
+  },
+  {
+    "path": "/ci/projects/savings",
+    "component": "CISavings"
+  },
+  {
+    "path": "/ci/projects/benefits",
+    "component": "CIBenefitsVerification"
+  },
+  {
+    "path": "/ci/standards",
+    "component": "CIStandards"
+  },
+  {
+    "path": "/ci/verified-solutions",
+    "component": "CIVerifiedSolutions"
+  },
+  {
+    "path": "/ci/engineering",
+    "component": "CIEngineering"
+  },
+  {
+    "path": "/ci/reliability",
+    "component": "CIReliabilityInsights"
+  },
+  {
+    "path": "/ci/reports",
+    "component": "CIReports"
+  },
+  {
+    "path": "/ci/notifications",
+    "component": "CINotifications"
+  },
+  {
+    "path": "/ci/profile",
+    "component": "CIProfile"
+  },
+  {
+    "path": "/executive/dashboard",
+    "component": "ExecutiveDashboard"
+  },
+  {
+    "path": "/executive/enterprise/kpis",
+    "component": "ExecMultiPlantKPIs"
+  },
+  {
+    "path": "/executive/enterprise/oee",
+    "component": "ExecOEE"
+  },
+  {
+    "path": "/executive/enterprise/production",
+    "component": "ExecProduction"
+  },
+  {
+    "path": "/executive/enterprise/quality",
+    "component": "ExecQuality"
+  },
+  {
+    "path": "/executive/enterprise/delivery",
+    "component": "ExecDelivery"
+  },
+  {
+    "path": "/executive/finance/manufacturing",
+    "component": "ExecManufacturingCost"
+  },
+  {
+    "path": "/executive/finance/variance",
+    "component": "ExecCostVariance"
+  },
+  {
+    "path": "/executive/finance/material",
+    "component": "ExecMaterialCost"
+  },
+  {
+    "path": "/executive/finance/labour",
+    "component": "ExecLabourCost"
+  },
+  {
+    "path": "/executive/finance/machine",
+    "component": "ExecMachineCost"
+  },
+  {
+    "path": "/executive/finance/scrap",
+    "component": "ExecScrapReworkCost"
+  },
+  {
+    "path": "/executive/finance/ci-savings",
+    "component": "ExecCISavings"
+  },
+  {
+    "path": "/executive/business/demand",
+    "component": "ExecCustomerDemand"
+  },
+  {
+    "path": "/executive/business/service-level",
+    "component": "ExecServiceLevel"
+  },
+  {
+    "path": "/executive/business/shipments",
+    "component": "ExecShipmentPerformance"
+  },
+  {
+    "path": "/executive/business/trends",
+    "component": "ExecTrends"
+  },
+  {
+    "path": "/executive/risk/risks",
+    "component": "ExecRisks"
+  },
+  {
+    "path": "/executive/risk/constraints",
+    "component": "ExecConstraints"
+  },
+  {
+    "path": "/executive/risk/opportunities",
+    "component": "ExecOpportunities"
+  },
+  {
+    "path": "/executive/risk/recovery",
+    "component": "ExecRecovery"
+  },
+  {
+    "path": "/executive/ai/briefing",
+    "component": "ExecAIBriefing"
+  },
+  {
+    "path": "/executive/ai/recommendations",
+    "component": "ExecAIRecommendations"
+  },
+  {
+    "path": "/executive/ai/agents",
+    "component": "ExecAIAgents"
+  },
+  {
+    "path": "/executive/reports",
+    "component": "ExecReports"
+  },
+  {
+    "path": "/executive/notifications",
+    "component": "ExecNotifications"
+  },
+  {
+    "path": "/executive/profile",
+    "component": "ExecProfile"
+  },
+  {
+    "path": "/production",
+    "component": "ProductionOrdersPage"
+  },
+  {
+    "path": "/planning",
+    "component": "SchedulePage"
+  },
+  {
+    "path": "/quality",
+    "component": "QualityStatusPage"
+  },
+  {
+    "path": "/inventory",
+    "component": "WarehouseInventoryPage"
+  },
+  {
+    "path": "/traceability",
+    "component": "WarehouseTraceability"
+  },
+  {
+    "path": "/costing",
+    "component": "ExecManufacturingCost"
+  },
+  {
+    "path": "/rca-capa",
+    "component": "QualityRCACAPAPage"
+  },
+  {
+    "path": "/labour",
+    "component": "StaffingPage"
+  },
+  {
+    "path": "/purchasing",
+    "component": "WarehouseIncomingDeliveries"
+  },
+  {
+    "path": "/documents",
+    "component": "WorkInstructions"
+  },
+  {
+    "path": "/reports",
+    "component": "ReportsPage"
+  },
+  {
+    "path": "/shopfloor",
+    "component": "OperatorDashboard"
+  },
+  {
+    "path": "/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/operator/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/operator/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/linelead/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/linelead/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/supervisor/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/supervisor/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/planner/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/planner/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/quality/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/quality/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/ci/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/ci/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/warehouse/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/warehouse/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/costing/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/costing/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/executive/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/executive/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/command/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/command/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/admin/notifications",
+    "component": "NotificationsPage"
+  },
+  {
+    "path": "/admin/profile",
+    "component": "ProfilePage"
+  },
+  {
+    "path": "/master-data/items",
+    "component": "ItemMasterPage"
+  },
+  {
+    "path": "/master-data/bom",
+    "component": "BOMRecipesPage"
+  },
+  {
+    "path": "/master-data/work-centers",
+    "component": "WorkCentersMasterPage"
+  },
+  {
+    "path": "/master-data/machine-capability",
+    "component": "MachineCapabilityPage"
+  },
+  {
+    "path": "/master-data/skills",
+    "component": "SkillsMasterPage"
+  },
+  {
+    "path": "/master-data/quality-specs",
+    "component": "QualitySpecsPage"
+  },
+  {
+    "path": "/governance/permissions",
+    "component": "PermissionsMatrixPage"
+  },
+  {
+    "path": "/governance/audit",
+    "component": "AuditLogsPage"
+  },
+  {
+    "path": "/migration",
+    "component": "MigrationPage"
+  },
+  {
+    "path": "/audit",
+    "component": "AuditLogsPage"
+  },
+  {
+    "path": "*",
+    "component": "Navigate"
+  }
+]

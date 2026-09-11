@@ -6,7 +6,7 @@ import { authorizeRoles } from "../../middleware/authorize.js";
 export async function masterRoutes(fastify: FastifyInstance) {
   // All master admin routes are protected by JWT authentication and role authorization
   fastify.addHook("preHandler", authenticate);
-  fastify.addHook("preHandler", authorizeRoles(["master_admin"]));
+  fastify.addHook("preHandler", authorizeRoles(["master_admin", "admin", "system_admin", "super_admin"]));
 
   // 1. Control Center / Dashboard
   fastify.get("/dashboard", masterAdminController.getDashboard.bind(masterAdminController));

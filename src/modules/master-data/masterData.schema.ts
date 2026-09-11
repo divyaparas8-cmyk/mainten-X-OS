@@ -48,13 +48,13 @@ export const routingStepSchema = z.object({
 });
 
 export const createRoutingSchema = z.object({
-  routingCode: z.string().min(2),
-  skuId: z.string().uuid(),
-  lineId: z.string().uuid().optional().nullable(),
-  plantId: z.string().uuid().optional().nullable(),
+  routingCode: z.string().optional().nullable(),
+  skuId: z.string().optional().nullable(),
+  lineId: z.string().optional().nullable(),
+  plantId: z.string().optional().nullable(),
   revision: z.string().default("R1"),
-  approvalStatus: z.enum(["Draft", "In Review", "Approved", "Obsolete"]).default("Approved"),
-  status: z.enum(["Active", "Inactive"]).default("Active"),
+  approvalStatus: z.string().default("Approved"),
+  status: z.string().default("Active"),
   stdRunRateBph: z.coerce.number().default(12000),
   setupDurationMin: z.coerce.number().default(45),
   expectedYieldPct: z.coerce.number().default(98.50),

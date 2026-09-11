@@ -91,7 +91,6 @@ export async function planningRoutes(fastify: FastifyInstance) {
   fastify.get("/ai-assistant", { schema: { tags: ["Planning & Demand"], summary: "Get AI Assistant Copilot State" } }, planningController.getAiAssistantOverview.bind(planningController));
   fastify.get("/ai/assistant", { schema: { tags: ["Planning & Demand"], summary: "Get AI Assistant Copilot State" } }, planningController.getAiAssistantOverview.bind(planningController));
   fastify.post("/ai-assistant/chat", { schema: { tags: ["Planning & Demand"], summary: "AI Copilot Production Heuristic Chat" } }, planningController.handleAiChat.bind(planningController));
-  fastify.post("/ai/chat", { schema: { tags: ["Planning & Demand"], summary: "AI Copilot Production Heuristic Chat" } }, planningController.handleAiChat.bind(planningController));
   fastify.post("/ai-assistant/apply", { schema: { tags: ["Planning & Demand"], summary: "Accept & Apply AI Recommendation to Schedule Draft" } }, planningController.applyAiRecommendation.bind(planningController));
   fastify.post("/ai/apply-recommendation", { schema: { tags: ["Planning & Demand"], summary: "Accept & Apply AI Recommendation to Schedule Draft" } }, planningController.applyAiRecommendation.bind(planningController));
   fastify.post("/ai/recommendation/apply", { schema: { tags: ["Planning & Demand"], summary: "Accept & Apply AI Recommendation to Schedule Draft" } }, planningController.applyAiRecommendation.bind(planningController));

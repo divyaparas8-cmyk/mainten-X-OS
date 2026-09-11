@@ -122,13 +122,13 @@ export declare const routingStepSchema: z.ZodObject<{
     instructions?: string | null | undefined;
 }>;
 export declare const createRoutingSchema: z.ZodObject<{
-    routingCode: z.ZodString;
-    skuId: z.ZodString;
+    routingCode: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    skuId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     lineId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     plantId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     revision: z.ZodDefault<z.ZodString>;
-    approvalStatus: z.ZodDefault<z.ZodEnum<["Draft", "In Review", "Approved", "Obsolete"]>>;
-    status: z.ZodDefault<z.ZodEnum<["Active", "Inactive"]>>;
+    approvalStatus: z.ZodDefault<z.ZodString>;
+    status: z.ZodDefault<z.ZodString>;
     stdRunRateBph: z.ZodDefault<z.ZodNumber>;
     setupDurationMin: z.ZodDefault<z.ZodNumber>;
     expectedYieldPct: z.ZodDefault<z.ZodNumber>;
@@ -167,11 +167,9 @@ export declare const createRoutingSchema: z.ZodObject<{
         instructions?: string | null | undefined;
     }>, "many">>>;
 }, "strip", z.ZodTypeAny, {
-    status: "Active" | "Inactive";
-    skuId: string;
-    routingCode: string;
+    status: string;
     revision: string;
-    approvalStatus: "Approved" | "Draft" | "In Review" | "Obsolete";
+    approvalStatus: string;
     stdRunRateBph: number;
     setupDurationMin: number;
     expectedYieldPct: number;
@@ -187,18 +185,20 @@ export declare const createRoutingSchema: z.ZodObject<{
         instructions?: string | null | undefined;
     }[];
     plantId?: string | null | undefined;
+    skuId?: string | null | undefined;
     lineId?: string | null | undefined;
+    routingCode?: string | null | undefined;
     effectiveFrom?: string | null | undefined;
     effectiveTo?: string | null | undefined;
     notes?: string | null | undefined;
 }, {
-    skuId: string;
-    routingCode: string;
-    status?: "Active" | "Inactive" | undefined;
+    status?: string | undefined;
     plantId?: string | null | undefined;
+    skuId?: string | null | undefined;
     lineId?: string | null | undefined;
+    routingCode?: string | null | undefined;
     revision?: string | undefined;
-    approvalStatus?: "Approved" | "Draft" | "In Review" | "Obsolete" | undefined;
+    approvalStatus?: string | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -218,13 +218,13 @@ export declare const createRoutingSchema: z.ZodObject<{
     }[] | undefined;
 }>;
 export declare const updateRoutingSchema: z.ZodObject<{
-    routingCode: z.ZodOptional<z.ZodString>;
-    skuId: z.ZodOptional<z.ZodString>;
+    routingCode: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    skuId: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     lineId: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     plantId: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     revision: z.ZodOptional<z.ZodDefault<z.ZodString>>;
-    approvalStatus: z.ZodOptional<z.ZodDefault<z.ZodEnum<["Draft", "In Review", "Approved", "Obsolete"]>>>;
-    status: z.ZodOptional<z.ZodDefault<z.ZodEnum<["Active", "Inactive"]>>>;
+    approvalStatus: z.ZodOptional<z.ZodDefault<z.ZodString>>;
+    status: z.ZodOptional<z.ZodDefault<z.ZodString>>;
     stdRunRateBph: z.ZodOptional<z.ZodDefault<z.ZodNumber>>;
     setupDurationMin: z.ZodOptional<z.ZodDefault<z.ZodNumber>>;
     expectedYieldPct: z.ZodOptional<z.ZodDefault<z.ZodNumber>>;
@@ -263,13 +263,13 @@ export declare const updateRoutingSchema: z.ZodObject<{
         instructions?: string | null | undefined;
     }>, "many">>>>;
 }, "strip", z.ZodTypeAny, {
-    status?: "Active" | "Inactive" | undefined;
+    status?: string | undefined;
     plantId?: string | null | undefined;
-    skuId?: string | undefined;
+    skuId?: string | null | undefined;
     lineId?: string | null | undefined;
-    routingCode?: string | undefined;
+    routingCode?: string | null | undefined;
     revision?: string | undefined;
-    approvalStatus?: "Approved" | "Draft" | "In Review" | "Obsolete" | undefined;
+    approvalStatus?: string | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -288,13 +288,13 @@ export declare const updateRoutingSchema: z.ZodObject<{
         instructions?: string | null | undefined;
     }[] | undefined;
 }, {
-    status?: "Active" | "Inactive" | undefined;
+    status?: string | undefined;
     plantId?: string | null | undefined;
-    skuId?: string | undefined;
+    skuId?: string | null | undefined;
     lineId?: string | null | undefined;
-    routingCode?: string | undefined;
+    routingCode?: string | null | undefined;
     revision?: string | undefined;
-    approvalStatus?: "Approved" | "Draft" | "In Review" | "Obsolete" | undefined;
+    approvalStatus?: string | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;

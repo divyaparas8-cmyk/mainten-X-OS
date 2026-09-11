@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -164,5 +164,22 @@ exports.routingSteps = (0, pg_core_1.pgTable)("routing_steps", {
     isQualityGate: (0, pg_core_1.boolean)("is_quality_gate").default(false).notNull(),
     instructions: (0, pg_core_1.text)("instructions"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+});
+exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
+    id: (0, pg_core_1.varchar)("id", { length: 64 }).primaryKey(),
+    matrixId: (0, pg_core_1.varchar)("matrix_id", { length: 64 }),
+    fromSkuId: (0, pg_core_1.varchar)("from_sku_id", { length: 64 }),
+    fromSkuCode: (0, pg_core_1.varchar)("from_sku_code", { length: 64 }),
+    fromFamily: (0, pg_core_1.varchar)("from_family", { length: 128 }),
+    toSkuId: (0, pg_core_1.varchar)("to_sku_id", { length: 64 }),
+    toSkuCode: (0, pg_core_1.varchar)("to_sku_code", { length: 64 }),
+    toFamily: (0, pg_core_1.varchar)("to_family", { length: 128 }),
+    changeoverDurationMin: (0, pg_core_1.integer)("changeover_duration_min").default(30),
+    sanitationClass: (0, pg_core_1.varchar)("sanitation_class", { length: 255 }),
+    allergenCleaningRequired: (0, pg_core_1.boolean)("allergen_cleaning_required").default(false),
+    notes: (0, pg_core_1.text)("notes"),
+    status: (0, pg_core_1.varchar)("status", { length: 32 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
 //# sourceMappingURL=masterData.js.map

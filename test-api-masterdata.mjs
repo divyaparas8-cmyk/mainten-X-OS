@@ -1,5 +1,3 @@
-import fetch from 'node-fetch';
-
 async function test() {
   const endpoints = [
     '/api/v1/master-data/lines',

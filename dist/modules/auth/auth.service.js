@@ -9,9 +9,23 @@ const database_js_1 = require("../../config/database.js");
 const index_js_1 = require("../../db/schema/index.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
+const seed_js_1 = require("../../db/seed.js");
 class AuthService {
     async validateUserCredentials(input) {
-        const [user] = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.email, input.email.toLowerCase())).limit(1);
+        let [user] = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.email, input.email.toLowerCase())).limit(1);
+        if (!user) {
+            try {
+                const [anyUser] = await database_js_1.db.select({ id: index_js_1.users.id }).from(index_js_1.users).limit(1);
+                if (!anyUser) {
+                    console.log("🌱 On-demand seed triggered during login...");
+                    await (0, seed_js_1.runDatabaseSeed)();
+                    [user] = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.email, input.email.toLowerCase())).limit(1);
+                }
+            }
+            catch (err) {
+                console.warn("⚠️ On-demand seed warning:", err.message);
+            }
+        }
         if (!user) {
             throw new AppError_js_1.UnauthorizedError("Invalid email or password");
         }

@@ -1,7 +1,26 @@
 import { FastifyInstance } from "fastify";
 import { adminController } from "./admin.controller.js";
+import { runDatabaseSeed } from "../../db/seed.js";
 
 export async function adminRoutes(fastify: FastifyInstance) {
+  // Database Seeding Trigger
+  fastify.post(
+    "/seed",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Trigger Comprehensive Database Seed for all 12 Roles and Dashboards",
+      },
+    },
+    async (request, reply) => {
+      await runDatabaseSeed();
+      return reply.status(200).send({
+        success: true,
+        message: "Comprehensive database seed executed successfully. All 12 dashboards & demo users ready.",
+      });
+    }
+  );
+
   // Allow optional authentication so dashboard & management work seamlessly in both demo & live modes
   fastify.get(
     "/dashboard",

@@ -4,10 +4,25 @@ import { users, roles, userRoles, tenants, plants } from "../../db/schema/index.
 import { eq } from "drizzle-orm";
 import { UnauthorizedError, NotFoundError } from "../../shared/errors/AppError.js";
 import { LoginInput } from "./auth.schema.js";
+import { runDatabaseSeed } from "../../db/seed.js";
 
 export class AuthService {
   async validateUserCredentials(input: LoginInput) {
-    const [user] = await db.select().from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
+    let [user] = await db.select().from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
+
+    if (!user) {
+      // Safety: If database is completely unseeded, trigger auto-seed on the fly and re-try
+      try {
+        const [anyUser] = await db.select({ id: users.id }).from(users).limit(1);
+        if (!anyUser) {
+          console.log("🌱 On-demand seed triggered during login...");
+          await runDatabaseSeed();
+          [user] = await db.select().from(users).where(eq(users.email, input.email.toLowerCase())).limit(1);
+        }
+      } catch (err: any) {
+        console.warn("⚠️ On-demand seed warning:", err.message);
+      }
+    }
 
     if (!user) {
       throw new UnauthorizedError("Invalid email or password");

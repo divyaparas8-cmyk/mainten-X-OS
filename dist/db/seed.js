@@ -154,91 +154,112 @@ async function runDatabaseSeed() {
         const operator = seededUsers["operator@maintenx.com"];
         console.log(`✅ 14 Users configured and mapped to their respective roles`);
         // 4. Seed Product Families & SKUs
-        const [beverageFamily] = await database_js_1.db
-            .insert(index_js_1.productFamilies)
-            .values({
-            tenantId: demoTenant.id,
-            code: "CARB-BEV",
-            name: "Sparkling & Carbonated Beverages",
-        })
-            .returning();
-        const [citrusSku] = await database_js_1.db
-            .insert(index_js_1.skus)
-            .values({
-            tenantId: demoTenant.id,
-            skuCode: "SKU-5001",
-            name: "500ml Sparkling Citrus Soda",
-            category: "FINISHED_GOODS",
-            familyId: beverageFamily.id,
-            uom: "Units",
-            barcode: "8901020304051",
-            standardCost: "14.50",
-        })
-            .returning();
-        const [orangeJuiceRaw] = await database_js_1.db
-            .insert(index_js_1.skus)
-            .values({
-            tenantId: demoTenant.id,
-            skuCode: "RM-ORG-101",
-            name: "Valencia Organic Orange Juice Concentrate 65° Brix",
-            category: "RAW_MATERIAL",
-            uom: "Liters",
-            barcode: "LOT-RM-ORG-4402",
-            standardCost: "85.00",
-        })
-            .returning();
-        const [aluminumCan] = await database_js_1.db
-            .insert(index_js_1.skus)
-            .values({
-            tenantId: demoTenant.id,
-            skuCode: "PKG-CAN-330",
-            name: "330ml Slimline Aluminum Beverage Cans",
-            category: "PACKAGING",
-            uom: "Can",
-            barcode: "LOT-CAN-ALU-9912",
-            standardCost: "3.20",
-        })
-            .returning();
+        let [beverageFamily] = await database_js_1.db.select().from(index_js_1.productFamilies).where((0, drizzle_orm_1.eq)(index_js_1.productFamilies.code, "CARB-BEV")).limit(1);
+        if (!beverageFamily) {
+            [beverageFamily] = await database_js_1.db
+                .insert(index_js_1.productFamilies)
+                .values({
+                tenantId: demoTenant.id,
+                code: "CARB-BEV",
+                name: "Sparkling & Carbonated Beverages",
+            })
+                .returning();
+        }
+        let [citrusSku] = await database_js_1.db.select().from(index_js_1.skus).where((0, drizzle_orm_1.eq)(index_js_1.skus.skuCode, "SKU-5001")).limit(1);
+        if (!citrusSku) {
+            [citrusSku] = await database_js_1.db
+                .insert(index_js_1.skus)
+                .values({
+                tenantId: demoTenant.id,
+                skuCode: "SKU-5001",
+                name: "500ml Sparkling Citrus Soda",
+                category: "FINISHED_GOODS",
+                familyId: beverageFamily.id,
+                uom: "Units",
+                barcode: "8901020304051",
+                standardCost: "14.50",
+            })
+                .returning();
+        }
+        let [orangeJuiceRaw] = await database_js_1.db.select().from(index_js_1.skus).where((0, drizzle_orm_1.eq)(index_js_1.skus.skuCode, "RM-ORG-101")).limit(1);
+        if (!orangeJuiceRaw) {
+            [orangeJuiceRaw] = await database_js_1.db
+                .insert(index_js_1.skus)
+                .values({
+                tenantId: demoTenant.id,
+                skuCode: "RM-ORG-101",
+                name: "Valencia Organic Orange Juice Concentrate 65° Brix",
+                category: "RAW_MATERIAL",
+                uom: "Liters",
+                barcode: "LOT-RM-ORG-4402",
+                standardCost: "85.00",
+            })
+                .returning();
+        }
+        let [aluminumCan] = await database_js_1.db.select().from(index_js_1.skus).where((0, drizzle_orm_1.eq)(index_js_1.skus.skuCode, "PKG-CAN-330")).limit(1);
+        if (!aluminumCan) {
+            [aluminumCan] = await database_js_1.db
+                .insert(index_js_1.skus)
+                .values({
+                tenantId: demoTenant.id,
+                skuCode: "PKG-CAN-330",
+                name: "330ml Slimline Aluminum Beverage Cans",
+                category: "PACKAGING",
+                uom: "Can",
+                barcode: "LOT-CAN-ALU-9912",
+                standardCost: "3.20",
+            })
+                .returning();
+        }
         console.log(`✅ Master SKUs & Packaging created`);
         // 5. Seed Production Line & Work Center
-        const [wc1] = await database_js_1.db
-            .insert(index_js_1.workCenters)
-            .values({
-            tenantId: demoTenant.id,
-            plantId: indorePlant.id,
-            code: "WC-BOT-01",
-            name: "High-Speed Bottling & Formulation Bay 1",
-            category: "BOTTLING",
-        })
-            .returning();
-        const [line1] = await database_js_1.db
-            .insert(index_js_1.productionLines)
-            .values({
-            tenantId: demoTenant.id,
-            plantId: indorePlant.id,
-            workCenterId: wc1.id,
-            code: "LINE-1",
-            name: "Line 1 Bottling & Canning (250 BPM)",
-            lineType: "BOTTLING",
-            nominalSpeedBpm: 250,
-            status: "RUNNING",
-        })
-            .returning();
+        let [wc1] = await database_js_1.db.select().from(index_js_1.workCenters).where((0, drizzle_orm_1.eq)(index_js_1.workCenters.code, "WC-BOT-01")).limit(1);
+        if (!wc1) {
+            [wc1] = await database_js_1.db
+                .insert(index_js_1.workCenters)
+                .values({
+                tenantId: demoTenant.id,
+                plantId: indorePlant.id,
+                code: "WC-BOT-01",
+                name: "High-Speed Bottling & Formulation Bay 1",
+                category: "BOTTLING",
+            })
+                .returning();
+        }
+        let [line1] = await database_js_1.db.select().from(index_js_1.productionLines).where((0, drizzle_orm_1.eq)(index_js_1.productionLines.code, "LINE-1")).limit(1);
+        if (!line1) {
+            [line1] = await database_js_1.db
+                .insert(index_js_1.productionLines)
+                .values({
+                tenantId: demoTenant.id,
+                plantId: indorePlant.id,
+                workCenterId: wc1.id,
+                code: "LINE-1",
+                name: "Line 1 Bottling & Canning (250 BPM)",
+                lineType: "BOTTLING",
+                nominalSpeedBpm: 250,
+                status: "RUNNING",
+            })
+                .returning();
+        }
         // 6. Seed Equipment Asset
-        const [fillerAsset] = await database_js_1.db
-            .insert(index_js_1.assets)
-            .values({
-            tenantId: demoTenant.id,
-            plantId: indorePlant.id,
-            lineId: line1.id,
-            assetCode: "FM-001",
-            name: "Rotary Filling Machine 48-Valve",
-            criticalLevel: "CRITICAL_P1",
-            status: "OPERATIONAL",
-            healthPercent: 92,
-            mtbfHours: "412.5",
-        })
-            .returning();
+        let [fillerAsset] = await database_js_1.db.select().from(index_js_1.assets).where((0, drizzle_orm_1.eq)(index_js_1.assets.assetCode, "FM-001")).limit(1);
+        if (!fillerAsset) {
+            [fillerAsset] = await database_js_1.db
+                .insert(index_js_1.assets)
+                .values({
+                tenantId: demoTenant.id,
+                plantId: indorePlant.id,
+                lineId: line1.id,
+                assetCode: "FM-001",
+                name: "Rotary Filling Machine 48-Valve",
+                criticalLevel: "CRITICAL_P1",
+                status: "OPERATIONAL",
+                healthPercent: 92,
+                mtbfHours: "412.5",
+            })
+                .returning();
+        }
         // 7. Seed Routings & Steps (Master Recipes)
         const [existingRtg] = await database_js_1.db.select().from(index_js_1.routings).where((0, drizzle_orm_1.eq)(index_js_1.routings.routingCode, "RTG-5001-L1")).limit(1);
         if (!existingRtg) {

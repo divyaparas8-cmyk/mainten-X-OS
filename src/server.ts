@@ -1,3 +1,4 @@
+import process from "node:process";
 import { buildApp } from "./app.js";
 import { env } from "./config/env.js";
 import { checkDatabaseConnection, db } from "./config/database.js";

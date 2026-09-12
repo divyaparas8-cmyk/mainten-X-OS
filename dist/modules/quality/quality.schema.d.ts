@@ -224,14 +224,14 @@ export declare const submitSanitationSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: string;
-    protocol: string;
     operator: string;
+    protocol: string;
     loop: string;
     steps?: any[] | undefined;
 }, {
     status?: string | undefined;
-    protocol?: string | undefined;
     operator?: string | undefined;
+    protocol?: string | undefined;
     steps?: any[] | undefined;
     loop?: string | undefined;
 }>;

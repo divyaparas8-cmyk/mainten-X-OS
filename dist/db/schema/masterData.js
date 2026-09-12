@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -15,6 +15,7 @@ exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
 exports.skus = (0, pg_core_1.pgTable)("skus", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
     skuCode: (0, pg_core_1.varchar)("sku_code", { length: 100 }).notNull(), // e.g. "SKU-5001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "500ml Sparkling Citrus Soda"
     category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(), // "FINISHED_GOODS", "RAW_MATERIAL", "PACKAGING"
@@ -33,6 +34,7 @@ exports.boms = (0, pg_core_1.pgTable)("boms", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
+    bomNumber: (0, pg_core_1.varchar)("bom_number", { length: 100 }),
     version: (0, pg_core_1.varchar)("version", { length: 50 }).default("v1.0").notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     batchSize: (0, pg_core_1.numeric)("batch_size", { precision: 12, scale: 2 }).default("10000").notNull(),
@@ -40,13 +42,17 @@ exports.boms = (0, pg_core_1.pgTable)("boms", {
     yieldPercent: (0, pg_core_1.numeric)("yield_percent", { precision: 5, scale: 2 }).default("98.50"),
     isDefault: (0, pg_core_1.boolean)("is_default").default(true).notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("ACTIVE").notNull(),
+    approvalStatus: (0, pg_core_1.varchar)("approval_status", { length: 50 }).default("Draft"),
+    createdBy: (0, pg_core_1.varchar)("created_by", { length: 100 }).default("Alexander Vance"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
 exports.bomItems = (0, pg_core_1.pgTable)("bom_items", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     bomId: (0, pg_core_1.uuid)("bom_id").references(() => exports.boms.id, { onDelete: "cascade" }).notNull(),
-    componentSkuId: (0, pg_core_1.uuid)("component_sku_id").references(() => exports.skus.id, { onDelete: "restrict" }).notNull(),
+    componentSkuId: (0, pg_core_1.uuid)("component_sku_id").references(() => exports.skus.id, { onDelete: "restrict" }),
+    componentName: (0, pg_core_1.varchar)("component_name", { length: 255 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
     quantity: (0, pg_core_1.numeric)("quantity", { precision: 14, scale: 4 }).notNull(),
     scrapPercentage: (0, pg_core_1.numeric)("scrap_percentage", { precision: 5, scale: 2 }).default("0.00"),
     uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(),
@@ -190,6 +196,24 @@ exports.operations = (0, pg_core_1.pgTable)("operations", {
     department: (0, pg_core_1.varchar)("department", { length: 100 }).default("Packaging"),
     stdDurationMin: (0, pg_core_1.integer)("std_duration_min").default(45),
     setupDurationMin: (0, pg_core_1.integer)("setup_duration_min").default(15),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.lineTargets = (0, pg_core_1.pgTable)("line_targets", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    targetId: (0, pg_core_1.varchar)("target_id", { length: 50 }),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }).notNull(),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    skuId: (0, pg_core_1.varchar)("sku_id", { length: 50 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    shift: (0, pg_core_1.varchar)("shift", { length: 100 }).default("Morning Shift (A)"),
+    targetQuantity: (0, pg_core_1.integer)("target_quantity").default(0),
+    targetOeePct: (0, pg_core_1.numeric)("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
+    targetSpeedBpm: (0, pg_core_1.integer)("target_speed_bpm").default(250),
+    effectiveDate: (0, pg_core_1.timestamp)("effective_date").defaultNow(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),

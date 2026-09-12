@@ -87,18 +87,3 @@ export const calibrations = pgTable("calibrations", {
   status: varchar("status", { length: 50 }).default("VALID").notNull(), // "VALID", "DUE_SOON", "EXPIRED"
 });
 
-export const iotGateways = pgTable("iot_gateways", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  plantId: varchar("plant_id", { length: 100 }).default("PLT-01").notNull(),
-  gatewayId: varchar("gateway_id", { length: 100 }).notNull(),
-  gatewayName: varchar("gateway_name", { length: 255 }).notNull(),
-  ipAddress: varchar("ip_address", { length: 50 }),
-  protocol: varchar("protocol", { length: 50 }).default("MQTT/OPC-UA").notNull(),
-  connectedNodes: integer("connected_nodes").default(0).notNull(),
-  telemetryRate: varchar("telemetry_rate", { length: 50 }).default("10 Hz").notNull(),
-  status: varchar("status", { length: 50 }).default("Connected").notNull(),
-  lastPingAt: timestamp("last_ping_at").defaultNow().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-

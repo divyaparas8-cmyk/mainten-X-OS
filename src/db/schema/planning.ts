@@ -108,22 +108,3 @@ export const promotionCampaigns = pgTable("promotion_campaigns", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const lineTargets = pgTable("line_targets", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  targetId: varchar("target_id", { length: 50 }),
-  plantId: varchar("plant_id", { length: 50 }).default("PLT-01"),
-  lineId: varchar("line_id", { length: 50 }).notNull(),
-  lineName: varchar("line_name", { length: 255 }),
-  skuId: varchar("sku_id", { length: 50 }),
-  skuCode: varchar("sku_code", { length: 50 }),
-  skuName: varchar("sku_name", { length: 255 }),
-  shift: varchar("shift", { length: 100 }).default("Morning Shift (A)"),
-  targetQuantity: integer("target_quantity").default(0),
-  targetOeePct: numeric("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
-  targetSpeedBpm: integer("target_speed_bpm").default(250),
-  effectiveDate: timestamp("effective_date").defaultNow(),
-  status: varchar("status", { length: 50 }).default("Active"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-

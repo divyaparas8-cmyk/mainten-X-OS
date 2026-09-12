@@ -64,6 +64,7 @@ export declare class QualityService {
             updatedAt: Date;
             tenantId: string;
             isActive: boolean;
+            plantId: string | null;
             skuCode: string;
             category: string;
             familyId: string | null;

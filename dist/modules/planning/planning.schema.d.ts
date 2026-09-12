@@ -393,10 +393,10 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     quantity?: number | undefined;
     endTime?: string | undefined;
     lineId?: string | undefined;
+    targetQuantity?: number | undefined;
     orderNumber?: string | undefined;
     shiftId?: string | undefined;
     orderId?: string | undefined;
-    targetQuantity?: number | undefined;
     productionOrderId?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
@@ -407,12 +407,12 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     quantity?: number | undefined;
     endTime?: string | undefined;
     lineId?: string | undefined;
+    targetQuantity?: number | undefined;
     orderNumber?: string | undefined;
     shiftId?: string | undefined;
     orderId?: string | undefined;
     changeoverMinutes?: number | undefined;
     cipRequired?: boolean | undefined;
-    targetQuantity?: number | undefined;
     productionOrderId?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
@@ -683,8 +683,8 @@ export declare const createScheduleVersionSchema: z.ZodObject<{
 }, {
     title: string;
     status?: string | undefined;
-    reason?: string | undefined;
     createdBy?: string | undefined;
+    reason?: string | undefined;
 }>;
 export type CreateScheduleVersionInput = z.infer<typeof createScheduleVersionSchema>;
 export declare const validateScheduleSchema: z.ZodObject<{

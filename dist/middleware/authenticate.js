@@ -3,49 +3,68 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticate = authenticate;
 const database_js_1 = require("../config/database.js");
 const index_js_1 = require("../db/schema/index.js");
-let cachedContext = null;
-async function getDefaultContext() {
-    if (cachedContext)
-        return cachedContext;
-    try {
-        const [t] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-        const [p] = await database_js_1.db.select().from(index_js_1.plants).limit(1);
-        const [u] = await database_js_1.db.select().from(index_js_1.users).limit(1);
-        if (t && p && u) {
-            cachedContext = {
-                userId: u.id,
-                email: u.email,
-                tenantId: t.id,
-                plantId: p.id,
-                role: "admin",
-                permissions: ["*"],
-            };
-            return cachedContext;
-        }
-    }
-    catch {
-        // fallback if DB connection fails temporarily
-    }
-    return {
-        userId: "6eb6cb7a-6595-405a-a2a1-586fa29e9d7c",
-        email: "admin@maintenx.com",
-        tenantId: "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
-        plantId: "bead41e2-b735-41b8-bd00-bdba1682fb6a",
-        role: "admin",
-        permissions: ["*"],
-    };
-}
+const drizzle_orm_1 = require("drizzle-orm");
 async function authenticate(request, _reply) {
+    const headerTenantId = request.headers["x-tenant-id"]?.trim();
+    const headerTenantName = request.headers["x-tenant-name"]?.trim();
     try {
         if (request.headers.authorization) {
             await request.jwtVerify();
         }
-        else {
-            request.user = await getDefaultContext();
-        }
     }
     catch {
-        request.user = await getDefaultContext();
+        // JWT verification failed — continue to header-based scoping
     }
+    const currentUser = request.user;
+    // 1. If JWT decoded successfully
+    if (currentUser) {
+        if (headerTenantId) {
+            // If user is master admin or switching tenant context, honor the header
+            if (currentUser.isMasterAdmin || !currentUser.tenantId) {
+                currentUser.tenantId = headerTenantId;
+            }
+        }
+        return;
+    }
+    // 2. If JWT was missing or invalid, but X-Tenant-Id header was provided
+    if (headerTenantId) {
+        try {
+            const [t] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, headerTenantId)).limit(1);
+            if (t) {
+                request.user = {
+                    id: `admin-${t.id}`,
+                    tenantId: t.id,
+                    role: "admin",
+                    email: `admin@${t.slug || "maintenx.com"}`,
+                    isMasterAdmin: false,
+                };
+                return;
+            }
+        }
+        catch (e) {
+            console.warn("authenticate headerTenantId lookup failed:", e.message);
+        }
+    }
+    // 3. If X-Tenant-Name was provided
+    if (headerTenantName) {
+        try {
+            const [t] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.name, headerTenantName)).limit(1);
+            if (t) {
+                request.user = {
+                    id: `admin-${t.id}`,
+                    tenantId: t.id,
+                    role: "admin",
+                    email: `admin@${t.slug || "maintenx.com"}`,
+                    isMasterAdmin: false,
+                };
+                return;
+            }
+        }
+        catch (e) {
+            console.warn("authenticate headerTenantName lookup failed:", e.message);
+        }
+    }
+    // 4. If no tenant context is established, do NOT attach a random tenant
+    request.user = undefined;
 }
 //# sourceMappingURL=authenticate.js.map

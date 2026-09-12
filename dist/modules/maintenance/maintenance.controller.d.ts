@@ -2,6 +2,22 @@ import { FastifyReply, FastifyRequest } from "fastify";
 export declare class MaintenanceController {
     getWorkOrders(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getBreakdowns(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    reportBreakdown(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    resolveBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getHistory(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportHistory(request: FastifyRequest<{
         Params: {

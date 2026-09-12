@@ -16,6 +16,23 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.listBreakdowns(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async reportBreakdown(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.reportBreakdown(request.user.tenantId, plantId, request.body, request.user.userId);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Breakdown logged and emergency repair ticket dispatched"));
+    }
+    async updateBreakdown(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.updateBreakdown(request.user.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Breakdown ${request.params.id} updated successfully`));
+    }
+    async resolveBreakdown(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.resolveBreakdown(request.user.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Breakdown ${request.params.id} resolved and equipment restored`));
+    }
+    async deleteBreakdown(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.deleteBreakdown(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Breakdown record deleted`));
+    }
     async getHistory(request, reply) {
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await maintenance_service_js_1.maintenanceService.listHistory(request.user.tenantId, plantId);

@@ -199,25 +199,6 @@ export const changeoverRules = pgTable("changeover_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const companies = pgTable("companies", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 50 }),
-  industry: varchar("industry", { length: 100 }),
-  status: varchar("status", { length: 50 }).default("Active"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const departments = pgTable("departments", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  code: varchar("code", { length: 50 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  managerName: varchar("manager_name", { length: 255 }),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 export const operations = pgTable("operations", {
   id: uuid("id").defaultRandom().primaryKey(),
   operationCode: varchar("operation_code", { length: 50 }).notNull(),

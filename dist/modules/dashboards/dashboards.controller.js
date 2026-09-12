@@ -39,7 +39,7 @@ class DashboardsController {
     }
     // Plant Manager Command Center
     async getCommandCenter(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getPlantManagerCommandCenter(request.user.tenantId, request.query?.plantId || request.user.plantId);
+        const data = await dashboards_service_js_1.dashboardsService.getPlantManagerCommandCenter(request.user?.tenantId, request.query?.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async getKPIs(request, reply) {

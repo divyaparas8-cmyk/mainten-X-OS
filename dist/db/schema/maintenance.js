@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.iotGateways = exports.calibrations = exports.spareConsumption = exports.spareParts = exports.pmSchedules = exports.workOrders = exports.failureCodes = void 0;
+exports.calibrations = exports.spareConsumption = exports.spareParts = exports.pmSchedules = exports.workOrders = exports.failureCodes = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -82,19 +82,5 @@ exports.calibrations = (0, pg_core_1.pgTable)("calibrations", {
     nextDueDate: (0, pg_core_1.timestamp)("next_due_date").notNull(),
     accuracyError: (0, pg_core_1.numeric)("accuracy_error", { precision: 6, scale: 3 }).default("0.02"),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("VALID").notNull(), // "VALID", "DUE_SOON", "EXPIRED"
-});
-exports.iotGateways = (0, pg_core_1.pgTable)("iot_gateways", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
-    plantId: (0, pg_core_1.varchar)("plant_id", { length: 100 }).default("PLT-01").notNull(),
-    gatewayId: (0, pg_core_1.varchar)("gateway_id", { length: 100 }).notNull(),
-    gatewayName: (0, pg_core_1.varchar)("gateway_name", { length: 255 }).notNull(),
-    ipAddress: (0, pg_core_1.varchar)("ip_address", { length: 50 }),
-    protocol: (0, pg_core_1.varchar)("protocol", { length: 50 }).default("MQTT/OPC-UA").notNull(),
-    connectedNodes: (0, pg_core_1.integer)("connected_nodes").default(0).notNull(),
-    telemetryRate: (0, pg_core_1.varchar)("telemetry_rate", { length: 50 }).default("10 Hz").notNull(),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Connected").notNull(),
-    lastPingAt: (0, pg_core_1.timestamp)("last_ping_at").defaultNow().notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 //# sourceMappingURL=maintenance.js.map

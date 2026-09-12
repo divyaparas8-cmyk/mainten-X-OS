@@ -20,7 +20,20 @@ exports.default = (0, fastify_plugin_1.default)(async (fastify) => {
         },
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization", "X-Tenant-ID", "X-Plant-ID"],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "X-Tenant-ID",
+            "X-Tenant-Id",
+            "x-tenant-id",
+            "X-Tenant-Name",
+            "x-tenant-name",
+            "X-Plant-ID",
+            "x-plant-id",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+        ],
     });
 });
 //# sourceMappingURL=cors.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.lineTargets = exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
+exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -34,7 +34,7 @@ exports.forecasts = (0, pg_core_1.pgTable)("forecasts", {
     modelType: (0, pg_core_1.varchar)("model_type", { length: 100 }).default("EXPONENTIAL_SMOOTHING"),
     owner: (0, pg_core_1.varchar)("owner", { length: 255 }).default("Elena Rostova"),
     reason: (0, pg_core_1.text)("reason"),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Submitted").notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Submitted"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.apsSchedules = (0, pg_core_1.pgTable)("aps_schedules", {
@@ -103,23 +103,5 @@ exports.promotionCampaigns = (0, pg_core_1.pgTable)("promotion_campaigns", {
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SCHEDULED").notNull(), // "ACTIVE", "SCHEDULED", "EXPIRED", "CANCELLED"
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
-});
-exports.lineTargets = (0, pg_core_1.pgTable)("line_targets", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    targetId: (0, pg_core_1.varchar)("target_id", { length: 50 }),
-    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
-    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }).notNull(),
-    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
-    skuId: (0, pg_core_1.varchar)("sku_id", { length: 50 }),
-    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
-    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
-    shift: (0, pg_core_1.varchar)("shift", { length: 100 }).default("Morning Shift (A)"),
-    targetQuantity: (0, pg_core_1.integer)("target_quantity").default(0),
-    targetOeePct: (0, pg_core_1.numeric)("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
-    targetSpeedBpm: (0, pg_core_1.integer)("target_speed_bpm").default(250),
-    effectiveDate: (0, pg_core_1.timestamp)("effective_date").defaultNow(),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
 //# sourceMappingURL=planning.js.map

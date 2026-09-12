@@ -1,5 +1,6 @@
 interface InvitationRecord {
     id: string;
+    tenantId?: string;
     email: string;
     role: string;
     department: string;
@@ -108,8 +109,8 @@ export declare class AdminService {
         id: string;
         name: string;
         email: string;
-        role: string;
-        roleCode: string;
+        role: any;
+        roleCode: any;
         department: string;
         plant: string;
         status: string;

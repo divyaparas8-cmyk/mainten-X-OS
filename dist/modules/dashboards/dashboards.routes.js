@@ -9,6 +9,7 @@ async function dashboardsRoutes(fastify) {
     // Plant Manager Command Center
     fastify.get("/command-center", { schema: { tags: ["Dashboards & Executive"], summary: "Get Plant Manager Command Center Overview" } }, dashboards_controller_js_1.dashboardsController.getCommandCenter.bind(dashboards_controller_js_1.dashboardsController));
     fastify.get("/kpis", { schema: { tags: ["Dashboards & Executive"], summary: "Get Executive KPI Scorecard" } }, dashboards_controller_js_1.dashboardsController.getKPIs.bind(dashboards_controller_js_1.dashboardsController));
+    fastify.get("/command-center/kpis", { schema: { tags: ["Dashboards & Executive"], summary: "Get Plant Manager Command Center KPIs" } }, dashboards_controller_js_1.dashboardsController.getKPIs.bind(dashboards_controller_js_1.dashboardsController));
     // ─── Line Lead Dashboard APIs ──────────────────────────────────────────────
     fastify.get("/linelead", { schema: { tags: ["Dashboards & Executive"], summary: "Get Line Lead Dashboard KPIs & Status" } }, dashboards_controller_js_1.dashboardsController.getLineLeadDashboard.bind(dashboards_controller_js_1.dashboardsController));
     fastify.get("/linelead/material-log", { schema: { tags: ["Dashboards & Executive"], summary: "Get Line Material Stock Log" } }, dashboards_controller_js_1.dashboardsController.getMaterialLog.bind(dashboards_controller_js_1.dashboardsController));

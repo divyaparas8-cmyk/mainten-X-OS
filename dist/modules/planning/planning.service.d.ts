@@ -313,7 +313,7 @@ export declare class PlanningService {
     runStatisticalForecast(tenantId: string, plantId: string, input: RunForecastInput): Promise<{
         historicalDemand: number[];
         calculationDetails: import("../../shared/engines/forecastEngine.js").ForecastOutput;
-        status: string;
+        status: string | null;
         id: string;
         createdAt: Date;
         tenantId: string;

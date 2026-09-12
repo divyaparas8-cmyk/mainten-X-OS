@@ -27,8 +27,8 @@ export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
     orderNumber: string;
     quantity?: number | undefined;
     notes?: string | undefined;
-    priority?: unknown;
     targetQuantity?: number | undefined;
+    priority?: unknown;
     plannedStart?: string | undefined;
     plannedEnd?: string | undefined;
     plannedQuantity?: number | undefined;
@@ -49,8 +49,8 @@ export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
     orderNumber: string;
     quantity?: number | undefined;
     notes?: string | undefined;
-    priority?: unknown;
     targetQuantity?: number | undefined;
+    priority?: unknown;
     plannedStart?: string | undefined;
     plannedEnd?: string | undefined;
     plannedQuantity?: number | undefined;

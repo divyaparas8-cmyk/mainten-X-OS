@@ -77,6 +77,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     await app.register(masterDataRoutes, { prefix: `${prefix}/master-data` });
     await app.register(planningRoutes, { prefix: `${prefix}/planning` });
     await app.register(planningRoutes, { prefix: `${prefix}/planner` });
+    await app.register(planningRoutes, { prefix: prefix });
+    await app.register(dashboardsRoutes, { prefix: `${prefix}/plant-manager` });
     await app.register(productionRoutes, { prefix: `${prefix}/production` });
     await app.register(qualityRoutes, { prefix: `${prefix}/quality` });
     await app.register(warehouseRoutes, { prefix: `${prefix}/warehouse` });

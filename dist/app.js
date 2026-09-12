@@ -77,6 +77,8 @@ async function buildApp() {
         await app.register(masterData_routes_js_1.masterDataRoutes, { prefix: `${prefix}/master-data` });
         await app.register(planning_routes_js_1.planningRoutes, { prefix: `${prefix}/planning` });
         await app.register(planning_routes_js_1.planningRoutes, { prefix: `${prefix}/planner` });
+        await app.register(planning_routes_js_1.planningRoutes, { prefix: prefix });
+        await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: `${prefix}/plant-manager` });
         await app.register(production_routes_js_1.productionRoutes, { prefix: `${prefix}/production` });
         await app.register(quality_routes_js_1.qualityRoutes, { prefix: `${prefix}/quality` });
         await app.register(warehouse_routes_js_1.warehouseRoutes, { prefix: `${prefix}/warehouse` });

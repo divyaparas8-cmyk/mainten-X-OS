@@ -45,7 +45,7 @@ export class DashboardsController {
 
   // Plant Manager Command Center
   async getCommandCenter(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getPlantManagerCommandCenter(request.user.tenantId, (request.query as any)?.plantId || request.user.plantId);
+    const data = await dashboardsService.getPlantManagerCommandCenter(request.user?.tenantId, (request.query as any)?.plantId || request.user?.plantId);
     return reply.send(formatSuccess(data));
   }
 

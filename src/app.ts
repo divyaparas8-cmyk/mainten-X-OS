@@ -82,6 +82,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(traceabilityRoutes, { prefix: "/api/v1/traceability" });
   await app.register(maintenanceRoutes, { prefix: "/api/v1/maintenance" });
   await app.register(dashboardsRoutes, { prefix: "/api/v1/dashboards" });
+  await app.register(dashboardsRoutes, { prefix: "/api/v1/plant-manager" });
   await app.register(executiveRoutes, { prefix: "/api/v1/executive" });
   await app.register(executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
   await app.register(notificationsRoutes, { prefix: "/api/v1/notifications" });

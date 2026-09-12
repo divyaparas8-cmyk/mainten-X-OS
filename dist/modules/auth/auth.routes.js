@@ -4,6 +4,13 @@ exports.authRoutes = authRoutes;
 const auth_controller_js_1 = require("./auth.controller.js");
 const authenticate_js_1 = require("../../middleware/authenticate.js");
 async function authRoutes(fastify) {
+    fastify.post("/register", {
+        schema: {
+            tags: ["Authentication"],
+            summary: "Tenant public self-registration",
+            description: "Register a new tenant company and company owner with chosen subscription plan",
+        },
+    }, auth_controller_js_1.authController.register.bind(auth_controller_js_1.authController));
     fastify.post("/login", {
         schema: {
             tags: ["Authentication"],

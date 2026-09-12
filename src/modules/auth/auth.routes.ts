@@ -4,6 +4,18 @@ import { authenticate } from "../../middleware/authenticate.js";
 
 export async function authRoutes(fastify: FastifyInstance) {
   fastify.post(
+    "/register",
+    {
+      schema: {
+        tags: ["Authentication"],
+        summary: "Tenant public self-registration",
+        description: "Register a new tenant company and company owner with chosen subscription plan",
+      },
+    },
+    authController.register.bind(authController)
+  );
+
+  fastify.post(
     "/login",
     {
       schema: {

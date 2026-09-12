@@ -60,7 +60,7 @@ export class MasterAdminController {
     return reply.send({ success: true, data });
   }
 
-  async createCompanyAdmin(req: FastifyRequest<{ Body: { name: string; email?: string; company?: string; companyId?: string } }>, reply: FastifyReply) {
+  async createCompanyAdmin(req: FastifyRequest<{ Body: { name: string; email?: string; password?: string; company?: string; companyId?: string } }>, reply: FastifyReply) {
     const actor = getActor(req);
     const data = await masterAdminService.createCompanyAdmin(req.body, actor);
     return reply.status(201).send({ success: true, message: "Company administrator created successfully", data });

@@ -225,15 +225,15 @@ export declare const submitSanitationSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status: string;
     operator: string;
-    loop: string;
     protocol: string;
+    loop: string;
     steps?: any[] | undefined;
 }, {
     status?: string | undefined;
     operator?: string | undefined;
+    protocol?: string | undefined;
     steps?: any[] | undefined;
     loop?: string | undefined;
-    protocol?: string | undefined;
 }>;
 export declare const clearAllergenAuditSchema: z.ZodObject<{
     auditId: z.ZodUnion<[z.ZodNumber, z.ZodString]>;

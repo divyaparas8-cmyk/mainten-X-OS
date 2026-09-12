@@ -223,6 +223,17 @@ export declare class MasterDataController {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    createAsset(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getStaff(request: FastifyRequest<{
         Querystring: {
             plantId?: string;

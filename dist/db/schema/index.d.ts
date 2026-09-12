@@ -11,5 +11,6 @@ export * from "./maintenance.js";
 export * from "./common.js";
 export * from "./ci.js";
 export * from "./plantManager.js";
+export * from "./platform.js";
 export * from "../relations.js";
 //# sourceMappingURL=index.d.ts.map

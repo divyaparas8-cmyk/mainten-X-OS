@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
+exports.lineTargets = exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -32,6 +32,9 @@ exports.forecasts = (0, pg_core_1.pgTable)("forecasts", {
     finalForecast: (0, pg_core_1.numeric)("final_forecast", { precision: 12, scale: 2 }).notNull(),
     mapeAccuracy: (0, pg_core_1.numeric)("mape_accuracy", { precision: 5, scale: 2 }).default("94.60"),
     modelType: (0, pg_core_1.varchar)("model_type", { length: 100 }).default("EXPONENTIAL_SMOOTHING"),
+    owner: (0, pg_core_1.varchar)("owner", { length: 255 }).default("Elena Rostova"),
+    reason: (0, pg_core_1.text)("reason"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Submitted").notNull(),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.apsSchedules = (0, pg_core_1.pgTable)("aps_schedules", {
@@ -57,13 +60,19 @@ exports.mrpRequirements = (0, pg_core_1.pgTable)("mrp_requirements", {
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     skuId: (0, pg_core_1.uuid)("sku_id").references(() => masterData_1.skus.id, { onDelete: "cascade" }).notNull(),
+    materialName: (0, pg_core_1.varchar)("material_name", { length: 255 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 100 }),
+    category: (0, pg_core_1.varchar)("category", { length: 100 }),
+    uom: (0, pg_core_1.varchar)("uom", { length: 50 }),
     grossRequirement: (0, pg_core_1.numeric)("gross_requirement", { precision: 14, scale: 4 }).notNull(),
+    safetyStock: (0, pg_core_1.numeric)("safety_stock", { precision: 14, scale: 4 }).default("1000.00"),
     availableStock: (0, pg_core_1.numeric)("available_stock", { precision: 14, scale: 4 }).notNull(),
     reservedStock: (0, pg_core_1.numeric)("reserved_stock", { precision: 14, scale: 4 }).default("0.00"),
     scheduledReceipts: (0, pg_core_1.numeric)("scheduled_receipts", { precision: 14, scale: 4 }).default("0.00"),
     netShortage: (0, pg_core_1.numeric)("net_shortage", { precision: 14, scale: 4 }).notNull(),
     requiredDate: (0, pg_core_1.timestamp)("required_date").notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SHORTAGE_ALERT"), // "CRITICAL", "SHORTAGE_ALERT", "COVERED"
+    suggestedAction: (0, pg_core_1.varchar)("suggested_action", { length: 255 }),
     calculatedAt: (0, pg_core_1.timestamp)("calculated_at").defaultNow().notNull(),
 });
 exports.purchaseRequisitions = (0, pg_core_1.pgTable)("purchase_requisitions", {
@@ -94,5 +103,23 @@ exports.promotionCampaigns = (0, pg_core_1.pgTable)("promotion_campaigns", {
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SCHEDULED").notNull(), // "ACTIVE", "SCHEDULED", "EXPIRED", "CANCELLED"
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+exports.lineTargets = (0, pg_core_1.pgTable)("line_targets", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    targetId: (0, pg_core_1.varchar)("target_id", { length: 50 }),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }).notNull(),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    skuId: (0, pg_core_1.varchar)("sku_id", { length: 50 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    shift: (0, pg_core_1.varchar)("shift", { length: 100 }).default("Morning Shift (A)"),
+    targetQuantity: (0, pg_core_1.integer)("target_quantity").default(0),
+    targetOeePct: (0, pg_core_1.numeric)("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
+    targetSpeedBpm: (0, pg_core_1.integer)("target_speed_bpm").default(250),
+    effectiveDate: (0, pg_core_1.timestamp)("effective_date").defaultNow(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
 //# sourceMappingURL=planning.js.map

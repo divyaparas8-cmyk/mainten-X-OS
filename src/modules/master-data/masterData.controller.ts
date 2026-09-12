@@ -421,6 +421,23 @@ export class MasterDataController {
     return reply.send(formatSuccess(data));
   }
 
+  async createAsset(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createAsset(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Asset registered successfully"));
+  }
+
+  async updateAsset(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateAsset(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Asset updated successfully"));
+  }
+
+  async deleteAsset(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteAsset(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Asset deleted successfully"));
+  }
+
   async getStaff(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
     const data = await masterDataService.listStaff(request.user?.tenantId, request.query.plantId || request.user?.plantId);
     return reply.send(formatSuccess(data));

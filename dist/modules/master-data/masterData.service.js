@@ -3107,14 +3107,205 @@ class MasterDataService {
         try {
             const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
             const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+            let rows;
             if (isUuid) {
-                return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.plantId, plantId)));
+                rows = await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.plantId, plantId))).orderBy((0, drizzle_orm_1.desc)(masterData_js_1.assets.createdAt));
             }
-            return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId));
+            else {
+                rows = await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId)).orderBy((0, drizzle_orm_1.desc)(masterData_js_1.assets.createdAt));
+            }
+            if (!rows || rows.length === 0) {
+                rows = await database_js_1.db.select().from(masterData_js_1.assets).orderBy((0, drizzle_orm_1.desc)(masterData_js_1.assets.createdAt));
+            }
+            const linesList = await database_js_1.db.select({ id: masterData_js_1.productionLines.id, name: masterData_js_1.productionLines.name, code: masterData_js_1.productionLines.code }).from(masterData_js_1.productionLines);
+            const lineMap = new Map();
+            linesList.forEach(l => {
+                lineMap.set(l.id, l.name);
+            });
+            return rows.map((r) => {
+                const lineName = (r.lineId && lineMap.get(r.lineId)) || "Line 1 (Aseptic Bottling)";
+                const rawStatus = (r.status || "Operational").trim();
+                const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+                const rawCrit = (r.criticalLevel || "Medium").replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "");
+                const criticality = rawCrit.charAt(0).toUpperCase() + rawCrit.slice(1).toLowerCase();
+                return {
+                    id: r.assetCode || r.id,
+                    assetCode: r.assetCode,
+                    dbId: r.id,
+                    name: r.name,
+                    type: r.modelNumber || "Packaging & Bottling",
+                    department: "Packaging",
+                    plant: "Plant 1 - North Facility",
+                    line: lineName,
+                    location: "Bay 4A - Main Hall",
+                    status: formattedStatus,
+                    health: Number(r.healthPercent) ?? 100,
+                    criticality: criticality || "Medium",
+                    mtbf: Number(r.mtbfHours) || 350,
+                    mttr: Number(r.mttrHours) || 1.5,
+                    vibration: 1.5,
+                    temperature: 55.0,
+                    manufacturer: r.manufacturer || "Standard OEM",
+                    model: r.modelNumber || "Series-2026",
+                    serialNumber: `SN-${r.assetCode || r.id.substring(0, 8)}`,
+                    commissionDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+                    installedDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                };
+            });
         }
-        catch {
+        catch (err) {
+            console.error("listAssets error:", err.message);
             return [];
         }
+    }
+    async createAsset(tenantId, input) {
+        const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+        let plantId = input.plantId;
+        if (!plantId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
+            const p = await database_js_1.db.select({ id: tenants_js_1.plants.id }).from(tenants_js_1.plants).limit(1);
+            plantId = p[0]?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a";
+        }
+        let lineId = input.lineId;
+        if (lineId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lineId)) {
+            const pl = await database_js_1.db.select({ id: masterData_js_1.productionLines.id }).from(masterData_js_1.productionLines).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.name, lineId), (0, drizzle_orm_1.eq)(masterData_js_1.productionLines.code, lineId))).limit(1);
+            lineId = pl[0]?.id || null;
+        }
+        const assetCode = String(input.id || input.assetCode || `ASSET-${Date.now()}`).trim();
+        const name = String(input.name || "Unnamed Machine").trim();
+        const status = String(input.status || "OPERATIONAL").toUpperCase();
+        const healthPercent = Number(input.health ?? input.healthPercent) || 100;
+        const criticalLevel = String(input.criticality || input.criticalLevel || "IMPORTANT_P2");
+        const mtbfHours = String(input.mtbf || input.mtbfHours || "400.0");
+        const mttrHours = String(input.mttr || input.mttrHours || "1.5");
+        const manufacturer = String(input.manufacturer || "Standard OEM").trim();
+        const modelNumber = String(input.model || input.modelNumber || input.type || "Packaging & Bottling").trim();
+        const [inserted] = await database_js_1.db.insert(masterData_js_1.assets).values({
+            tenantId: tId,
+            plantId,
+            lineId: lineId || null,
+            assetCode,
+            name,
+            criticalLevel,
+            status,
+            healthPercent,
+            mtbfHours,
+            mttrHours,
+            manufacturer,
+            modelNumber,
+            installDate: input.installedDate ? new Date(input.installedDate) : new Date(),
+            lastServiceDate: new Date(),
+        }).returning();
+        return {
+            id: inserted.assetCode,
+            assetCode: inserted.assetCode,
+            dbId: inserted.id,
+            name: inserted.name,
+            type: inserted.modelNumber,
+            department: input.department || "Packaging",
+            plant: input.plant || "Plant 1 - North Facility",
+            line: input.line || "Line 1 (Aseptic Bottling)",
+            location: input.location || "Bay 4A - Main Hall",
+            status: input.status || "Operational",
+            health: inserted.healthPercent,
+            criticality: input.criticality || "Medium",
+            mtbf: Number(inserted.mtbfHours),
+            mttr: Number(inserted.mttrHours),
+            vibration: 1.5,
+            temperature: 55.0,
+            manufacturer: inserted.manufacturer,
+            model: inserted.modelNumber,
+            serialNumber: `SN-${inserted.assetCode}`,
+            installedDate: inserted.installDate ? new Date(inserted.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+            createdAt: inserted.createdAt,
+        };
+    }
+    async updateAsset(tenantId, id, input) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, id), (0, drizzle_orm_1.eq)(masterData_js_1.assets.assetCode, id))
+            : (0, drizzle_orm_1.eq)(masterData_js_1.assets.assetCode, id);
+        let existing = await database_js_1.db.select().from(masterData_js_1.assets).where(condition);
+        if (!existing[0]) {
+            const fallback = await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(masterData_js_1.assets.assetCode, id), (0, drizzle_orm_1.ilike)(masterData_js_1.assets.name, id)));
+            if (!fallback[0]) {
+                throw new AppError_js_1.NotFoundError(`Asset not found: ${id}`);
+            }
+            existing = fallback;
+        }
+        const target = existing[0];
+        const updateData = {
+            updatedAt: new Date(),
+        };
+        if (input.name !== undefined)
+            updateData.name = String(input.name).trim();
+        if (input.assetCode !== undefined || input.newId !== undefined) {
+            updateData.assetCode = String(input.assetCode || input.newId).trim();
+        }
+        if (input.status !== undefined)
+            updateData.status = String(input.status).toUpperCase();
+        if (input.health !== undefined || input.healthPercent !== undefined) {
+            updateData.healthPercent = Number(input.health ?? input.healthPercent);
+        }
+        if (input.criticality !== undefined || input.criticalLevel !== undefined) {
+            updateData.criticalLevel = String(input.criticality || input.criticalLevel);
+        }
+        if (input.manufacturer !== undefined)
+            updateData.manufacturer = String(input.manufacturer).trim();
+        if (input.model !== undefined || input.modelNumber !== undefined || input.type !== undefined) {
+            updateData.modelNumber = String(input.model || input.modelNumber || input.type).trim();
+        }
+        if (input.mtbf !== undefined || input.mtbfHours !== undefined) {
+            updateData.mtbfHours = String(input.mtbf || input.mtbfHours);
+        }
+        if (input.mttr !== undefined || input.mttrHours !== undefined) {
+            updateData.mttrHours = String(input.mttr || input.mttrHours);
+        }
+        const [updated] = await database_js_1.db.update(masterData_js_1.assets).set(updateData).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, target.id)).returning();
+        return {
+            id: updated.assetCode,
+            assetCode: updated.assetCode,
+            dbId: updated.id,
+            name: updated.name,
+            type: updated.modelNumber,
+            department: input.department || "Packaging",
+            line: input.line || "Line 1 (Aseptic Bottling)",
+            location: input.location || "Bay 4A - Main Hall",
+            status: input.status || (updated.status ? updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase() : "Operational"),
+            health: updated.healthPercent,
+            criticality: input.criticality || (updated.criticalLevel ? updated.criticalLevel.replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "") : "Medium"),
+            mtbf: Number(updated.mtbfHours),
+            mttr: Number(updated.mttrHours),
+            vibration: 1.5,
+            temperature: 55.0,
+            manufacturer: updated.manufacturer,
+            model: updated.modelNumber,
+            serialNumber: `SN-${updated.assetCode}`,
+            updatedAt: updated.updatedAt,
+        };
+    }
+    async deleteAsset(tenantId, id) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, id), (0, drizzle_orm_1.eq)(masterData_js_1.assets.assetCode, id))
+            : (0, drizzle_orm_1.eq)(masterData_js_1.assets.assetCode, id);
+        let existing = await database_js_1.db.select().from(masterData_js_1.assets).where(condition);
+        if (!existing[0]) {
+            const fallback = await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(masterData_js_1.assets.assetCode, id), (0, drizzle_orm_1.ilike)(masterData_js_1.assets.name, id)));
+            if (!fallback[0]) {
+                throw new AppError_js_1.NotFoundError(`Asset not found: ${id}`);
+            }
+            existing = fallback;
+        }
+        const target = existing[0];
+        await database_js_1.db.delete(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, target.id));
+        return {
+            success: true,
+            id: target.assetCode,
+            dbId: target.id,
+            message: `Asset ${target.assetCode} (${target.name}) deleted successfully`,
+        };
     }
     async listStaff(tenantId, plantId) {
         try {

@@ -8,7 +8,6 @@ const tenants_js_1 = require("../../db/schema/tenants.js");
 const warehouse_js_1 = require("../../db/schema/warehouse.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const forecastEngine_js_1 = require("../../shared/engines/forecastEngine.js");
-const mrpEngine_js_1 = require("../../shared/engines/mrpEngine.js");
 const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 let serviceRisksList = [
     {
@@ -201,44 +200,7 @@ let materialReservationsStore = [
     }
 ];
 // Outbound shipments state
-let outboundShipments = [
-    {
-        id: "SH-9002",
-        orderRef: "PO-WF-88901",
-        destination: "Whole Foods Market - Chicago Distribution Hub",
-        carrier: "Swift Dedicated Logistics",
-        mode: "Reefer FTL (53ft)",
-        pallets: 26,
-        units: "48,000 Bottles",
-        scheduledDate: "2026-09-08",
-        dockDoor: "Door 04 (Cold Chain)",
-        status: "Booked"
-    },
-    {
-        id: "SH-9003",
-        orderRef: "PO-TJ-55412",
-        destination: "Trader Joe's - Dallas Cross-Dock",
-        carrier: "C.H. Robinson Cold Fleet",
-        mode: "Reefer FTL",
-        pallets: 20,
-        units: "36,000 Cans",
-        scheduledDate: "2026-09-12",
-        dockDoor: "Door 02",
-        status: "Pending Dispatch"
-    },
-    {
-        id: "SH-9004",
-        orderRef: "PO-KR-99321",
-        destination: "Kroger Distribution - Atlanta",
-        carrier: "Schneider Express",
-        mode: "FTL Carrier",
-        pallets: 14,
-        units: "24,000 Bottles",
-        scheduledDate: "2026-09-15",
-        dockDoor: "Door 06",
-        status: "Staged"
-    }
-];
+let outboundShipments = [];
 // Historical Demand state
 let demandHistory = [
     {
@@ -359,6 +321,27 @@ class PlanningService {
     }
     mapOrderRow(row, skuMap) {
         const sku = skuMap.get(row.skuId);
+        const rawStatus = (row.status || "Open").toString().trim();
+        let status = "Open";
+        const upperSt = rawStatus.toUpperCase();
+        if (upperSt === "OPEN")
+            status = "Open";
+        else if (upperSt === "ALLOCATED")
+            status = "Allocated";
+        else if (upperSt === "SCHEDULED")
+            status = "Scheduled";
+        else if (upperSt === "IN_PRODUCTION" || upperSt === "IN PRODUCTION")
+            status = "In Production";
+        else if (upperSt === "FULFILLED")
+            status = "Fulfilled";
+        else if (upperSt === "CANCELLED" || upperSt === "CANCELED")
+            status = "Cancelled";
+        else if (upperSt === "CONFIRMED")
+            status = "Open";
+        else
+            status = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+        const rawPriority = (row.priority || "Normal").toString().trim();
+        const priority = rawPriority ? (rawPriority.charAt(0).toUpperCase() + rawPriority.slice(1).toLowerCase()) : "Normal";
         return {
             id: row.id,
             orderNumber: row.orderNumber,
@@ -370,9 +353,9 @@ class PlanningService {
             quantity: Number(row.quantity),
             uom: sku?.uom || "Bottles",
             requestedShipDate: row.requestedDate ? new Date(row.requestedDate).toISOString().substring(0, 10) : "2026-09-08",
-            priority: row.priority || "Normal",
+            priority: priority,
             plantId: row.plantId,
-            status: row.status || "Open",
+            status: status,
             notes: row.deliveryAddress || "",
             deliveryAddress: row.deliveryAddress || "",
             createdDate: row.createdAt ? new Date(row.createdAt).toISOString().substring(0, 10) : "2026-08-28"
@@ -385,61 +368,6 @@ class PlanningService {
         let orders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
         const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
         const skuMap = new Map(allSkus.map(s => [s.id, s]));
-        if (orders.length === 0) {
-            const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
-            const defaultSku = await this.resolveSkuId(tenantId);
-            const seedData = [
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    orderNumber: "PO-WF-88901",
-                    customerName: "Whole Foods Market (National)",
-                    skuId: defaultSku.id,
-                    quantity: "48000.00",
-                    priority: "High",
-                    requestedDate: new Date("2026-09-08"),
-                    status: "Allocated",
-                    deliveryAddress: "Q3 Promotional Feature endcap stocking requirement.",
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    orderNumber: "PO-TJ-55412",
-                    customerName: "Trader Joe's Distribution",
-                    skuId: defaultSku.id,
-                    quantity: "36000.00",
-                    priority: "Normal",
-                    requestedDate: new Date("2026-09-12"),
-                    status: "Open",
-                    deliveryAddress: "Standard weekly replenishment contract.",
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    orderNumber: "PO-KR-99321",
-                    customerName: "Kroger Mid-Atlantic",
-                    skuId: defaultSku.id,
-                    quantity: "24000.00",
-                    priority: "Urgent",
-                    requestedDate: new Date("2026-09-15"),
-                    status: "Open",
-                    deliveryAddress: "Expedited regional restock. Pallet shrink-wrap double layer.",
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    orderNumber: "PO-TGT-12490",
-                    customerName: "Target Retail Supply",
-                    skuId: defaultSku.id,
-                    quantity: "30000.00",
-                    priority: "Normal",
-                    requestedDate: new Date("2026-09-18"),
-                    status: "Allocated",
-                    deliveryAddress: "Scheduled against Line 1 batch BAT-2026-0892.",
-                }
-            ];
-            orders = await database_js_1.db.insert(planning_js_1.customerOrders).values(seedData).returning();
-        }
         return orders.map(o => this.mapOrderRow(o, skuMap));
     }
     async createCustomerOrder(tenantId, plantId, input) {
@@ -531,73 +459,6 @@ class PlanningService {
         let fcRows = await database_js_1.db.select().from(planning_js_1.forecasts).where((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId));
         const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
         const skuMap = new Map(allSkus.map(s => [s.id, s]));
-        if (fcRows.length === 0) {
-            const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
-            const defaultSku = await this.resolveSkuId(tenantId);
-            const seedForecasts = [
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    skuId: defaultSku.id,
-                    period: "2026-W36 (Sep 1 - Sep 7)",
-                    baselineDemand: "50000.00",
-                    promoUplift: "5000.00",
-                    overrideQuantity: "5000.00",
-                    finalForecast: "55000.00",
-                    mapeAccuracy: "97.50",
-                    modelType: "Historical Average + Promo Uplift"
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    skuId: defaultSku.id,
-                    period: "2026-W37 (Sep 8 - Sep 14)",
-                    baselineDemand: "24000.00",
-                    promoUplift: "0.00",
-                    overrideQuantity: "0.00",
-                    finalForecast: "24000.00",
-                    mapeAccuracy: "98.10",
-                    modelType: "Moving Average (4-Week)"
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    skuId: defaultSku.id,
-                    period: "2026-W38 (Sep 15 - Sep 21)",
-                    baselineDemand: "35000.00",
-                    promoUplift: "4000.00",
-                    overrideQuantity: "4000.00",
-                    finalForecast: "39000.00",
-                    mapeAccuracy: "94.70",
-                    modelType: "Trend Analysis"
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    skuId: defaultSku.id,
-                    period: "2026-W39 (Sep 22 - Sep 28)",
-                    baselineDemand: "42000.00",
-                    promoUplift: "0.00",
-                    overrideQuantity: "0.00",
-                    finalForecast: "42000.00",
-                    mapeAccuracy: "96.40",
-                    modelType: "Moving Average (4-Week)"
-                },
-                {
-                    tenantId,
-                    plantId: resolvedPlant,
-                    skuId: defaultSku.id,
-                    period: "2026-W40 (Sep 29 - Oct 5)",
-                    baselineDemand: "60000.00",
-                    promoUplift: "6000.00",
-                    overrideQuantity: "6000.00",
-                    finalForecast: "66000.00",
-                    mapeAccuracy: "95.20",
-                    modelType: "Moving Average (4-Week)"
-                }
-            ];
-            fcRows = await database_js_1.db.insert(planning_js_1.forecasts).values(seedForecasts).returning();
-        }
         return fcRows.map(f => {
             const sku = skuMap.get(f.skuId);
             return {
@@ -614,9 +475,10 @@ class PlanningService {
                 method: f.modelType || "Holt-Winters Seasonal",
                 modelType: f.modelType || "Moving Average (4-Week)",
                 mapeAccuracy: f.mapeAccuracy ? Number(f.mapeAccuracy) : 96.5,
-                reason: Number(f.overrideQuantity || 0) > 0 ? "Retailer promotion uplift expected" : "System baseline unadjusted",
-                owner: "Elena Vance (Lead Planner)",
-                status: "Approved",
+                reason: f.reason || (Number(f.overrideQuantity || 0) > 0 ? "Retailer promotion uplift expected" : "System baseline unadjusted"),
+                justification: f.reason || "",
+                owner: f.owner || "Elena Rostova",
+                status: f.status || "Submitted",
                 updatedAt: f.createdAt ? f.createdAt.toISOString() : new Date().toISOString()
             };
         });
@@ -624,9 +486,9 @@ class PlanningService {
     async createForecast(tenantId, plantId, input) {
         const resolvedPlant = await this.resolvePlantId(tenantId, input.plantId || plantId);
         const resolvedSku = await this.resolveSkuId(tenantId, input.skuId || input.productCode);
-        const base = Number(input.baselineDemand || input.baselineForecast || 40000);
-        const override = Number(input.overrideQuantity || 0);
-        const finalVal = override > 0 ? override : base;
+        const base = Number(input.baselineDemand ?? input.baselineForecast ?? 0);
+        const override = Number(input.overrideQuantity ?? 0);
+        const finalVal = input.finalForecast !== undefined ? Number(input.finalForecast) : (base + override);
         const [fc] = await database_js_1.db
             .insert(planning_js_1.forecasts)
             .values({
@@ -639,6 +501,9 @@ class PlanningService {
             finalForecast: finalVal.toString(),
             modelType: input.method || input.modelType || "Moving Average (4-Week)",
             mapeAccuracy: "96.50",
+            owner: input.owner || "Elena Rostova",
+            reason: input.reason || input.justification || "",
+            status: input.status || "Submitted",
         })
             .returning();
         return {
@@ -655,9 +520,10 @@ class PlanningService {
             method: fc.modelType,
             modelType: fc.modelType,
             mapeAccuracy: 96.5,
-            reason: input.reason || "Planner revision",
-            owner: input.owner || "Current User",
-            status: input.status || "Submitted",
+            reason: fc.reason || input.reason || input.justification || "",
+            justification: fc.reason || input.justification || input.reason || "",
+            owner: fc.owner || input.owner || "Elena Rostova",
+            status: fc.status || input.status || "Submitted",
             updatedAt: fc.createdAt ? fc.createdAt.toISOString() : new Date().toISOString()
         };
     }
@@ -673,8 +539,17 @@ class PlanningService {
         if (input.finalForecast !== undefined) {
             updateValues.finalForecast = input.finalForecast.toString();
         }
-        if (input.method || input.reason) {
-            updateValues.modelType = input.method || input.reason;
+        if (input.method || input.reason || input.justification) {
+            updateValues.modelType = input.method || input.reason || input.justification;
+        }
+        if (input.owner !== undefined) {
+            updateValues.owner = input.owner;
+        }
+        if (input.reason !== undefined || input.justification !== undefined) {
+            updateValues.reason = input.reason || input.justification;
+        }
+        if (input.status !== undefined) {
+            updateValues.status = input.status;
         }
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
         if (isUuid) {
@@ -691,9 +566,10 @@ class PlanningService {
                     baselineDemand: Number(updated.baselineDemand),
                     overrideQuantity: Number(updated.overrideQuantity || 0),
                     finalForecast: Number(updated.finalForecast),
-                    reason: input.reason || "Manual Override updated",
-                    owner: input.owner || "Elena Vance",
-                    status: input.status || "Approved"
+                    reason: updated.reason || input.reason || input.justification || "Manual Override updated",
+                    justification: updated.reason || input.justification || input.reason || "",
+                    owner: updated.owner || input.owner || "Elena Rostova",
+                    status: updated.status || input.status || "Submitted"
                 };
             }
         }
@@ -701,9 +577,10 @@ class PlanningService {
     }
     async deleteForecast(tenantId, id) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-        if (isUuid) {
-            await database_js_1.db.delete(planning_js_1.forecasts).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.forecasts.id, id)));
-        }
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.forecasts.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.forecasts.period, id));
+        await database_js_1.db.delete(planning_js_1.forecasts).where(condition);
         return { success: true, id };
     }
     // ============================================================
@@ -718,13 +595,13 @@ class PlanningService {
     async listPromotions(tenantId, plantId) {
         try {
             const dbCampaigns = await this.listPromotionCampaigns(tenantId, plantId);
-            if (dbCampaigns && dbCampaigns.length > 0)
+            if (dbCampaigns)
                 return dbCampaigns;
         }
         catch (e) {
             console.warn("DB listPromotionCampaigns fallback:", e);
         }
-        return promotionsList;
+        return [];
     }
     async createPromotion(tenantId, input) {
         try {
@@ -761,6 +638,34 @@ class PlanningService {
         return newPromo;
     }
     async updatePromotion(tenantId, id, input) {
+        try {
+            const updated = await this.updatePromotionCampaign(tenantId, id, {
+                ...input,
+                name: input.name || input.title,
+            });
+            if (updated) {
+                const startStr = updated.startDate ? new Date(updated.startDate).toISOString().slice(0, 10) : "";
+                const endStr = updated.endDate ? new Date(updated.endDate).toISOString().slice(0, 10) : "";
+                const duration = startStr && endStr ? `${startStr} to ${endStr}` : "Active Horizon";
+                return {
+                    id: updated.id,
+                    name: updated.name,
+                    title: updated.name,
+                    skuId: updated.skuId,
+                    upliftPercent: Number(updated.upliftPercent) || 0,
+                    incrementalUnits: Number(updated.incrementalUnits) || 0,
+                    startDate: updated.startDate,
+                    endDate: updated.endDate,
+                    duration,
+                    channel: updated.channel || "Wholesale Club Flyer",
+                    status: updated.status ? (updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase()) : "Scheduled",
+                    createdAt: updated.createdAt,
+                };
+            }
+        }
+        catch (e) {
+            console.warn("DB updatePromotion fallback:", e);
+        }
         promotionsList = promotionsList.map(p => (p.id === id ? { ...p, ...input } : p));
         const found = promotionsList.find(p => p.id === id);
         return found || { id, ...input };
@@ -864,8 +769,9 @@ class PlanningService {
         if (!(0, tenantContext_js_1.isValidUuid)(id))
             return null;
         const updateValues = { updatedAt: new Date() };
-        if (input.name)
-            updateValues.name = input.name;
+        const promoName = input.name || input.title;
+        if (promoName)
+            updateValues.name = promoName;
         if (input.upliftPercent !== undefined) {
             updateValues.upliftPercent = input.upliftPercent.toString();
             if (input.incrementalUnits !== undefined) {
@@ -920,32 +826,129 @@ class PlanningService {
             .delete(planning_js_1.promotionCampaigns)
             .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.promotionCampaigns.id, id)));
     }
+    mapShipmentRow(row) {
+        const meta = (row.shippedLots && typeof row.shippedLots === "object") ? row.shippedLots : {};
+        const rawStatus = (row.status || "Booked").toString().toUpperCase();
+        let uiStatus = "Booked";
+        if (rawStatus.includes("DISPATCH"))
+            uiStatus = "Dispatched";
+        else if (rawStatus.includes("PENDING"))
+            uiStatus = "Pending Dispatch";
+        else if (rawStatus.includes("STAGE"))
+            uiStatus = "Staged";
+        else if (rawStatus.includes("DELIVER"))
+            uiStatus = "Delivered";
+        else
+            uiStatus = "Booked";
+        return {
+            id: row.id,
+            shipmentNumber: row.shipmentNumber,
+            orderRef: meta.orderRef || row.trackingNumber || row.shipmentNumber,
+            customer: row.customerName,
+            customerName: row.customerName,
+            destination: meta.destination || (meta.orderRef ? `${row.customerName} (Ref: ${meta.orderRef})` : `${row.customerName} - Regional Distribution Hub`),
+            carrier: row.carrier || "Schneider National Express",
+            mode: meta.mode || "Standard Dry Van (53ft)",
+            pallets: Number(meta.pallets) || 12,
+            units: meta.units || "12,000 Units",
+            scheduledDate: row.dispatchDate ? new Date(row.dispatchDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+            dockDoor: meta.dockDoor || "Door 01",
+            status: uiStatus,
+            trackingNumber: row.trackingNumber || row.shipmentNumber,
+            orderId: meta.orderId
+        };
+    }
     // ============================================================
     // 4. SHIPMENTS
     // ============================================================
     async listShipments(tenantId, plantId) {
-        return outboundShipments;
+        let rows = await database_js_1.db.select().from(warehouse_js_1.shipmentOrders).where((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.tenantId, tenantId));
+        if (rows.length === 0) {
+            // Sync from real customer orders in DB so shipment_orders table is populated with live data
+            const currentOrders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
+            if (currentOrders.length > 0) {
+                const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
+                const initialShipments = currentOrders.map((o, idx) => {
+                    const qty = Number(o.quantity) || 1000;
+                    const pallets = Math.max(1, Math.ceil(qty / 1000));
+                    const carrier = (o.priority || "").toUpperCase().includes("URGENT")
+                        ? "Swift Dedicated Logistics (Priority FTL)"
+                        : (o.priority || "").toUpperCase().includes("HIGH")
+                            ? "C.H. Robinson Cold Fleet"
+                            : "Schneider National Express";
+                    const status = (o.status || "").toUpperCase().includes("FULFILL") || (o.status || "").toUpperCase().includes("DISPATCH")
+                        ? "DISPATCHED"
+                        : (o.status || "").toUpperCase().includes("SCHEDULE") || (o.status || "").toUpperCase().includes("STAGE")
+                            ? "STAGED"
+                            : "PENDING_DISPATCH";
+                    const cleanRef = (o.orderNumber || `ORD${idx}`).replace(/[^a-zA-Z0-9]/g, "");
+                    return {
+                        tenantId,
+                        plantId: o.plantId || resolvedPlant,
+                        shipmentNumber: `SH-${cleanRef}`,
+                        customerName: o.customerName || "Valued Customer",
+                        carrier,
+                        trackingNumber: `TRK-${cleanRef}`,
+                        status,
+                        dispatchDate: o.requestedDate || new Date(),
+                        shippedLots: {
+                            orderId: o.id,
+                            orderRef: o.orderNumber,
+                            pallets,
+                            units: `${qty.toLocaleString()} Units`,
+                            dockDoor: `Door 0${(idx % 4) + 1}${idx % 2 === 0 ? " (Cold Chain)" : ""}`,
+                            mode: (o.deliveryAddress || "").toLowerCase().includes("reefer") ? "Reefer FTL (53ft)" : "Standard Dry Van (53ft)",
+                            destination: o.deliveryAddress ? `${o.customerName} (${o.deliveryAddress})` : `${o.customerName} - Regional Distribution Hub`
+                        }
+                    };
+                });
+                rows = await database_js_1.db.insert(warehouse_js_1.shipmentOrders).values(initialShipments).returning();
+            }
+        }
+        return rows.map(r => this.mapShipmentRow(r));
     }
     async createShipment(tenantId, input) {
-        const newShipment = {
-            id: `SH-${Math.floor(1000 + Math.random() * 9000)}`,
-            orderRef: input.orderRef || `PO-ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-            destination: input.destination,
-            carrier: input.carrier || "Dedicated Logistics Fleet",
-            mode: input.mode || "Reefer FTL (53ft)",
-            pallets: Number(input.pallets) || 20,
-            units: input.units || "24,000 Units",
-            scheduledDate: input.scheduledDate || new Date().toISOString().substring(0, 10),
-            dockDoor: input.dockDoor || "Door 01",
-            status: input.status || "Booked",
-        };
-        outboundShipments = [newShipment, ...outboundShipments];
-        return newShipment;
+        const resolvedPlant = await this.resolvePlantId(tenantId, input.plantId);
+        const shipNum = input.shipmentNumber || input.id || `SHIP-${Math.floor(10000 + Math.random() * 90000)}`;
+        const custName = input.customer || input.customerName || input.destination || "Commercial Freight Client";
+        const carrier = input.carrier || "Swift Dedicated Logistics";
+        const status = (input.status || "BOOKED").toUpperCase().replace(/\s+/g, "_");
+        const dispatchDate = input.scheduledDate ? new Date(input.scheduledDate) : new Date();
+        const [created] = await database_js_1.db
+            .insert(warehouse_js_1.shipmentOrders)
+            .values({
+            tenantId,
+            plantId: resolvedPlant,
+            shipmentNumber: shipNum,
+            customerName: custName,
+            carrier,
+            trackingNumber: input.trackingNumber || `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
+            status,
+            dispatchDate,
+            shippedLots: {
+                orderRef: input.orderRef || shipNum,
+                pallets: Number(input.pallets) || 20,
+                units: input.units || "24,000 Units",
+                dockDoor: input.dockDoor || "Door 01",
+                mode: input.mode || "Reefer FTL (53ft)",
+                destination: input.destination || custName
+            }
+        })
+            .returning();
+        return this.mapShipmentRow(created);
     }
     async updateShipmentStatus(tenantId, id, nextStatus) {
-        outboundShipments = outboundShipments.map(s => (s.id === id ? { ...s, status: nextStatus } : s));
-        const found = outboundShipments.find(s => s.id === id);
-        return found || { id, status: nextStatus };
+        const cleanStatus = nextStatus.toUpperCase().replace(/\s+/g, "_");
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.id, id))
+            : (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.shipmentNumber, id));
+        const [updated] = await database_js_1.db
+            .update(warehouse_js_1.shipmentOrders)
+            .set({ status: cleanStatus })
+            .where(condition)
+            .returning();
+        return updated ? this.mapShipmentRow(updated) : { id, status: nextStatus };
     }
     // ============================================================
     // 5. STATISTICAL FORECAST ENGINE & APS & MRP
@@ -1235,37 +1238,195 @@ class PlanningService {
         return newRule;
     }
     async runMrpExplosion(tenantId, plantId) {
-        const orders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
+        const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
+        // 1. Fetch existing requirements from PostgreSQL database
+        let rows = await database_js_1.db
+            .select({
+            id: planning_js_1.mrpRequirements.id,
+            tenantId: planning_js_1.mrpRequirements.tenantId,
+            plantId: planning_js_1.mrpRequirements.plantId,
+            skuId: planning_js_1.mrpRequirements.skuId,
+            materialName: planning_js_1.mrpRequirements.materialName,
+            skuCode: planning_js_1.mrpRequirements.skuCode,
+            category: planning_js_1.mrpRequirements.category,
+            uom: planning_js_1.mrpRequirements.uom,
+            grossRequirement: planning_js_1.mrpRequirements.grossRequirement,
+            safetyStock: planning_js_1.mrpRequirements.safetyStock,
+            availableStock: planning_js_1.mrpRequirements.availableStock,
+            reservedStock: planning_js_1.mrpRequirements.reservedStock,
+            scheduledReceipts: planning_js_1.mrpRequirements.scheduledReceipts,
+            netShortage: planning_js_1.mrpRequirements.netShortage,
+            requiredDate: planning_js_1.mrpRequirements.requiredDate,
+            status: planning_js_1.mrpRequirements.status,
+            suggestedAction: planning_js_1.mrpRequirements.suggestedAction,
+            calculatedAt: planning_js_1.mrpRequirements.calculatedAt,
+            dbSkuName: masterData_js_1.skus.name,
+            dbSkuCode: masterData_js_1.skus.skuCode,
+            dbCategory: masterData_js_1.skus.category,
+            dbUom: masterData_js_1.skus.uom,
+        })
+            .from(planning_js_1.mrpRequirements)
+            .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.skuId, masterData_js_1.skus.id))
+            .where((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId))
+            .orderBy((0, drizzle_orm_1.sql) `${planning_js_1.mrpRequirements.calculatedAt} DESC`);
+        return rows.map((r) => {
+            const gross = Number(r.grossRequirement) || 0;
+            const safety = Number(r.safetyStock) || 1000;
+            const available = Number(r.availableStock) || 0;
+            const allocated = Number(r.reservedStock) || 0;
+            const inbound = Number(r.scheduledReceipts) || 0;
+            const effective = available - allocated + inbound;
+            const net = Math.max(0, (gross + safety) - effective);
+            const shortage = Number(r.netShortage) !== undefined ? Number(r.netShortage) : net;
+            const risk = shortage > 8000 ? "CRITICAL" : shortage > 0 ? "HIGH" : "LOW";
+            const name = r.materialName || r.dbSkuName || "BOM Component";
+            const skuCode = r.skuCode || r.dbSkuCode || "SKU-RM";
+            const uom = r.uom || r.dbUom || "Units";
+            const category = r.category || r.dbCategory || "RAW_MATERIAL";
+            const suggested = r.suggestedAction || (shortage > 0 ? `Raise Expedited Purchase Order for ${shortage.toLocaleString()} ${uom}` : "Safety Stock Buffer Sufficient");
+            return {
+                id: r.id,
+                skuId: r.skuId,
+                name,
+                materialName: name,
+                skuCode,
+                category,
+                uom,
+                grossRequirement: gross,
+                grossDemand: gross,
+                safetyStock: safety,
+                safetyBuffer: safety,
+                availableInventory: available,
+                availableStock: available,
+                allocatedInventory: allocated,
+                reservedStock: allocated,
+                inboundSupply: inbound,
+                scheduledReceipts: inbound,
+                netRequirement: net,
+                shortage,
+                netShortage: shortage,
+                status: r.status || (shortage > 0 ? "SHORTAGE_ALERT" : "COVERED"),
+                riskLevel: risk,
+                suggestedAction: suggested,
+                requiredDate: r.requiredDate ? new Date(r.requiredDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+                calculatedAt: r.calculatedAt,
+            };
+        });
+    }
+    async getMrpRequirementById(tenantId, id) {
+        const isUuid = (0, tenantContext_js_1.isValidUuid)(id);
+        const condition = isUuid
+            ? (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.id, id))
+            : (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId);
+        const [found] = await database_js_1.db.select().from(planning_js_1.mrpRequirements).where(condition).limit(1);
+        return found || null;
+    }
+    async updateMrpRequirement(tenantId, id, input) {
+        if (!(0, tenantContext_js_1.isValidUuid)(id))
+            return null;
+        const updateValues = { calculatedAt: new Date() };
+        if (input.grossRequirement !== undefined || input.grossDemand !== undefined) {
+            updateValues.grossRequirement = (input.grossRequirement ?? input.grossDemand).toString();
+        }
+        if (input.safetyStock !== undefined || input.safetyBuffer !== undefined) {
+            updateValues.safetyStock = (input.safetyStock ?? input.safetyBuffer).toString();
+        }
+        if (input.availableStock !== undefined || input.availableInventory !== undefined) {
+            updateValues.availableStock = (input.availableStock ?? input.availableInventory).toString();
+        }
+        if (input.reservedStock !== undefined || input.allocatedInventory !== undefined) {
+            updateValues.reservedStock = (input.reservedStock ?? input.allocatedInventory).toString();
+        }
+        if (input.scheduledReceipts !== undefined || input.inboundSupply !== undefined) {
+            updateValues.scheduledReceipts = (input.scheduledReceipts ?? input.inboundSupply).toString();
+        }
+        if (input.netShortage !== undefined || input.shortage !== undefined || input.netRequirement !== undefined) {
+            updateValues.netShortage = (input.netShortage ?? input.shortage ?? input.netRequirement).toString();
+        }
+        if (input.status || input.riskLevel) {
+            updateValues.status = (input.status || input.riskLevel).toString().toUpperCase();
+        }
+        if (input.suggestedAction) {
+            updateValues.suggestedAction = input.suggestedAction;
+        }
+        if (input.materialName || input.name) {
+            updateValues.materialName = input.materialName || input.name;
+        }
+        if (input.category) {
+            updateValues.category = input.category;
+        }
+        const [updated] = await database_js_1.db
+            .update(planning_js_1.mrpRequirements)
+            .set(updateValues)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.id, id)))
+            .returning();
+        return updated;
+    }
+    async deleteMrpRequirement(tenantId, id) {
+        const isUuid = (0, tenantContext_js_1.isValidUuid)(id);
+        if (isUuid) {
+            await database_js_1.db
+                .delete(planning_js_1.mrpRequirements)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId), (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.id, id)));
+        }
+        else {
+            await database_js_1.db
+                .delete(planning_js_1.mrpRequirements)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.skuCode, id), (0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.skuId, id))));
+        }
+        return { success: true, id };
+    }
+    async generateMrpBaselineRequirements(tenantId, plantId) {
+        const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
         const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
-        const mrpResults = [];
+        const orders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
+        // Clear existing to avoid duplicate accumulation
+        await database_js_1.db.delete(planning_js_1.mrpRequirements).where((0, drizzle_orm_1.eq)(planning_js_1.mrpRequirements.tenantId, tenantId));
+        const initialInserts = [];
+        const requiredDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const seenCodes = new Set();
         for (const sku of allSkus) {
+            if (!sku.skuCode || seenCodes.has(sku.skuCode))
+                continue;
+            seenCodes.add(sku.skuCode);
             const demandTotal = orders
                 .filter((o) => o.skuId === sku.id)
                 .reduce((sum, o) => sum + Number(o.quantity), 0);
-            const lots = await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.skuId, sku.id)));
-            const availableStock = lots.reduce((sum, l) => sum + Number(l.currentQuantity), 0);
-            const reservedStock = lots.reduce((sum, l) => sum + Number(l.reservedQuantity), 0);
-            const customSafety = safetyStockPoliciesStore[sku.skuCode] || Number(sku.minStockLevel) || 1000;
-            const mrpCalc = (0, mrpEngine_js_1.calculateNetRequirements)({
-                demand: demandTotal || 5000,
-                availableStock: availableStock || 2500,
-                reservedStock: reservedStock || 500,
-                scheduledReceipts: 0,
-                safetyStock: customSafety,
-            });
-            mrpResults.push({
+            const gross = demandTotal > 0 ? demandTotal : 3500;
+            const safety = sku.uom === "Kg" ? 500 : sku.uom === "Liters" ? 3000 : 15000;
+            const available = sku.skuCode?.includes("PKG") ? 14000 : sku.skuCode?.includes("ING") ? 850 : 22000;
+            const allocated = 0;
+            const inbound = sku.skuCode?.includes("PKG") ? 5000 : 8000;
+            const effective = available - allocated + inbound;
+            const netNeed = Math.max(0, (gross + safety) - effective);
+            const shortage = netNeed;
+            const risk = shortage > 8000 ? "CRITICAL" : shortage > 0 ? "HIGH" : "LOW";
+            const suggested = shortage > 0
+                ? `Raise Expedited Purchase Order for ${shortage.toLocaleString()} ${sku.uom || "Units"}`
+                : "Safety Stock Buffer Sufficient";
+            initialInserts.push({
+                tenantId,
+                plantId: resolvedPlant,
                 skuId: sku.id,
+                materialName: sku.name,
                 skuCode: sku.skuCode,
-                skuName: sku.name,
-                category: sku.category,
-                grossDemand: demandTotal || 5000,
-                availableStock: availableStock || 2500,
-                netShortage: mrpCalc.netRequirement,
-                status: mrpCalc.hasShortage ? "CRITICAL_SHORTAGE" : "COVERED",
-                recommendedRequisitionQty: mrpCalc.plannedOrderQuantity,
+                category: sku.category || "RAW_MATERIAL",
+                uom: sku.uom || "Units",
+                grossRequirement: gross.toString(),
+                safetyStock: safety.toString(),
+                availableStock: available.toString(),
+                reservedStock: allocated.toString(),
+                scheduledReceipts: inbound.toString(),
+                netShortage: shortage.toString(),
+                requiredDate,
+                status: risk === "LOW" ? "COVERED" : risk,
+                suggestedAction: suggested,
             });
         }
-        return mrpResults;
+        if (initialInserts.length > 0) {
+            await database_js_1.db.insert(planning_js_1.mrpRequirements).values(initialInserts);
+        }
+        return this.runMrpExplosion(tenantId, plantId);
     }
     // ============================================================
     // 6. MRP ENGINE & MULTI-LEVEL BOM EXPLOSION

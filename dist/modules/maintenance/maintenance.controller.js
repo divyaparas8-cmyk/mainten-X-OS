@@ -56,6 +56,14 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.updateWorkOrderStatus(request.user.tenantId, request.params.id, input);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Work Order status updated to ${input.status}`));
     }
+    async updateWorkOrder(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.updateWorkOrder(request.user.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Work Order ${request.params.id} updated successfully`));
+    }
+    async deleteWorkOrder(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.deleteWorkOrder(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Work Order ${request.params.id} deleted successfully`));
+    }
     async getPMSchedules(request, reply) {
         const data = await maintenance_service_js_1.maintenanceService.listPMSchedules(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -66,12 +74,24 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.createPMSchedule(request.user.tenantId, plantId, body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "PM Schedule created successfully"));
     }
+    async updatePMSchedule(request, reply) {
+        const { id } = request.params;
+        const data = await maintenance_service_js_1.maintenanceService.updatePMSchedule(request.user.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "PM Schedule updated successfully"));
+    }
+    async deletePMSchedule(request, reply) {
+        const { id } = request.params;
+        const data = await maintenance_service_js_1.maintenanceService.deletePMSchedule(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "PM Schedule deleted successfully"));
+    }
     async executePMChecklist(request, reply) {
-        const data = await maintenance_service_js_1.maintenanceService.executePMChecklist(request.user.tenantId, request.body);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.executePMChecklist(request.user.tenantId, plantId, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "PM Checklist executed & signed off successfully"));
     }
     async savePMChecklistDraft(request, reply) {
-        const data = await maintenance_service_js_1.maintenanceService.savePMChecklistDraft(request.user.tenantId, request.body);
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await maintenance_service_js_1.maintenanceService.savePMChecklistDraft(request.user.tenantId, plantId, request.body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "PM Checklist draft saved successfully"));
     }
     async getPM(request, reply) {

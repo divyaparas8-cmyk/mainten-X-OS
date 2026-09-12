@@ -23,8 +23,20 @@ export declare class MaintenanceController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    updateWorkOrder(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteWorkOrder(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getPMSchedules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createPMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updatePMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deletePMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     executePMChecklist(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     savePMChecklistDraft(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getPM(request: FastifyRequest, reply: FastifyReply): Promise<never>;

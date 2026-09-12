@@ -1,4 +1,4 @@
-import { CreateCustomerOrderInput, UpdateCustomerOrderInput, CreateForecastInput, UpdateForecastInput, RunForecastInput, CreatePromotionInput, UpdatePromotionInput, CreateApsScheduleInput, CreatePromotionCampaignInput, RescheduleApsScheduleInput, SplitApsScheduleInput, OptimizeApsScheduleInput, RunMrpEngineInput, CreatePurchaseRequisitionInput, ExpediteShortageInput, UpdateSafetyStockPolicyInput, MitigateServiceRiskInput, CreateScheduleVersionInput, ValidateScheduleInput, PublishScheduleInput } from "./planning.schema.js";
+import { CreateCustomerOrderInput, UpdateCustomerOrderInput, CreateForecastInput, UpdateForecastInput, RunForecastInput, CreatePromotionInput, CreateApsScheduleInput, CreatePromotionCampaignInput, RescheduleApsScheduleInput, SplitApsScheduleInput, OptimizeApsScheduleInput, RunMrpEngineInput, CreatePurchaseRequisitionInput, ExpediteShortageInput, UpdateSafetyStockPolicyInput, MitigateServiceRiskInput, CreateScheduleVersionInput, ValidateScheduleInput, PublishScheduleInput } from "./planning.schema.js";
 interface ServiceRiskRecord {
     id: string;
     customer: string;
@@ -30,7 +30,7 @@ export declare class PlanningService {
         requestedShipDate: string;
         priority: any;
         plantId: any;
-        status: any;
+        status: string;
         notes: any;
         deliveryAddress: any;
         createdDate: string;
@@ -48,7 +48,7 @@ export declare class PlanningService {
         requestedShipDate: string;
         priority: any;
         plantId: any;
-        status: any;
+        status: string;
         notes: any;
         deliveryAddress: any;
         createdDate: string;
@@ -66,7 +66,7 @@ export declare class PlanningService {
         requestedShipDate: string;
         priority: any;
         plantId: any;
-        status: any;
+        status: string;
         notes: any;
         deliveryAddress: any;
         createdDate: string;
@@ -107,6 +107,7 @@ export declare class PlanningService {
         modelType: string;
         mapeAccuracy: number;
         reason: string;
+        justification: string;
         owner: string;
         status: string;
         updatedAt: string;
@@ -126,6 +127,7 @@ export declare class PlanningService {
         modelType: string | null;
         mapeAccuracy: number;
         reason: string;
+        justification: string;
         owner: string;
         status: string;
         updatedAt: string;
@@ -138,9 +140,10 @@ export declare class PlanningService {
         baselineDemand?: number | undefined;
         overrideQuantity?: number | undefined;
         finalForecast?: number | undefined;
-        reason?: string | undefined;
         owner?: string | undefined;
+        reason?: string | undefined;
         baselineForecast?: number | undefined;
+        justification?: string | undefined;
         id: string;
     }>;
     deleteForecast(tenantId: string, id: string): Promise<{
@@ -161,18 +164,6 @@ export declare class PlanningService {
         otifCompliance: string;
     }[]>;
     listPromotions(tenantId: string, plantId?: string): Promise<{
-        id: string;
-        title: string;
-        skuId: string;
-        productCode: string;
-        productName: string;
-        upliftPercent: number;
-        projectedUnits: number;
-        startDate: string;
-        endDate: string;
-        channel: string;
-        status: string;
-    }[] | {
         id: string;
         name: string;
         skuId: string;
@@ -214,25 +205,7 @@ export declare class PlanningService {
         channel: string;
         status: string;
     }>;
-    updatePromotion(tenantId: string, id: string, input: UpdatePromotionInput): Promise<{
-        id: string;
-        title: string;
-        skuId: string;
-        productCode: string;
-        productName: string;
-        upliftPercent: number;
-        projectedUnits: number;
-        startDate: string;
-        endDate: string;
-        channel: string;
-        status: string;
-    } | {
-        status?: string | undefined;
-        title?: string | undefined;
-        upliftPercent?: number | undefined;
-        projectedUnits?: number | undefined;
-        id: string;
-    }>;
+    updatePromotion(tenantId: string, id: string, input: any): Promise<any>;
     listPromotionCampaigns(tenantId: string, plantId?: string): Promise<{
         id: string;
         name: string;
@@ -263,7 +236,10 @@ export declare class PlanningService {
         endDate: Date;
         channel: string | null;
     }>;
-    updatePromotionCampaign(tenantId: string, id: string, input: Partial<CreatePromotionCampaignInput>): Promise<{
+    updatePromotionCampaign(tenantId: string, id: string, input: Partial<CreatePromotionCampaignInput> & {
+        title?: string;
+        duration?: string;
+    }): Promise<{
         id: string;
         tenantId: string;
         plantId: string;
@@ -279,41 +255,57 @@ export declare class PlanningService {
         updatedAt: Date;
     } | null>;
     deletePromotionCampaign(tenantId: string, id: string): Promise<void>;
+    private mapShipmentRow;
     listShipments(tenantId: string, plantId?: string): Promise<{
-        id: string;
-        orderRef: string;
-        destination: string;
-        carrier: string;
-        mode: string;
-        pallets: number;
-        units: string;
-        scheduledDate: string;
-        dockDoor: string;
-        status: string;
-    }[]>;
-    createShipment(tenantId: string, input: any): Promise<{
-        id: string;
+        id: any;
+        shipmentNumber: any;
         orderRef: any;
+        customer: any;
+        customerName: any;
         destination: any;
         carrier: any;
         mode: any;
         pallets: number;
         units: any;
-        scheduledDate: any;
+        scheduledDate: string;
         dockDoor: any;
-        status: any;
+        status: string;
+        trackingNumber: any;
+        orderId: any;
+    }[]>;
+    createShipment(tenantId: string, input: any): Promise<{
+        id: any;
+        shipmentNumber: any;
+        orderRef: any;
+        customer: any;
+        customerName: any;
+        destination: any;
+        carrier: any;
+        mode: any;
+        pallets: number;
+        units: any;
+        scheduledDate: string;
+        dockDoor: any;
+        status: string;
+        trackingNumber: any;
+        orderId: any;
     }>;
     updateShipmentStatus(tenantId: string, id: string, nextStatus: string): Promise<{
-        id: string;
-        orderRef: string;
-        destination: string;
-        carrier: string;
-        mode: string;
+        id: any;
+        shipmentNumber: any;
+        orderRef: any;
+        customer: any;
+        customerName: any;
+        destination: any;
+        carrier: any;
+        mode: any;
         pallets: number;
-        units: string;
+        units: any;
         scheduledDate: string;
-        dockDoor: string;
+        dockDoor: any;
         status: string;
+        trackingNumber: any;
+        orderId: any;
     } | {
         id: string;
         status: string;
@@ -321,6 +313,7 @@ export declare class PlanningService {
     runStatisticalForecast(tenantId: string, plantId: string, input: RunForecastInput): Promise<{
         historicalDemand: number[];
         calculationDetails: import("../../shared/engines/forecastEngine.js").ForecastOutput;
+        status: string;
         id: string;
         createdAt: Date;
         tenantId: string;
@@ -333,6 +326,8 @@ export declare class PlanningService {
         finalForecast: string;
         mapeAccuracy: string | null;
         modelType: string | null;
+        owner: string | null;
+        reason: string | null;
     }>;
     listApsSchedules(tenantId: string, plantId?: string): Promise<any[]>;
     createApsSchedule(tenantId: string, plantId: string, input: CreateApsScheduleInput): Promise<{
@@ -424,16 +419,103 @@ export declare class PlanningService {
         mechanicalChanges: any;
         impact: any;
     }>;
-    runMrpExplosion(tenantId: string, plantId: string): Promise<{
+    runMrpExplosion(tenantId: string, plantId?: string): Promise<{
+        id: string;
         skuId: string;
+        name: string;
+        materialName: string;
         skuCode: string;
-        skuName: string;
         category: string;
+        uom: string;
+        grossRequirement: number;
         grossDemand: number;
+        safetyStock: number;
+        safetyBuffer: number;
+        availableInventory: number;
         availableStock: number;
+        allocatedInventory: number;
+        reservedStock: number;
+        inboundSupply: number;
+        scheduledReceipts: number;
+        netRequirement: number;
+        shortage: number;
         netShortage: number;
         status: string;
-        recommendedRequisitionQty: number;
+        riskLevel: string;
+        suggestedAction: string;
+        requiredDate: string;
+        calculatedAt: Date;
+    }[]>;
+    getMrpRequirementById(tenantId: string, id: string): Promise<{
+        status: string | null;
+        id: string;
+        tenantId: string;
+        plantId: string;
+        skuCode: string | null;
+        category: string | null;
+        uom: string | null;
+        skuId: string;
+        materialName: string | null;
+        grossRequirement: string;
+        safetyStock: string | null;
+        availableStock: string;
+        reservedStock: string | null;
+        scheduledReceipts: string | null;
+        netShortage: string;
+        requiredDate: Date;
+        suggestedAction: string | null;
+        calculatedAt: Date;
+    }>;
+    updateMrpRequirement(tenantId: string, id: string, input: any): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        skuId: string;
+        materialName: string | null;
+        skuCode: string | null;
+        category: string | null;
+        uom: string | null;
+        grossRequirement: string;
+        safetyStock: string | null;
+        availableStock: string;
+        reservedStock: string | null;
+        scheduledReceipts: string | null;
+        netShortage: string;
+        requiredDate: Date;
+        status: string | null;
+        suggestedAction: string | null;
+        calculatedAt: Date;
+    } | null>;
+    deleteMrpRequirement(tenantId: string, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    generateMrpBaselineRequirements(tenantId: string, plantId?: string): Promise<{
+        id: string;
+        skuId: string;
+        name: string;
+        materialName: string;
+        skuCode: string;
+        category: string;
+        uom: string;
+        grossRequirement: number;
+        grossDemand: number;
+        safetyStock: number;
+        safetyBuffer: number;
+        availableInventory: number;
+        availableStock: number;
+        allocatedInventory: number;
+        reservedStock: number;
+        inboundSupply: number;
+        scheduledReceipts: number;
+        netRequirement: number;
+        shortage: number;
+        netShortage: number;
+        status: string;
+        riskLevel: string;
+        suggestedAction: string;
+        requiredDate: string;
+        calculatedAt: Date;
     }[]>;
     runMrpEngineCalculation(tenantId: string, plantId: string, input: RunMrpEngineInput): Promise<{
         runId: string;

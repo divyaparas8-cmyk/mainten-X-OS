@@ -29,6 +29,8 @@ export async function planningRoutes(fastify: FastifyInstance) {
   fastify.get("/forecast/promotions", { schema: { tags: ["Planning & Demand"], summary: "List Commercial Promotions & Uplift Events" } }, planningController.getPromotions.bind(planningController));
   fastify.post("/forecast/promotions", { schema: { tags: ["Planning & Demand"], summary: "Create Commercial Promotion Campaign" } }, planningController.createPromotion.bind(planningController));
   fastify.patch("/forecast/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Commercial Promotion Status" } }, planningController.updatePromotion.bind(planningController));
+  fastify.put("/forecast/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Commercial Promotion Status" } }, planningController.updatePromotion.bind(planningController));
+  fastify.delete("/forecast/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Commercial Promotion" } }, planningController.deletePromotionCampaign.bind(planningController));
 
   // Shipments Outbound
   fastify.get("/shipments", { schema: { tags: ["Planning & Demand"], summary: "List Outbound Shipments" } }, planningController.getShipments.bind(planningController));
@@ -50,9 +52,15 @@ export async function planningRoutes(fastify: FastifyInstance) {
   fastify.post("/aps/changeovers", { schema: { tags: ["Planning & Demand"], summary: "Create APS Changeover Matrix Rule" } }, planningController.createChangeover.bind(planningController));
   fastify.get("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planningController.getMrpExplosion.bind(planningController));
   fastify.post("/mrp/net-requirements", { schema: { tags: ["Planning & Demand"], summary: "Calculate MRP Net Requirements & Shortages" } }, planningController.getMrpExplosion.bind(planningController));
+  fastify.post("/mrp/net-requirements/generate", { schema: { tags: ["Planning & Demand"], summary: "Generate Fresh MRP Requirements from Demand & BOMs" } }, planningController.generateMrpRequirements.bind(planningController));
+  fastify.get("/mrp/net-requirements/:id", { schema: { tags: ["Planning & Demand"], summary: "Get MRP Net Requirement By ID" } }, planningController.getMrpRequirementById.bind(planningController));
+  fastify.patch("/mrp/net-requirements/:id", { schema: { tags: ["Planning & Demand"], summary: "Update MRP Net Requirement" } }, planningController.updateMrpRequirement.bind(planningController));
+  fastify.put("/mrp/net-requirements/:id", { schema: { tags: ["Planning & Demand"], summary: "Update MRP Net Requirement" } }, planningController.updateMrpRequirement.bind(planningController));
+  fastify.delete("/mrp/net-requirements/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete MRP Net Requirement" } }, planningController.deleteMrpRequirement.bind(planningController));
   fastify.get("/promotions", { schema: { tags: ["Planning & Demand"], summary: "List Promotion Campaigns" } }, planningController.getPromotionCampaigns.bind(planningController));
   fastify.post("/promotions", { schema: { tags: ["Planning & Demand"], summary: "Create Promotion Campaign" } }, planningController.createPromotionCampaign.bind(planningController));
   fastify.put("/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Promotion Campaign" } }, planningController.updatePromotionCampaign.bind(planningController));
+  fastify.patch("/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Promotion Campaign" } }, planningController.updatePromotionCampaign.bind(planningController));
   fastify.delete("/promotions/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Promotion Campaign" } }, planningController.deletePromotionCampaign.bind(planningController));
 
   // MRP Engine BOM Explosion

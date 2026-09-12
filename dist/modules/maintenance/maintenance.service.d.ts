@@ -195,6 +195,7 @@ export declare class MaintenanceService {
         data: any;
     }>;
     saveTroubleshootingSolution(tenantId: string, input: any): Promise<any>;
+    resolveTechnicianUserId(identifier?: string | null, tenantId?: string): Promise<string | null>;
     createWorkOrder(tenantId: string, plantId: string, input: CreateWorkOrderInput, userId: string): Promise<{
         type: string;
         status: string;
@@ -217,46 +218,102 @@ export declare class MaintenanceService {
         actualHours: string | null;
     }>;
     updateWorkOrderStatus(tenantId: string, id: string, input: UpdateWorkOrderStatusInput): Promise<any>;
-    listPMSchedules(tenantId: string): Promise<{
-        status: string;
-        title: string;
+    updateWorkOrder(tenantId: string, id: string, input: any): Promise<any>;
+    deleteWorkOrder(tenantId: string, id: string): Promise<{
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        plantId: string;
-        assetId: string;
+        deleted: boolean;
+        woNumber: string;
+        message: string;
+    }>;
+    listPMSchedules(tenantId: string): Promise<{
+        id: string;
         scheduleCode: string;
+        dbId: string;
+        title: string;
+        assetId: string;
+        assetName: string;
         frequency: string;
         intervalDays: number;
-        lastPerformedDate: Date | null;
-        nextDueDate: Date;
-        checklistTemplate: unknown;
+        dueDate: string;
+        dueNext: string;
+        lastCompleted: string;
+        status: string;
+        assignedTo: any;
+        assignedTechnician: any;
+        templateId: any;
+        priority: any;
+        estimatedMinutes: any;
+        isActive: boolean;
     }[]>;
     createPMSchedule(tenantId: string, plantId: string, input: {
         title: string;
         assetId?: string;
+        assetName?: string;
         frequency?: string;
         assignedTo?: string;
         dueDate?: string;
+        templateId?: string;
+        priority?: string;
+        status?: string;
     }): Promise<{
-        status: string;
-        title: string;
         id: string;
-        tenantId: string;
-        isActive: boolean;
-        plantId: string;
-        assetId: string;
         scheduleCode: string;
+        dbId: string;
+        title: string;
+        assetId: any;
+        assetName: any;
         frequency: string;
         intervalDays: number;
-        lastPerformedDate: Date | null;
-        nextDueDate: Date;
-        checklistTemplate: unknown;
+        dueDate: string;
+        dueNext: string;
+        lastCompleted: string;
+        status: string;
+        assignedTo: string;
+        assignedTechnician: string;
+        templateId: string;
+        priority: string;
+        isActive: boolean;
     }>;
-    executePMChecklist(tenantId: string, input: any): Promise<any>;
-    savePMChecklistDraft(tenantId: string, input: any): Promise<{
+    updatePMSchedule(tenantId: string, id: string, input: any): Promise<{
+        id: string;
+        scheduleCode: string;
+        dbId: string;
+        title: string;
+        assetId: string;
+        assetName: string;
+        frequency: any;
+        dueDate: string;
+        dueNext: string;
+        status: string;
+        assignedTo: any;
+        isActive: boolean;
+    }>;
+    deletePMSchedule(tenantId: string, id: string): Promise<{
+        success: boolean;
+        id: string;
+        dbId: string;
+        message: string;
+    }>;
+    executePMChecklist(tenantId: string, plantId: string, input: any): Promise<{
+        id: string;
+        scheduleId: any;
+        assetId: any;
+        status: string;
+        executedAt: string;
+        hasFailures: boolean;
+        workOrder: {
+            id: any;
+            dbId: any;
+            title: any;
+            priority: any;
+            status: any;
+        } | null;
+        acknowledged: boolean;
+    }>;
+    savePMChecklistDraft(tenantId: string, plantId: string, input: any): Promise<{
         draftId: string;
-        savedAt: Date;
+        scheduleId: any;
+        savedAt: string;
         acknowledged: boolean;
         data: any;
     }>;
@@ -280,9 +337,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;
@@ -295,9 +352,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;

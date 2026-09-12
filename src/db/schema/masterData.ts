@@ -193,4 +193,84 @@ export const changeoverRules = pgTable("changeover_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const operations = pgTable("operations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  operationCode: varchar("operation_code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  sequence: integer("sequence").default(10),
+  department: varchar("department", { length: 100 }).default("Packaging"),
+  stdDurationMin: integer("std_duration_min").default(45),
+  setupDurationMin: integer("setup_duration_min").default(15),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const packaging = pgTable("packaging", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  packCode: varchar("pack_code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }),
+  skuId: varchar("sku_id", { length: 100 }),
+  skuCode: varchar("sku_code", { length: 50 }),
+  skuName: varchar("sku_name", { length: 255 }),
+  unitsPerPack: integer("units_per_pack").default(24),
+  packType: varchar("pack_type", { length: 255 }).default("Corrugated Tray & Shrink Wrap"),
+  caseConfiguration: varchar("case_configuration", { length: 255 }).default("4x6 Units (24 Count)"),
+  palletConfiguration: varchar("pallet_configuration", { length: 255 }).default("60 Cases / 1,440 Units per Pallet"),
+  palletCount: integer("pallet_count").default(60),
+  packagingUom: varchar("packaging_uom", { length: 50 }).default("CASE-24"),
+  tareWeightKg: numeric("tare_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+  grossWeightKg: numeric("gross_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const sanitationClasses = pgTable("sanitation_classes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  classId: varchar("class_id", { length: 50 }),
+  sanitationId: varchar("sanitation_id", { length: 50 }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 255 }),
+  sanitationClass: varchar("sanitation_class", { length: 255 }),
+  description: text("description"),
+  durationMin: integer("duration_min").default(45),
+  washDurationMin: integer("wash_duration_min").default(45),
+  cleaningMethod: varchar("cleaning_method", { length: 255 }),
+  cleaningLevel: varchar("cleaning_level", { length: 100 }),
+  riskLevel: varchar("risk_level", { length: 100 }),
+  applicableProducts: text("applicable_products"),
+  chemicalAgent: varchar("chemical_agent", { length: 255 }),
+  validationMethod: varchar("validation_method", { length: 255 }),
+  frequency: varchar("frequency", { length: 100 }),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const allergenRules = pgTable("allergen_rules", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ruleCode: varchar("rule_code", { length: 50 }),
+  allergenType: varchar("allergen_type", { length: 100 }),
+  cleaningProtocol: varchar("cleaning_protocol", { length: 255 }),
+  requiredDowntimeMin: integer("required_downtime_min").default(60),
+  validationRequired: boolean("validation_required").default(true),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const uoms = pgTable("uoms", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).default("Packaging"),
+  type: varchar("type", { length: 100 }).default("Packaging"),
+  baseUnit: varchar("base_unit", { length: 100 }).default("EA"),
+  conversionFactor: numeric("conversion_factor", { precision: 10, scale: 4 }).default("1.0000"),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+
 

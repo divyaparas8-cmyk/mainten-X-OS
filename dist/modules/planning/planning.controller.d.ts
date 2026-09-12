@@ -58,6 +58,22 @@ export declare class PlanningController {
     getChangeovers(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createChangeover(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getMrpExplosion(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMrpRequirementById(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    updateMrpRequirement(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteMrpRequirement(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    generateMrpRequirements(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getPromotionCampaigns(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createPromotionCampaign(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updatePromotionCampaign(request: FastifyRequest<{

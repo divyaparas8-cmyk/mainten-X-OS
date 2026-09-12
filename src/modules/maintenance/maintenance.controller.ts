@@ -18,6 +18,27 @@ export class MaintenanceController {
     return reply.send(formatSuccess(data));
   }
 
+  async reportBreakdown(request: FastifyRequest, reply: FastifyReply) {
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await maintenanceService.reportBreakdown(request.user.tenantId, plantId, request.body, request.user.userId);
+    return reply.status(201).send(formatSuccess(data, "Breakdown logged and emergency repair ticket dispatched"));
+  }
+
+  async updateBreakdown(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await maintenanceService.updateBreakdown(request.user.tenantId, request.params.id, request.body);
+    return reply.send(formatSuccess(data, `Breakdown ${request.params.id} updated successfully`));
+  }
+
+  async resolveBreakdown(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await maintenanceService.resolveBreakdown(request.user.tenantId, request.params.id, request.body);
+    return reply.send(formatSuccess(data, `Breakdown ${request.params.id} resolved and equipment restored`));
+  }
+
+  async deleteBreakdown(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await maintenanceService.deleteBreakdown(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, `Breakdown record deleted`));
+  }
+
   async getHistory(request: FastifyRequest, reply: FastifyReply) {
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await maintenanceService.listHistory(request.user.tenantId, plantId);
@@ -67,25 +88,49 @@ export class MaintenanceController {
     return reply.send(formatSuccess(data, `Work Order status updated to ${input.status}`));
   }
 
+  async updateWorkOrder(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await maintenanceService.updateWorkOrder(request.user.tenantId, request.params.id, request.body);
+    return reply.send(formatSuccess(data, `Work Order ${request.params.id} updated successfully`));
+  }
+
+  async deleteWorkOrder(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await maintenanceService.deleteWorkOrder(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, `Work Order ${request.params.id} deleted successfully`));
+  }
+
   async getPMSchedules(request: FastifyRequest, reply: FastifyReply) {
     const data = await maintenanceService.listPMSchedules(request.user.tenantId);
     return reply.send(formatSuccess(data));
   }
 
   async createPMSchedule(request: FastifyRequest, reply: FastifyReply) {
-    const body = request.body as { title: string; assetId?: string; frequency?: string; assignedTo?: string; dueDate?: string };
+    const body = request.body as { title: string; assetId?: string; frequency?: string; assignedTo?: string; dueDate?: string; status?: string };
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await maintenanceService.createPMSchedule(request.user.tenantId, plantId, body);
     return reply.status(201).send(formatSuccess(data, "PM Schedule created successfully"));
   }
 
+  async updatePMSchedule(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await maintenanceService.updatePMSchedule(request.user.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "PM Schedule updated successfully"));
+  }
+
+  async deletePMSchedule(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await maintenanceService.deletePMSchedule(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, "PM Schedule deleted successfully"));
+  }
+
   async executePMChecklist(request: FastifyRequest, reply: FastifyReply) {
-    const data = await maintenanceService.executePMChecklist(request.user.tenantId, request.body);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await maintenanceService.executePMChecklist(request.user.tenantId, plantId, request.body);
     return reply.status(201).send(formatSuccess(data, "PM Checklist executed & signed off successfully"));
   }
 
   async savePMChecklistDraft(request: FastifyRequest, reply: FastifyReply) {
-    const data = await maintenanceService.savePMChecklistDraft(request.user.tenantId, request.body);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await maintenanceService.savePMChecklistDraft(request.user.tenantId, plantId, request.body);
     return reply.send(formatSuccess(data, "PM Checklist draft saved successfully"));
   }
 

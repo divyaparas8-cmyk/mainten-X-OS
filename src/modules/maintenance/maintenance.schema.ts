@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createWorkOrderSchema = z.object({
-  assetId: z.string().min(1),
+  assetId: z.string().optional(),
   title: z.string().min(2),
   description: z.string().optional(),
   type: z.preprocess(
@@ -31,10 +31,13 @@ export const createWorkOrderSchema = z.object({
     },
     z.enum(["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]).default("HIGH")
   ),
-  assignedTo: z.string().uuid().optional(),
-  failureCodeId: z.string().uuid().optional(),
+  assignedTo: z.string().optional().nullable(),
+  assignedTechnician: z.string().optional().nullable(),
+  technician: z.string().optional().nullable(),
+  failureCodeId: z.string().optional().nullable(),
   estimatedHours: z.coerce.number().default(2.0),
-  scheduledDate: z.string().optional(),
+  scheduledDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
 });
 
 export type CreateWorkOrderInput = z.infer<typeof createWorkOrderSchema>;

@@ -353,6 +353,20 @@ class MasterDataController {
         const data = await masterData_service_js_1.masterDataService.listAssets(request.user?.tenantId, request.query.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async createAsset(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createAsset(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Asset registered successfully"));
+    }
+    async updateAsset(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Asset updated successfully"));
+    }
+    async deleteAsset(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Asset deleted successfully"));
+    }
     async getStaff(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listStaff(request.user?.tenantId, request.query.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));

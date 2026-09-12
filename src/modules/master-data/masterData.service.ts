@@ -3400,13 +3400,219 @@ export class MasterDataService {
     try {
       const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
       const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+      let rows: any[];
       if (isUuid) {
-        return await db.select().from(assets).where(and(eq(assets.tenantId, tId), eq(assets.plantId, plantId)));
+        rows = await db.select().from(assets).where(and(eq(assets.tenantId, tId), eq(assets.plantId, plantId))).orderBy(desc(assets.createdAt));
+      } else {
+        rows = await db.select().from(assets).where(eq(assets.tenantId, tId)).orderBy(desc(assets.createdAt));
       }
-      return await db.select().from(assets).where(eq(assets.tenantId, tId));
-    } catch {
+
+      if (!rows || rows.length === 0) {
+        rows = await db.select().from(assets).orderBy(desc(assets.createdAt));
+      }
+
+      const linesList = await db.select({ id: productionLines.id, name: productionLines.name, code: productionLines.code }).from(productionLines);
+      const lineMap = new Map<string, string>();
+      linesList.forEach(l => {
+        lineMap.set(l.id, l.name);
+      });
+
+      return rows.map((r) => {
+        const lineName = (r.lineId && lineMap.get(r.lineId)) || "Line 1 (Aseptic Bottling)";
+        const rawStatus = (r.status || "Operational").trim();
+        const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+        const rawCrit = (r.criticalLevel || "Medium").replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "");
+        const criticality = rawCrit.charAt(0).toUpperCase() + rawCrit.slice(1).toLowerCase();
+
+        return {
+          id: r.assetCode || r.id,
+          assetCode: r.assetCode,
+          dbId: r.id,
+          name: r.name,
+          type: r.modelNumber || "Packaging & Bottling",
+          department: "Packaging",
+          plant: "Plant 1 - North Facility",
+          line: lineName,
+          location: "Bay 4A - Main Hall",
+          status: formattedStatus,
+          health: Number(r.healthPercent) ?? 100,
+          criticality: criticality || "Medium",
+          mtbf: Number(r.mtbfHours) || 350,
+          mttr: Number(r.mttrHours) || 1.5,
+          vibration: 1.5,
+          temperature: 55.0,
+          manufacturer: r.manufacturer || "Standard OEM",
+          model: r.modelNumber || "Series-2026",
+          serialNumber: `SN-${r.assetCode || r.id.substring(0, 8)}`,
+          commissionDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+          installedDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        };
+      });
+    } catch (err: any) {
+      console.error("listAssets error:", err.message);
       return [];
     }
+  }
+
+  async createAsset(tenantId: string | undefined, input: any) {
+    const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+    let plantId = input.plantId;
+    if (!plantId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
+      const p = await db.select({ id: plants.id }).from(plants).limit(1);
+      plantId = p[0]?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a";
+    }
+
+    let lineId = input.lineId;
+    if (lineId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lineId)) {
+      const pl = await db.select({ id: productionLines.id }).from(productionLines).where(or(eq(productionLines.name, lineId), eq(productionLines.code, lineId))).limit(1);
+      lineId = pl[0]?.id || null;
+    }
+
+    const assetCode = String(input.id || input.assetCode || `ASSET-${Date.now()}`).trim();
+    const name = String(input.name || "Unnamed Machine").trim();
+    const status = String(input.status || "OPERATIONAL").toUpperCase();
+    const healthPercent = Number(input.health ?? input.healthPercent) || 100;
+    const criticalLevel = String(input.criticality || input.criticalLevel || "IMPORTANT_P2");
+    const mtbfHours = String(input.mtbf || input.mtbfHours || "400.0");
+    const mttrHours = String(input.mttr || input.mttrHours || "1.5");
+    const manufacturer = String(input.manufacturer || "Standard OEM").trim();
+    const modelNumber = String(input.model || input.modelNumber || input.type || "Packaging & Bottling").trim();
+
+    const [inserted] = await db.insert(assets).values({
+      tenantId: tId,
+      plantId,
+      lineId: lineId || null,
+      assetCode,
+      name,
+      criticalLevel,
+      status,
+      healthPercent,
+      mtbfHours,
+      mttrHours,
+      manufacturer,
+      modelNumber,
+      installDate: input.installedDate ? new Date(input.installedDate) : new Date(),
+      lastServiceDate: new Date(),
+    }).returning();
+
+    return {
+      id: inserted.assetCode,
+      assetCode: inserted.assetCode,
+      dbId: inserted.id,
+      name: inserted.name,
+      type: inserted.modelNumber,
+      department: input.department || "Packaging",
+      plant: input.plant || "Plant 1 - North Facility",
+      line: input.line || "Line 1 (Aseptic Bottling)",
+      location: input.location || "Bay 4A - Main Hall",
+      status: input.status || "Operational",
+      health: inserted.healthPercent,
+      criticality: input.criticality || "Medium",
+      mtbf: Number(inserted.mtbfHours),
+      mttr: Number(inserted.mttrHours),
+      vibration: 1.5,
+      temperature: 55.0,
+      manufacturer: inserted.manufacturer,
+      model: inserted.modelNumber,
+      serialNumber: `SN-${inserted.assetCode}`,
+      installedDate: inserted.installDate ? new Date(inserted.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+      createdAt: inserted.createdAt,
+    };
+  }
+
+  async updateAsset(tenantId: string | undefined, id: string, input: any) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const condition = isUuid
+      ? or(eq(assets.id, id), eq(assets.assetCode, id))
+      : eq(assets.assetCode, id);
+
+    let existing = await db.select().from(assets).where(condition);
+    if (!existing[0]) {
+      const fallback = await db.select().from(assets).where(or(ilike(assets.assetCode, id), ilike(assets.name, id)));
+      if (!fallback[0]) {
+        throw new NotFoundError(`Asset not found: ${id}`);
+      }
+      existing = fallback;
+    }
+
+    const target = existing[0];
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (input.name !== undefined) updateData.name = String(input.name).trim();
+    if (input.assetCode !== undefined || input.newId !== undefined) {
+      updateData.assetCode = String(input.assetCode || input.newId).trim();
+    }
+    if (input.status !== undefined) updateData.status = String(input.status).toUpperCase();
+    if (input.health !== undefined || input.healthPercent !== undefined) {
+      updateData.healthPercent = Number(input.health ?? input.healthPercent);
+    }
+    if (input.criticality !== undefined || input.criticalLevel !== undefined) {
+      updateData.criticalLevel = String(input.criticality || input.criticalLevel);
+    }
+    if (input.manufacturer !== undefined) updateData.manufacturer = String(input.manufacturer).trim();
+    if (input.model !== undefined || input.modelNumber !== undefined || input.type !== undefined) {
+      updateData.modelNumber = String(input.model || input.modelNumber || input.type).trim();
+    }
+    if (input.mtbf !== undefined || input.mtbfHours !== undefined) {
+      updateData.mtbfHours = String(input.mtbf || input.mtbfHours);
+    }
+    if (input.mttr !== undefined || input.mttrHours !== undefined) {
+      updateData.mttrHours = String(input.mttr || input.mttrHours);
+    }
+
+    const [updated] = await db.update(assets).set(updateData).where(eq(assets.id, target.id)).returning();
+
+    return {
+      id: updated.assetCode,
+      assetCode: updated.assetCode,
+      dbId: updated.id,
+      name: updated.name,
+      type: updated.modelNumber,
+      department: input.department || "Packaging",
+      line: input.line || "Line 1 (Aseptic Bottling)",
+      location: input.location || "Bay 4A - Main Hall",
+      status: input.status || (updated.status ? updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase() : "Operational"),
+      health: updated.healthPercent,
+      criticality: input.criticality || (updated.criticalLevel ? updated.criticalLevel.replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "") : "Medium"),
+      mtbf: Number(updated.mtbfHours),
+      mttr: Number(updated.mttrHours),
+      vibration: 1.5,
+      temperature: 55.0,
+      manufacturer: updated.manufacturer,
+      model: updated.modelNumber,
+      serialNumber: `SN-${updated.assetCode}`,
+      updatedAt: updated.updatedAt,
+    };
+  }
+
+  async deleteAsset(tenantId: string | undefined, id: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const condition = isUuid
+      ? or(eq(assets.id, id), eq(assets.assetCode, id))
+      : eq(assets.assetCode, id);
+
+    let existing = await db.select().from(assets).where(condition);
+    if (!existing[0]) {
+      const fallback = await db.select().from(assets).where(or(ilike(assets.assetCode, id), ilike(assets.name, id)));
+      if (!fallback[0]) {
+        throw new NotFoundError(`Asset not found: ${id}`);
+      }
+      existing = fallback;
+    }
+
+    const target = existing[0];
+    await db.delete(assets).where(eq(assets.id, target.id));
+
+    return {
+      success: true,
+      id: target.assetCode,
+      dbId: target.id,
+      message: `Asset ${target.assetCode} (${target.name}) deleted successfully`,
+    };
   }
 
   async listStaff(tenantId: string | undefined, plantId?: string) {

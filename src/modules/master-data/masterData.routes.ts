@@ -102,6 +102,10 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterDataController.deleteBom.bind(masterDataController));
 
   fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterDataController.getAssets.bind(masterDataController));
+  fastify.post("/assets", { schema: { tags: ["Master Data"], summary: "Register New Equipment Asset" } }, masterDataController.createAsset.bind(masterDataController));
+  fastify.put("/assets/:id", { schema: { tags: ["Master Data"], summary: "Update Equipment Asset Record" } }, masterDataController.updateAsset.bind(masterDataController));
+  fastify.patch("/assets/:id", { schema: { tags: ["Master Data"], summary: "Partial Update Equipment Asset Record" } }, masterDataController.updateAsset.bind(masterDataController));
+  fastify.delete("/assets/:id", { schema: { tags: ["Master Data"], summary: "Delete Equipment Asset" } }, masterDataController.deleteAsset.bind(masterDataController));
   fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterDataController.getAssets.bind(masterDataController));
   fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterDataController.getStaff.bind(masterDataController));
   fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterDataController.getQualitySpecs.bind(masterDataController));

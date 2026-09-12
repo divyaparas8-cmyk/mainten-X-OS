@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -179,6 +179,80 @@ exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
     allergenCleaningRequired: (0, pg_core_1.boolean)("allergen_cleaning_required").default(false),
     notes: (0, pg_core_1.text)("notes"),
     status: (0, pg_core_1.varchar)("status", { length: 32 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.operations = (0, pg_core_1.pgTable)("operations", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    operationCode: (0, pg_core_1.varchar)("operation_code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    sequence: (0, pg_core_1.integer)("sequence").default(10),
+    department: (0, pg_core_1.varchar)("department", { length: 100 }).default("Packaging"),
+    stdDurationMin: (0, pg_core_1.integer)("std_duration_min").default(45),
+    setupDurationMin: (0, pg_core_1.integer)("setup_duration_min").default(15),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.packaging = (0, pg_core_1.pgTable)("packaging", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    packCode: (0, pg_core_1.varchar)("pack_code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }),
+    skuId: (0, pg_core_1.varchar)("sku_id", { length: 100 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    unitsPerPack: (0, pg_core_1.integer)("units_per_pack").default(24),
+    packType: (0, pg_core_1.varchar)("pack_type", { length: 255 }).default("Corrugated Tray & Shrink Wrap"),
+    caseConfiguration: (0, pg_core_1.varchar)("case_configuration", { length: 255 }).default("4x6 Units (24 Count)"),
+    palletConfiguration: (0, pg_core_1.varchar)("pallet_configuration", { length: 255 }).default("60 Cases / 1,440 Units per Pallet"),
+    palletCount: (0, pg_core_1.integer)("pallet_count").default(60),
+    packagingUom: (0, pg_core_1.varchar)("packaging_uom", { length: 50 }).default("CASE-24"),
+    tareWeightKg: (0, pg_core_1.numeric)("tare_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+    grossWeightKg: (0, pg_core_1.numeric)("gross_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.sanitationClasses = (0, pg_core_1.pgTable)("sanitation_classes", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    classId: (0, pg_core_1.varchar)("class_id", { length: 50 }),
+    sanitationId: (0, pg_core_1.varchar)("sanitation_id", { length: 50 }),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }),
+    sanitationClass: (0, pg_core_1.varchar)("sanitation_class", { length: 255 }),
+    description: (0, pg_core_1.text)("description"),
+    durationMin: (0, pg_core_1.integer)("duration_min").default(45),
+    washDurationMin: (0, pg_core_1.integer)("wash_duration_min").default(45),
+    cleaningMethod: (0, pg_core_1.varchar)("cleaning_method", { length: 255 }),
+    cleaningLevel: (0, pg_core_1.varchar)("cleaning_level", { length: 100 }),
+    riskLevel: (0, pg_core_1.varchar)("risk_level", { length: 100 }),
+    applicableProducts: (0, pg_core_1.text)("applicable_products"),
+    chemicalAgent: (0, pg_core_1.varchar)("chemical_agent", { length: 255 }),
+    validationMethod: (0, pg_core_1.varchar)("validation_method", { length: 255 }),
+    frequency: (0, pg_core_1.varchar)("frequency", { length: 100 }),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.allergenRules = (0, pg_core_1.pgTable)("allergen_rules", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    ruleCode: (0, pg_core_1.varchar)("rule_code", { length: 50 }),
+    allergenType: (0, pg_core_1.varchar)("allergen_type", { length: 100 }),
+    cleaningProtocol: (0, pg_core_1.varchar)("cleaning_protocol", { length: 255 }),
+    requiredDowntimeMin: (0, pg_core_1.integer)("required_downtime_min").default(60),
+    validationRequired: (0, pg_core_1.boolean)("validation_required").default(true),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+});
+exports.uoms = (0, pg_core_1.pgTable)("uoms", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    category: (0, pg_core_1.varchar)("category", { length: 100 }).default("Packaging"),
+    type: (0, pg_core_1.varchar)("type", { length: 100 }).default("Packaging"),
+    baseUnit: (0, pg_core_1.varchar)("base_unit", { length: 100 }).default("EA"),
+    conversionFactor: (0, pg_core_1.numeric)("conversion_factor", { precision: 10, scale: 4 }).default("1.0000"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });

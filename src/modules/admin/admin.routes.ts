@@ -1,7 +1,9 @@
 import { FastifyInstance } from "fastify";
 import { adminController } from "./admin.controller.js";
+import { authenticate } from "../../middleware/authenticate.js";
 
 export async function adminRoutes(fastify: FastifyInstance) {
+  fastify.addHook("preHandler", authenticate);
   // Allow optional authentication so dashboard & management work seamlessly in both demo & live modes
   fastify.get(
     "/dashboard",

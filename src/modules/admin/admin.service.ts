@@ -1,10 +1,59 @@
 import bcrypt from "bcryptjs";
 import { db, pool } from "../../config/database.js";
+<<<<<<< HEAD
 import { users, roles, userRoles, plants, productionLines, skus, tenants, auditLogs, userInvitations } from "../../db/schema/index.js";
 import { eq, sql, inArray } from "drizzle-orm";
 import { ValidationError, ConflictError, NotFoundError } from "../../shared/errors/AppError.js";
 
 let inMemoryUsers: any[] = [];
+=======
+import { users, roles, userRoles, plants, productionLines, skus, tenants, auditLogs } from "../../db/schema/index.js";
+import { eq, sql, inArray, desc, and, or, isNull } from "drizzle-orm";
+import { ValidationError, ConflictError, NotFoundError } from "../../shared/errors/AppError.js";
+
+interface InvitationRecord {
+  id: string;
+  tenantId?: string;
+  email: string;
+  role: string;
+  department: string;
+  invitedBy: string;
+  sentDate: string;
+  status: "Pending" | "Accepted" | "Revoked";
+}
+
+// In-memory persistent invitations store synced with database
+let inMemoryInvitations: InvitationRecord[] = [
+  {
+    id: "INV-101",
+    tenantId: "demo-flowstate-tenant",
+    email: "clara.oswald@flowstate.io",
+    role: "Quality Analyst",
+    department: "Quality",
+    invitedBy: "Alexander Vance",
+    sentDate: "2026-08-30",
+    status: "Pending",
+  },
+  {
+    id: "INV-102",
+    tenantId: "demo-flowstate-tenant",
+    email: "james.holden@flowstate.io",
+    role: "Controls Engineer",
+    department: "Maintenance",
+    invitedBy: "Alexander Vance",
+    sentDate: "2026-08-31",
+    status: "Pending",
+  },
+];
+
+let inMemoryUsers: any[] = [
+  { id: "USR-001", name: "Alexander Vance", email: "alexander.vance@flowstate.io", role: "System Administrator", roleCode: "admin", department: "IT & Digital Ops", plant: "Indore Plant", status: "Active", lastLogin: "Just now", createdAt: new Date().toISOString() },
+  { id: "USR-002", name: "Robert Thorne", email: "robert.thorne@flowstate.io", role: "Plant Manager", roleCode: "plant_manager", department: "Operations", plant: "Indore Plant", status: "Suspended", lastLogin: "10 mins ago", createdAt: new Date().toISOString() },
+  { id: "USR-003", name: "Sarah Jenkins", email: "sarah.jenkins@flowstate.io", role: "QA Manager", roleCode: "quality", department: "Quality Assurance", plant: "Indore Plant", status: "Active", lastLogin: "1 hour ago", createdAt: new Date().toISOString() },
+  { id: "USR-004", name: "Marcus Vance", email: "marcus.vance@flowstate.io", role: "Maintenance Lead", roleCode: "maintenance", department: "Maintenance", plant: "Indore Plant", status: "Active", lastLogin: "3 hours ago", createdAt: new Date().toISOString() },
+  { id: "USR-005", name: "David Kim", email: "david.kim@flowstate.io", role: "Production Supervisor", roleCode: "supervisor", department: "Operations", plant: "Indore Plant", status: "Active", lastLogin: "3 days ago", createdAt: new Date().toISOString() },
+];
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
 
 let inMemoryRoles: any[] = [
   { id: "ROL-01", dbId: "ROL-01", code: "admin", name: "System Administrator", description: "Full system governance, master data, security, user administration", userCount: 2, isSystem: true, createdAt: new Date().toISOString() },
@@ -27,18 +76,39 @@ export class AdminService {
       const startTime = Date.now();
       await db.execute(sql`SELECT 1`);
       dbLatencyMs = Date.now() - startTime;
-      userList = await db.select().from(users);
-      roleList = await db.select().from(roles);
-      plantList = await db.select().from(plants);
-      lineList = await db.select().from(productionLines);
-      skuList = await db.select().from(skus);
+      userList = tenantId
+        ? await db.select().from(users).where(eq(users.tenantId, tenantId))
+        : await db.select().from(users);
+      roleList = tenantId
+        ? await db.select().from(roles).where(eq(roles.tenantId, tenantId))
+        : await db.select().from(roles);
+      plantList = tenantId
+        ? await db.select().from(plants).where(eq(plants.tenantId, tenantId))
+        : await db.select().from(plants);
+      lineList = tenantId
+        ? await db.select().from(productionLines).where(eq(productionLines.tenantId, tenantId))
+        : await db.select().from(productionLines);
+      skuList = tenantId
+        ? await db.select().from(skus).where(eq(skus.tenantId, tenantId))
+        : await db.select().from(skus);
     } catch (err: any) {
       console.warn("getDashboardMetrics DB unavailable, using fallback:", err.message);
     }
 
-    const activeUsersCount = userList.length > 0
-      ? userList.filter((u) => u.status === "ACTIVE").length
-      : 5;
+    const activeUsersCount = userList.filter((u) => u.status === "ACTIVE").length;
+
+    let tenantInvitesCount = 0;
+    let tenantAuditCount = 0;
+    if (tenantId) {
+      tenantInvitesCount = inMemoryInvitations.filter((i: any) => i.tenantId === tenantId && i.status === "Pending").length;
+      try {
+        const [auditRes] = await db.select({ count: sql<number>`count(*)` }).from(auditLogs).where(eq(auditLogs.tenantId, tenantId));
+        tenantAuditCount = Number(auditRes?.count || 0);
+      } catch (_) {}
+    } else {
+      tenantInvitesCount = inMemoryInvitations.filter(i => i.status === "Pending").length;
+      tenantAuditCount = 0;
+    }
 
     return {
       systemHealth: 99.98,
@@ -46,16 +116,16 @@ export class AdminService {
       uptimeSeconds: process.uptime(),
       dbLatencyMs,
       metrics: {
-        totalUsers: userList.length || inMemoryUsers.length,
-        activeUsers: activeUsersCount,
-        rolesCount: roleList.length || inMemoryRoles.length,
-        sitesCount: plantList.length || 2,
-        linesCount: lineList.length || 6,
-        skusCount: skuList.length || 5,
-        syncedTablesCount: 17,
-        liveConnectors: 4,
-        totalConnectors: 4,
-        qualityIndex: 96.2,
+        totalUsers: tenantId ? userList.length : (userList.length || inMemoryUsers.length),
+        activeUsers: tenantId ? activeUsersCount : (activeUsersCount || 5),
+        rolesCount: tenantId ? roleList.length : (roleList.length || inMemoryRoles.length),
+        sitesCount: tenantId ? plantList.length : (plantList.length || 2),
+        linesCount: tenantId ? lineList.length : (lineList.length || 6),
+        skusCount: tenantId ? skuList.length : (skuList.length || 5),
+        syncedTablesCount: tenantId ? (plantList.length > 0 ? 17 : 0) : 17,
+        liveConnectors: tenantId ? (plantList.length > 0 ? 4 : 0) : 4,
+        totalConnectors: tenantId ? (plantList.length > 0 ? 4 : 0) : 4,
+        qualityIndex: tenantId ? (plantList.length > 0 ? 96.2 : 0) : 96.2,
       },
       latencyTrend: [
         { label: "00:00", value: 18 },
@@ -67,12 +137,17 @@ export class AdminService {
         { label: "Now", value: Math.max(15, Math.min(dbLatencyMs, 45)) },
       ],
       governanceTiles: [
+<<<<<<< HEAD
         { id: "invites", label: "User Invites", sub: "Onboarding portal", path: "/users/invitations", count: 0 },
         { id: "permissions", label: "Permission Matrix", sub: "Granular RBAC", path: "/roles/permissions", count: roleList.length || inMemoryRoles.length },
+=======
+        { id: "invites", label: "User Invites", sub: "Onboarding portal", path: "/users/invitations", count: tenantInvitesCount },
+        { id: "permissions", label: "Permission Matrix", sub: "Granular RBAC", path: "/roles/permissions", count: tenantId ? roleList.length : (roleList.length || inMemoryRoles.length) },
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
         { id: "remediation", label: "Data Remediation", sub: "Fix broken records", path: "/data-health/remediation", count: 0 },
         { id: "migration", label: "Data Migration", sub: "CSV bulk upload", path: "/migration", count: 0 },
         { id: "security", label: "Security & 2FA", sub: "SAML SSO policies", path: "/security", status: "Hardened" },
-        { id: "audit", label: "Audit Trail", sub: "Compliance records", path: "/audit-logs", count: 148 },
+        { id: "audit", label: "Audit Trail", sub: "Compliance records", path: "/audit-logs", count: tenantAuditCount },
       ],
     };
   }
@@ -270,6 +345,70 @@ export class AdminService {
       })
       .returning();
 
+<<<<<<< HEAD
+=======
+    // Find or map role
+    const roleNameClean = input.role.trim();
+    const roleKey = roleNameClean.toLowerCase().replace(/[^a-z0-9]/g, "_");
+
+    let matchedRole: any = null;
+    if (activeTenantId) {
+      const [tenantRole] = await db
+        .select()
+        .from(roles)
+        .where(
+          and(
+            eq(roles.tenantId, activeTenantId),
+            or(
+              sql`LOWER(${roles.name}) = ${roleNameClean.toLowerCase()}`,
+              sql`LOWER(${roles.name}) LIKE ${`%${roleNameClean.toLowerCase()}%`}`,
+              eq(roles.code, roleKey)
+            )
+          )
+        )
+        .limit(1);
+      matchedRole = tenantRole;
+    }
+
+    if (!matchedRole) {
+      const [sysRole] = await db
+        .select()
+        .from(roles)
+        .where(
+          and(
+            sql`${roles.tenantId} IS NULL`,
+            or(
+              sql`LOWER(${roles.name}) = ${roleNameClean.toLowerCase()}`,
+              sql`LOWER(${roles.name}) LIKE ${`%${roleNameClean.toLowerCase()}%`}`,
+              eq(roles.code, roleKey)
+            )
+          )
+        )
+        .limit(1);
+      matchedRole = sysRole;
+    }
+
+    if (!matchedRole && activeTenantId) {
+      try {
+        const [createdRole] = await db
+          .insert(roles)
+          .values({
+            tenantId: activeTenantId,
+            code: roleKey,
+            name: roleNameClean,
+            description: "Custom enterprise operational scope",
+            isSystem: false,
+          })
+          .returning();
+        matchedRole = createdRole;
+      } catch (_) {}
+    }
+
+    const [defaultPlant] = activeTenantId
+      ? await db.select().from(plants).where(eq(plants.tenantId, activeTenantId)).limit(1)
+      : await db.select().from(plants).limit(1);
+
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
     if (matchedRole) {
       await db.insert(userRoles).values({
         userId: createdUser.id,
@@ -307,13 +446,17 @@ export class AdminService {
       createdAt: createdUser.createdAt,
     };
 
-    inMemoryUsers.unshift(resultUser);
+    if (!tenantId) {
+      inMemoryUsers.unshift(resultUser);
+    }
     return resultUser;
   }
 
   async getAllUsers(tenantId?: string) {
     try {
-      const userList = await db.select().from(users);
+      const userList = tenantId
+        ? await db.select().from(users).where(eq(users.tenantId, tenantId)).orderBy(desc(users.createdAt))
+        : await db.select().from(users).orderBy(desc(users.createdAt));
       const roleList = await db.select().from(roles);
       const userRoleList = await db.select().from(userRoles);
       const plantList = await db.select().from(plants);
@@ -338,27 +481,39 @@ export class AdminService {
         .map((u, index) => {
           const uRole = userRoleList.find((ur) => ur.userId === u.id);
           const roleObj = uRole ? roleList.find((r) => r.id === uRole.roleId) : null;
-          const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "operator");
-          const plantObj = uRole?.plantId ? plantList.find((p) => p.id === uRole.plantId) : plantList[0];
+          const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "admin");
+          const plantObj = uRole?.plantId ? plantList.find((p) => p.id === uRole.plantId) : plantList.find((p) => p.tenantId === u.tenantId);
 
           return {
             id: u.id,
             name: `${u.firstName} ${u.lastName}`.trim(),
             email: u.email,
-            role: roleObj?.name || (u.isMasterAdmin ? "Master Admin" : "Line Operator"),
+            role: roleObj?.name || (u.isMasterAdmin ? "Master Admin" : "Company Administrator"),
             roleCode,
-            department: departmentMap[roleCode] || "Operations",
-            plant: plantObj?.name?.split(" - ")[0] || "Indore Plant",
+            department: departmentMap[roleCode] || (roleCode === "admin" ? "IT & Digital Ops" : "Operations"),
+            plant: plantObj?.name?.split(" - ")[0] || "Main Facility",
             status: u.status === "ACTIVE" ? "Active" : "Suspended",
             lastLogin: index === 0 ? "Just now" : `${(index + 1) * 2} hours ago`,
             lastLoginAt: u.lastLoginAt,
             createdAt: u.createdAt,
           };
         });
+<<<<<<< HEAD
     } catch (err: any) {
       console.warn("Database query failed in getAllUsers:", err.message);
       return [];
     }
+=======
+      }
+      if (tenantId) {
+        return [];
+      }
+    } catch (err: any) {
+      console.warn("Database query failed in getAllUsers:", err.message);
+    }
+
+    return tenantId ? [] : inMemoryUsers;
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
   }
 
   async updateUserStatus(tenantId: string | undefined, userId: string, newStatus: string) {
@@ -659,6 +814,7 @@ export class AdminService {
   }
 
   async getInvitations(tenantId?: string) {
+<<<<<<< HEAD
     try {
       const rows = await db
         .select()
@@ -677,6 +833,12 @@ export class AdminService {
       console.warn("getInvitations DB error:", err.message);
       return [];
     }
+=======
+    if (tenantId) {
+      return inMemoryInvitations.filter((i) => i.tenantId === tenantId);
+    }
+    return inMemoryInvitations;
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
   }
 
   async createInvitation(tenantId: string | undefined, input: { email: string; role: string; department?: string; invitedBy?: string }) {
@@ -685,6 +847,7 @@ export class AdminService {
     }
 
     const email = input.email.toLowerCase().trim();
+<<<<<<< HEAD
 
     // Check for existing pending invite in DB
     const existingRows = await db
@@ -701,6 +864,23 @@ export class AdminService {
       const [demoTenant] = await db.select().from(tenants).limit(1);
       activeTenantId = demoTenant?.id;
     }
+=======
+    const existingInvite = inMemoryInvitations.find((i) => i.email.toLowerCase() === email && i.status === "Pending" && (!tenantId || i.tenantId === tenantId));
+    if (existingInvite) {
+      throw new ConflictError(`Active invitation already exists for ${email}.`);
+    }
+
+    const newInvite: InvitationRecord = {
+      id: `INV-${Math.floor(100 + Math.random() * 900)}`,
+      tenantId,
+      email,
+      role: input.role || "Quality Analyst",
+      department: input.department || "Quality",
+      invitedBy: input.invitedBy || "Company Administrator",
+      sentDate: new Date().toISOString().substring(0, 10),
+      status: "Pending",
+    };
+>>>>>>> 59fe0e80dcd1ca040d9081466191afe4467c0af5
 
     const newId = `INV-${Math.floor(100 + Math.random() * 900)}`;
     const sentDate = new Date().toISOString().substring(0, 10);
@@ -918,41 +1098,45 @@ export class AdminService {
 
 
   async getActivityLogs(tenantId?: string, query?: string) {
+    if (!tenantId) {
+      return [];
+    }
+
     let mappedDbLogs: any[] = [];
     try {
-      const dbLogs = await db.select().from(auditLogs).orderBy(sql`${auditLogs.createdAt} DESC`).limit(50);
-      const userList = await db.select().from(users);
+      const dbLogs = await db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.tenantId, tenantId))
+        .orderBy(sql`${auditLogs.createdAt} DESC`)
+        .limit(50);
+
+      const userList = await db
+        .select()
+        .from(users)
+        .where(eq(users.tenantId, tenantId));
 
       mappedDbLogs = dbLogs.map((log, index) => {
         const user = userList.find((u) => u.id === log.userId);
-        const userName = user ? `${user.firstName} ${user.lastName}` : "Alexander Vance";
+        const userName = user ? `${user.firstName} ${user.lastName}`.trim() : "Company Administrator";
 
         return {
           id: `ACT-${800 + index}`,
-          user: userName,
+          user: userName || "Administrator",
           action: `${log.action.replace(/_/g, " ")} on ${log.entityType} (${log.entityId})`,
           category: log.action.includes("SECURITY") || log.action.includes("USER") || log.action.includes("LOCK") ? "Security" : "Configuration",
-          ip: log.ipAddress || "192.168.1.10",
+          ip: log.ipAddress || "127.0.0.1",
           timestamp: new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           createdAt: log.createdAt,
         };
       });
     } catch (err: any) {
-      console.warn("Database query failed in getActivityLogs, using fallback activity stream:", err.message);
+      console.warn("Database query failed in getActivityLogs:", err.message);
     }
-
-    const defaultLogs = [
-      { id: "ACT-801", user: "Alexander Vance", action: "Updated ERP Sync Frequency to 15 mins", timestamp: "10:45 AM", ip: "192.168.1.10", category: "Configuration", createdAt: new Date().toISOString() },
-      { id: "ACT-802", user: "Robert Thorne", action: "Approved Schedule Recovery Catch-up Plan", timestamp: "09:30 AM", ip: "192.168.1.45", category: "Planning", createdAt: new Date().toISOString() },
-      { id: "ACT-803", user: "Sarah Jenkins", action: "Released Lot LOT-CIT-0830 Certificate of Analysis", timestamp: "08:15 AM", ip: "192.168.1.72", category: "Quality", createdAt: new Date().toISOString() },
-      { id: "ACT-804", user: "Alexander Vance", action: "Modified Role Permissions for Maintenance Lead", timestamp: "Yesterday", ip: "192.168.1.10", category: "Security", createdAt: new Date().toISOString() },
-    ];
-
-    const combined = [...mappedDbLogs, ...defaultLogs];
 
     if (query && query.trim()) {
       const q = query.toLowerCase().trim();
-      return combined.filter(
+      return mappedDbLogs.filter(
         (l) =>
           l.user.toLowerCase().includes(q) ||
           l.action.toLowerCase().includes(q) ||
@@ -961,7 +1145,7 @@ export class AdminService {
       );
     }
 
-    return combined;
+    return mappedDbLogs;
   }
 
   // ==========================================
@@ -970,29 +1154,52 @@ export class AdminService {
 
   async getRoles(tenantId?: string) {
     try {
+      if (tenantId) {
+        const roleList = await db.select().from(roles).where(eq(roles.tenantId, tenantId));
+        const userRoleList = await db.select().from(userRoles);
+        const tenantUsers = await db.select().from(users).where(eq(users.tenantId, tenantId));
+        const tenantUserIds = new Set(tenantUsers.map((u) => u.id));
+
+        return roleList.map((r, idx) => {
+          const assignedCount = userRoleList.filter((ur) => ur.roleId === r.id && tenantUserIds.has(ur.userId)).length;
+          return {
+            id: r.id,
+            dbId: r.id,
+            code: r.code,
+            name: r.name,
+            description: r.description || "Custom enterprise operational scope",
+            userCount: assignedCount,
+            isSystem: r.isSystem,
+            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || new Date().toISOString()),
+          };
+        });
+      }
+
       const roleList = await db.select().from(roles);
       const userRoleList = await db.select().from(userRoles);
 
       if (roleList && roleList.length > 0) {
         return roleList.map((r, idx) => {
           const assignedCount = userRoleList.filter((ur) => ur.roleId === r.id).length;
+          const defaultFallbackCount = r.code === "operator" ? 42 : r.code === "plant_manager" ? 4 : r.code === "admin" ? 2 : 1;
+
           return {
-            id: `ROL-0${idx + 1}`,
+            id: r.id || `ROL-0${idx + 1}`,
             dbId: r.id,
             code: r.code,
             name: r.name,
             description: r.description || "Custom enterprise operational scope",
-            userCount: assignedCount || (r.code === "operator" ? 42 : r.code === "plant_manager" ? 4 : r.code === "admin" ? 2 : 1),
+            userCount: assignedCount || defaultFallbackCount,
             isSystem: r.isSystem,
-            createdAt: r.createdAt,
+            createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || new Date().toISOString()),
           };
         });
       }
     } catch (err: any) {
-      console.warn("Database query failed in getRoles, using in-memory roles registry:", err.message);
+      console.warn("Database query failed in getRoles:", err.message);
     }
 
-    return inMemoryRoles;
+    return tenantId ? [] : inMemoryRoles;
   }
 
   async createRole(tenantId: string | undefined, input: { name: string; description?: string }) {
@@ -1001,18 +1208,6 @@ export class AdminService {
     }
 
     const code = input.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "_");
-    const newId = `ROL-0${inMemoryRoles.length + 1}`;
-    const newRoleRecord = {
-      id: newId,
-      dbId: newId,
-      code,
-      name: input.name.trim(),
-      description: input.description?.trim() || "Custom enterprise operational scope",
-      userCount: 0,
-      isSystem: false,
-      createdAt: new Date().toISOString(),
-    };
-    inMemoryRoles.push(newRoleRecord);
 
     try {
       let activeTenantId = tenantId;
@@ -1032,23 +1227,48 @@ export class AdminService {
         })
         .returning();
 
-      if (activeTenantId) {
-        await db.insert(auditLogs).values({
-          tenantId: activeTenantId,
-          action: "CREATE_CUSTOM_ROLE",
-          entityType: "Role",
-          entityId: created.id,
-          newValues: { name: created.name, code: created.code },
-          ipAddress: "192.168.1.10",
-        });
+      if (activeTenantId && created) {
+        try {
+          await db.insert(auditLogs).values({
+            tenantId: activeTenantId,
+            action: "CREATE_CUSTOM_ROLE",
+            entityType: "Role",
+            entityId: created.id,
+            newValues: { name: created.name, code: created.code },
+            ipAddress: "192.168.1.10",
+          });
+        } catch (_) {}
       }
 
-      newRoleRecord.dbId = created.id;
-      newRoleRecord.createdAt = created.createdAt instanceof Date ? created.createdAt.toISOString() : String(created.createdAt || new Date().toISOString());
+      if (created) {
+        return {
+          id: created.id,
+          dbId: created.id,
+          code: created.code,
+          name: created.name,
+          description: created.description || "Custom enterprise operational scope",
+          userCount: 0,
+          isSystem: false,
+          createdAt: created.createdAt instanceof Date ? created.createdAt.toISOString() : String(created.createdAt || new Date().toISOString()),
+        };
+      }
     } catch (e: any) {
       console.warn("createRole DB insert fallback:", e.message);
+      if (tenantId) throw e;
     }
 
+    const newId = `ROL-0${inMemoryRoles.length + 1}`;
+    const newRoleRecord = {
+      id: newId,
+      dbId: newId,
+      code,
+      name: input.name.trim(),
+      description: input.description?.trim() || "Custom enterprise operational scope",
+      userCount: 0,
+      isSystem: false,
+      createdAt: new Date().toISOString(),
+    };
+    inMemoryRoles.push(newRoleRecord);
     return newRoleRecord;
   }
 
@@ -1232,6 +1452,9 @@ export class AdminService {
   }
 
   async getApprovalRules(tenantId?: string) {
+    if (tenantId) {
+      return [];
+    }
     return [
       { id: "APR-01", event: "Finished Goods QA Batch Release (CoA)", tier: "Dual Sign-off", authorizedRoles: "QA Manager + Plant Manager", compliance: "FDA 21 CFR Part 11" },
       { id: "APR-02", event: "Master BOM & Recipe Revision Approval", tier: "2-Tier Approval", authorizedRoles: "QA Manager + System Admin", compliance: "ISO 22000" },

@@ -31,6 +31,9 @@ export const forecasts = pgTable("forecasts", {
   finalForecast: numeric("final_forecast", { precision: 12, scale: 2 }).notNull(),
   mapeAccuracy: numeric("mape_accuracy", { precision: 5, scale: 2 }).default("94.60"),
   modelType: varchar("model_type", { length: 100 }).default("EXPONENTIAL_SMOOTHING"),
+  owner: varchar("owner", { length: 255 }).default("Elena Rostova"),
+  reason: text("reason"),
+  status: varchar("status", { length: 50 }).default("Submitted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -65,6 +68,12 @@ export const mrpRequirements = pgTable("mrp_requirements", {
   netShortage: numeric("net_shortage", { precision: 14, scale: 4 }).notNull(),
   requiredDate: timestamp("required_date").notNull(),
   status: varchar("status", { length: 50 }).default("SHORTAGE_ALERT"), // "CRITICAL", "SHORTAGE_ALERT", "COVERED"
+  safetyStock: numeric("safety_stock", { precision: 14, scale: 4 }).default("1000.00"),
+  suggestedAction: varchar("suggested_action", { length: 255 }),
+  category: varchar("category", { length: 100 }),
+  uom: varchar("uom", { length: 50 }),
+  materialName: varchar("material_name", { length: 255 }),
+  skuCode: varchar("sku_code", { length: 100 }),
   calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
 });
 

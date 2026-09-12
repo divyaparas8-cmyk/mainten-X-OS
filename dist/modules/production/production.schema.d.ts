@@ -57,9 +57,9 @@ export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
 }>;
 export type CreateProductionOrderInput = z.infer<typeof createProductionOrderSchema>;
 export declare const updateOrderStatusSchema: z.ZodObject<{
-    status: z.ZodEffects<z.ZodEnum<["PLANNED", "SCHEDULED", "RELEASED", "RUNNING", "PAUSED", "COMPLETED", "QA_PENDING", "RELEASED_TO_WAREHOUSE", "CANCELLED"]>, "RUNNING" | "SCHEDULED" | "PLANNED" | "RELEASED" | "COMPLETED" | "PAUSED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE" | "CANCELLED", unknown>;
+    status: z.ZodEffects<z.ZodEnum<["PLANNED", "SCHEDULED", "RELEASED", "RUNNING", "PAUSED", "COMPLETED", "QA_PENDING", "RELEASED_TO_WAREHOUSE", "CANCELLED"]>, "RUNNING" | "SCHEDULED" | "PLANNED" | "RELEASED" | "COMPLETED" | "CANCELLED" | "PAUSED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE", unknown>;
 }, "strip", z.ZodTypeAny, {
-    status: "RUNNING" | "SCHEDULED" | "PLANNED" | "RELEASED" | "COMPLETED" | "PAUSED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE" | "CANCELLED";
+    status: "RUNNING" | "SCHEDULED" | "PLANNED" | "RELEASED" | "COMPLETED" | "CANCELLED" | "PAUSED" | "QA_PENDING" | "RELEASED_TO_WAREHOUSE";
 }, {
     status?: unknown;
 }>;

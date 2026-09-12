@@ -84,6 +84,14 @@ export class AdminController {
     return reply.status(200).send(res);
   }
 
+  async updateInvitation(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const res = await adminService.updateInvitation(user?.tenantId, id, body);
+    return reply.status(200).send(res);
+  }
+
   async getActivityLogs(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const { query } = (request.query as { query?: string }) || {};
@@ -289,6 +297,19 @@ export class AdminController {
     return reply.status(200).send(logs);
   }
 
+  async createAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.createAuditLog(user?.tenantId, request.body);
+    return reply.status(201).send(result);
+  }
+
+  async updateAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.updateAuditLog(user?.tenantId, id, request.body);
+    return reply.status(200).send(result);
+  }
+
   async deleteAuditLog(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const { id } = request.params as { id: string };
@@ -333,6 +354,19 @@ export class AdminController {
     const user = (request as any).user;
     const { id } = request.params as { id: string };
     const result = await adminService.deleteMigrationBatch(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── 12. SYSTEM REPORTS ─────────────────────────────────────────────
+  async getSystemReports(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const reports = await adminService.getSystemReports(user?.tenantId);
+    return reply.status(200).send(reports);
+  }
+
+  async exportSystemReport(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.exportSystemReport(user?.tenantId);
     return reply.status(200).send(result);
   }
 }

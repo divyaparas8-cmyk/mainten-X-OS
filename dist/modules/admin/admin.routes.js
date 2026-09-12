@@ -274,6 +274,18 @@ async function adminRoutes(fastify) {
             summary: "Get Master Governance Audit Ledger",
         },
     }, admin_controller_js_1.adminController.getAuditLogs.bind(admin_controller_js_1.adminController));
+    fastify.post("/audit-logs", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Create Audit Log Record",
+        },
+    }, admin_controller_js_1.adminController.createAuditLog.bind(admin_controller_js_1.adminController));
+    fastify.patch("/audit-logs/:id", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Update Audit Log Record",
+        },
+    }, admin_controller_js_1.adminController.updateAuditLog.bind(admin_controller_js_1.adminController));
     fastify.delete("/audit-logs/:id", {
         schema: {
             tags: ["System Administration"],
@@ -318,5 +330,18 @@ async function adminRoutes(fastify) {
             summary: "Delete Migration Batch Record",
         },
     }, admin_controller_js_1.adminController.deleteMigrationBatch.bind(admin_controller_js_1.adminController));
+    // ── 12. SYSTEM REPORTS ────────────────────────────────────────────
+    fastify.get("/system-reports", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Get System Governance & Infrastructure Reports Metrics",
+        },
+    }, admin_controller_js_1.adminController.getSystemReports.bind(admin_controller_js_1.adminController));
+    fastify.post("/system-reports/export", {
+        schema: {
+            tags: ["System Administration"],
+            summary: "Export Executive System Health & Compliance Report",
+        },
+    }, admin_controller_js_1.adminController.exportSystemReport.bind(admin_controller_js_1.adminController));
 }
 //# sourceMappingURL=admin.routes.js.map

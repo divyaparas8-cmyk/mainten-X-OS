@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.shipmentOrders = exports.goodsReceipts = exports.inventoryTransactions = exports.inventoryLots = exports.locationBins = exports.warehouses = void 0;
+exports.suppliers = exports.shipmentOrders = exports.goodsReceipts = exports.inventoryTransactions = exports.inventoryLots = exports.locationBins = exports.warehouses = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -84,5 +84,25 @@ exports.shipmentOrders = (0, pg_core_1.pgTable)("shipment_orders", {
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("DISPATCHED").notNull(), // "PACKING", "READY_FOR_PICKUP", "DISPATCHED", "DELIVERED"
     dispatchDate: (0, pg_core_1.timestamp)("dispatch_date").defaultNow().notNull(),
     shippedLots: (0, pg_core_1.jsonb)("shipped_lots").default([]),
+});
+exports.suppliers = (0, pg_core_1.pgTable)("suppliers", {
+    id: (0, pg_core_1.varchar)("id", { length: 64 }).primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    supplierCode: (0, pg_core_1.varchar)("supplier_code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    category: (0, pg_core_1.varchar)("category", { length: 100 }).default("Raw Material Concentrate"),
+    materialsSupplied: (0, pg_core_1.text)("materials_supplied"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    otifScore: (0, pg_core_1.numeric)("otif_score", { precision: 5, scale: 2 }).default("98.00"),
+    qualityAcceptanceRate: (0, pg_core_1.numeric)("quality_acceptance_rate", { precision: 5, scale: 2 }).default("99.50"),
+    avgLeadTimeDays: (0, pg_core_1.numeric)("avg_lead_time_days", { precision: 5, scale: 2 }).default("4.00"),
+    riskRating: (0, pg_core_1.varchar)("risk_rating", { length: 50 }).default("Low Risk"),
+    contactEmail: (0, pg_core_1.varchar)("contact_email", { length: 255 }),
+    contactPhone: (0, pg_core_1.varchar)("contact_phone", { length: 50 }),
+    lastOrder: (0, pg_core_1.varchar)("last_order", { length: 255 }).default("Pending Initial PO"),
+    openOrdersCount: (0, pg_core_1.integer)("open_orders_count").default(0),
+    activeContractsCount: (0, pg_core_1.integer)("active_contracts_count").default(1),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
 //# sourceMappingURL=warehouse.js.map

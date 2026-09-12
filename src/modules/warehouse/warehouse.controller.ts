@@ -164,10 +164,16 @@ export class WarehouseController {
     return reply.send(formatSuccess(data, `Supplier ${data.name} is now ${data.status}`));
   }
 
+  async deleteSupplier(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteSupplier(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async getSupplierScorecard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const data = await warehouseService.getSupplierScorecard(request.user.tenantId, request.params.id);
     return reply.send(formatSuccess(data, data.message));
   }
+
 
   // ==========================================
   // WMS OPERATIONS CONTROLLER

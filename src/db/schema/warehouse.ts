@@ -88,3 +88,25 @@ export const shipmentOrders = pgTable("shipment_orders", {
   dispatchDate: timestamp("dispatch_date").defaultNow().notNull(),
   shippedLots: jsonb("shipped_lots").default([]),
 });
+
+export const suppliers = pgTable("suppliers", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  supplierCode: varchar("supplier_code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).default("Raw Material Concentrate"),
+  materialsSupplied: text("materials_supplied"),
+  status: varchar("status", { length: 50 }).default("Active"),
+  otifScore: numeric("otif_score", { precision: 5, scale: 2 }).default("98.00"),
+  qualityAcceptanceRate: numeric("quality_acceptance_rate", { precision: 5, scale: 2 }).default("99.50"),
+  avgLeadTimeDays: numeric("avg_lead_time_days", { precision: 5, scale: 2 }).default("4.00"),
+  riskRating: varchar("risk_rating", { length: 50 }).default("Low Risk"),
+  contactEmail: varchar("contact_email", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  lastOrder: varchar("last_order", { length: 255 }).default("Pending Initial PO"),
+  openOrdersCount: integer("open_orders_count").default(0),
+  activeContractsCount: integer("active_contracts_count").default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+

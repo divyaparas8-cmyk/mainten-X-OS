@@ -30,7 +30,7 @@ export const qaReleases = pgTable("qa_releases", {
   plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }).notNull(),
   batchId: uuid("batch_id").references(() => batches.id, { onDelete: "cascade" }).notNull().unique(),
   disposition: varchar("disposition", { length: 50 }).notNull(), // "RELEASED", "REJECTED", "REWORK", "QUARANTINED"
-  dispositionBy: uuid("disposition_by").references(() => users.id, { onDelete: "restrict" }).notNull(),
+  dispositionBy: uuid("disposition_by").references(() => users.id, { onDelete: "set null" }),
   digitalSignaturePinUsed: boolean("digital_signature_pin_used").default(true).notNull(),
   certificateOfAnalysisUrl: text("certificate_of_analysis_url"),
   coaMetadata: jsonb("coa_metadata").default({}),

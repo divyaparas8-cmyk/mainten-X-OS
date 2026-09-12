@@ -21,7 +21,7 @@ export const digitalSignatures = pgTable("digital_signatures", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
   plantId: uuid("plant_id").references(() => plants.id, { onDelete: "set null" }),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "restrict" }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   entityType: varchar("entity_type", { length: 100 }).notNull(),
   entityId: varchar("entity_id", { length: 255 }).notNull(),
   meaning: varchar("meaning", { length: 255 }).notNull(), // "Author of Batch Record", "QA Release Disposition"

@@ -42,6 +42,8 @@ export declare class AdminController {
     getSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     saveSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getAuditLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     deleteAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getRemediationLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     executeRemediationEngine(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -49,6 +51,8 @@ export declare class AdminController {
     getMigrationBatches(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     executeMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     deleteMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSystemReports(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    exportSystemReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const adminController: AdminController;
 //# sourceMappingURL=admin.controller.d.ts.map

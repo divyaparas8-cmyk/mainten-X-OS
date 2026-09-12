@@ -370,14 +370,30 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listChangeoverRules(tenantId?: string): Promise<any>;
+    listChangeoverRules(tenantId?: string): Promise<{
+        id: any;
+        matrixId: any;
+        fromSkuId: any;
+        fromSkuCode: any;
+        fromFamily: any;
+        toSkuId: any;
+        toSkuCode: any;
+        toFamily: any;
+        changeoverDurationMin: number;
+        sanitationClass: any;
+        allergenCleaningRequired: boolean;
+        notes: any;
+        status: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
     createChangeoverRule(tenantId: string | undefined, input: any): Promise<ChangeoverRuleEntity>;
     updateChangeoverRule(tenantId: string | undefined, id: string, input: any): Promise<any>;
     deleteChangeoverRule(tenantId: string | undefined, id: string): Promise<ChangeoverRuleEntity | {
         id: string;
         message: string;
     }>;
-    listSanitationClasses(tenantId?: string): Promise<SanitationClassEntity[] | {
+    listSanitationClasses(tenantId?: string): Promise<{
         id: any;
         classId: any;
         sanitationId: any;
@@ -404,7 +420,7 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listAllergenRules(tenantId?: string): Promise<AllergenRuleEntity[] | {
+    listAllergenRules(tenantId?: string): Promise<{
         id: any;
         ruleId: any;
         allergenId: any;

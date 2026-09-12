@@ -114,7 +114,7 @@ export declare class QualityService {
         comments: string | null;
         batchId: string;
         disposition: string;
-        dispositionBy: string;
+        dispositionBy: string | null;
         digitalSignaturePinUsed: boolean;
         certificateOfAnalysisUrl: string | null;
         coaMetadata: unknown;

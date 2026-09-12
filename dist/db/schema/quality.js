@@ -31,7 +31,7 @@ exports.qaReleases = (0, pg_core_1.pgTable)("qa_releases", {
     plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
     batchId: (0, pg_core_1.uuid)("batch_id").references(() => production_1.batches.id, { onDelete: "cascade" }).notNull().unique(),
     disposition: (0, pg_core_1.varchar)("disposition", { length: 50 }).notNull(), // "RELEASED", "REJECTED", "REWORK", "QUARANTINED"
-    dispositionBy: (0, pg_core_1.uuid)("disposition_by").references(() => users_1.users.id, { onDelete: "restrict" }).notNull(),
+    dispositionBy: (0, pg_core_1.uuid)("disposition_by").references(() => users_1.users.id, { onDelete: "set null" }),
     digitalSignaturePinUsed: (0, pg_core_1.boolean)("digital_signature_pin_used").default(true).notNull(),
     certificateOfAnalysisUrl: (0, pg_core_1.text)("certificate_of_analysis_url"),
     coaMetadata: (0, pg_core_1.jsonb)("coa_metadata").default({}),

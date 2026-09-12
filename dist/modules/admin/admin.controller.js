@@ -248,6 +248,17 @@ class AdminController {
         const logs = await admin_service_js_1.adminService.getAuditLogs(user?.tenantId, query);
         return reply.status(200).send(logs);
     }
+    async createAuditLog(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.createAuditLog(user?.tenantId, request.body);
+        return reply.status(201).send(result);
+    }
+    async updateAuditLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.updateAuditLog(user?.tenantId, id, request.body);
+        return reply.status(200).send(result);
+    }
     async deleteAuditLog(request, reply) {
         const user = request.user;
         const { id } = request.params;
@@ -286,6 +297,17 @@ class AdminController {
         const user = request.user;
         const { id } = request.params;
         const result = await admin_service_js_1.adminService.deleteMigrationBatch(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
+    // ── 12. SYSTEM REPORTS ─────────────────────────────────────────────
+    async getSystemReports(request, reply) {
+        const user = request.user;
+        const reports = await admin_service_js_1.adminService.getSystemReports(user?.tenantId);
+        return reply.status(200).send(reports);
+    }
+    async exportSystemReport(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.exportSystemReport(user?.tenantId);
         return reply.status(200).send(result);
     }
 }

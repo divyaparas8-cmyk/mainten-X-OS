@@ -1,12 +1,3 @@
-interface InvitationRecord {
-    id: string;
-    email: string;
-    role: string;
-    department: string;
-    invitedBy: string;
-    sentDate: string;
-    status: "Pending" | "Accepted" | "Revoked";
-}
 export declare class AdminService {
     getDashboardMetrics(tenantId?: string): Promise<{
         systemHealth: number;
@@ -117,7 +108,19 @@ export declare class AdminService {
         lastLogin: string;
         createdAt: Date;
     }>;
-    getAllUsers(tenantId?: string): Promise<any[]>;
+    getAllUsers(tenantId?: string): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        roleCode: string;
+        department: string;
+        plant: string;
+        status: string;
+        lastLogin: string;
+        lastLoginAt: Date | null;
+        createdAt: Date;
+    }[]>;
     updateUserStatus(tenantId: string | undefined, userId: string, newStatus: string): Promise<{
         id: string;
         name: string;
@@ -163,17 +166,33 @@ export declare class AdminService {
         targetStatus: string;
         message: string;
     }>;
-    getInvitations(tenantId?: string): Promise<InvitationRecord[]>;
+    getInvitations(tenantId?: string): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        department: string | null;
+        invitedBy: string | null;
+        sentDate: string;
+        status: string;
+    }[]>;
     createInvitation(tenantId: string | undefined, input: {
         email: string;
         role: string;
         department?: string;
         invitedBy?: string;
-    }): Promise<InvitationRecord>;
+    }): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        department: string | null;
+        invitedBy: string | null;
+        sentDate: string;
+        status: string;
+    }>;
     resendInvitation(tenantId: string | undefined, invitationId: string): Promise<{
         success: boolean;
         message: string;
-        invitation: InvitationRecord;
+        invitation: any;
     }>;
     deleteInvitation(tenantId: string | undefined, invitationId: string): Promise<{
         success: boolean;
@@ -671,6 +690,21 @@ export declare class AdminService {
         data: any;
     }>;
     getAuditLogs(tenantId?: string, query?: string): Promise<any[]>;
+    createAuditLog(tenantId: string | undefined, data: any): Promise<{
+        success: boolean;
+        auditId: string;
+        id: string;
+        timestamp: string;
+        user: any;
+        userRole: any;
+        entityType: string;
+        entityId: string;
+        action: string;
+        oldValue: {};
+        newValue: {};
+        notes: string;
+    }>;
+    updateAuditLog(tenantId: string | undefined, id: string, data: any): Promise<any>;
     deleteAuditLog(tenantId: string | undefined, id: string): Promise<{
         success: boolean;
         id: string;
@@ -695,7 +729,58 @@ export declare class AdminService {
         success: boolean;
         id: string;
     }>;
+    getSystemReports(tenantId?: string): Promise<{
+        uptime: string;
+        uptimeStatus: string;
+        uptimeTarget: string;
+        dbStorage: string;
+        dbStorageLimit: string;
+        dbStorageUtilization: string;
+        apiLatencyMs: number;
+        apiLatencyP99: string;
+        seatLicensesUsed: number;
+        seatLicensesTotal: number;
+        seatLicensesAvailable: number;
+        tenantTier: string;
+        resourceUtilization: {
+            label: string;
+            value: number;
+        }[];
+        edgeTelemetryHealth: string;
+        edgeLatency: string;
+        pgStorageHealth: string;
+        pgCapacityHeadroom: string;
+        totalAuditEvents: number;
+        timestamp: string;
+    }>;
+    exportSystemReport(tenantId?: string): Promise<{
+        success: boolean;
+        data: {
+            uptime: string;
+            uptimeStatus: string;
+            uptimeTarget: string;
+            dbStorage: string;
+            dbStorageLimit: string;
+            dbStorageUtilization: string;
+            apiLatencyMs: number;
+            apiLatencyP99: string;
+            seatLicensesUsed: number;
+            seatLicensesTotal: number;
+            seatLicensesAvailable: number;
+            tenantTier: string;
+            resourceUtilization: {
+                label: string;
+                value: number;
+            }[];
+            edgeTelemetryHealth: string;
+            edgeLatency: string;
+            pgStorageHealth: string;
+            pgCapacityHeadroom: string;
+            totalAuditEvents: number;
+            timestamp: string;
+        };
+        generatedAt: string;
+    }>;
 }
 export declare const adminService: AdminService;
-export {};
 //# sourceMappingURL=admin.service.d.ts.map

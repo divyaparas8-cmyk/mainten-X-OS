@@ -199,6 +199,12 @@ export class MasterAdminController {
     return reply.send({ success: true, data });
   }
 
+  async deleteAuditLog(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const actor = getActor(req);
+    const data = await masterAdminService.deleteAuditLog(req.params.id, actor);
+    return reply.send(data);
+  }
+
   // 11. Support Tickets
   async getSupportTickets(req: FastifyRequest<{ Querystring: { search?: string; status?: string } }>, reply: FastifyReply) {
     const data = await masterAdminService.getSupportTickets(req.query);

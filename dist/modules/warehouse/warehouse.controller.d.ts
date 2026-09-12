@@ -73,6 +73,11 @@ export declare class WarehouseController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    deleteSupplier(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getSupplierScorecard(request: FastifyRequest<{
         Params: {
             id: string;

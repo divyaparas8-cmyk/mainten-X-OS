@@ -138,6 +138,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.resendInvitation.bind(adminController)
   );
 
+  fastify.put(
+    "/invitations/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update User Invitation (Role, Department, Status, Email)",
+      },
+    },
+    adminController.updateInvitation.bind(adminController)
+  );
+
   fastify.delete(
     "/invitations/:id",
     {
@@ -488,6 +499,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.getAuditLogs.bind(adminController)
   );
 
+  fastify.post(
+    "/audit-logs",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Audit Log Record",
+      },
+    },
+    adminController.createAuditLog.bind(adminController)
+  );
+
+  fastify.patch(
+    "/audit-logs/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Audit Log Record",
+      },
+    },
+    adminController.updateAuditLog.bind(adminController)
+  );
+
   fastify.delete(
     "/audit-logs/:id",
     {
@@ -565,6 +598,29 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     },
     adminController.deleteMigrationBatch.bind(adminController)
+  );
+
+  // ── 12. SYSTEM REPORTS ────────────────────────────────────────────
+  fastify.get(
+    "/system-reports",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get System Governance & Infrastructure Reports Metrics",
+      },
+    },
+    adminController.getSystemReports.bind(adminController)
+  );
+
+  fastify.post(
+    "/system-reports/export",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Export Executive System Health & Compliance Report",
+      },
+    },
+    adminController.exportSystemReport.bind(adminController)
   );
 }
 

@@ -1359,6 +1359,15 @@ export class MasterAdminService {
     return results;
   }
 
+  async deleteAuditLog(id: string, actor?: ActorContext) {
+    const [log] = await db.select().from(auditLogs).where(eq(auditLogs.id, id)).limit(1);
+    if (!log) throw new NotFoundError("Audit log record not found");
+
+    await db.delete(auditLogs).where(eq(auditLogs.id, id));
+
+    return { success: true, message: `Audit log ${id} deleted successfully` };
+  }
+
   // =========================================================================
   // 11. SUPPORT TICKETS
   // =========================================================================

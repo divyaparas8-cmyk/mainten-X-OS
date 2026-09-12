@@ -28,6 +28,9 @@ const executive_routes_js_1 = require("./modules/executive/executive.routes.js")
 const ci_routes_js_1 = require("./modules/ci/ci.routes.js");
 const exceptions_routes_js_1 = require("./modules/exceptions/exceptions.routes.js");
 const ai_routes_js_1 = require("./modules/ai/ai.routes.js");
+const billing_routes_js_1 = require("./modules/billing/billing.routes.js");
+const iot_routes_js_1 = require("./modules/iot/iot.routes.js");
+const master_routes_js_1 = require("./modules/master/master.routes.js");
 async function buildApp() {
     const app = (0, fastify_1.default)({
         logger: {
@@ -86,6 +89,9 @@ async function buildApp() {
     await app.register(ci_routes_js_1.ciRoutes, { prefix: "/api/v1/ci" });
     await app.register(exceptions_routes_js_1.exceptionsRoutes, { prefix: "/api/v1/exceptions" });
     await app.register(ai_routes_js_1.aiRoutes, { prefix: "/api/v1/ai" });
+    await app.register(billing_routes_js_1.billingRoutes, { prefix: "/api/v1/billing" });
+    await app.register(iot_routes_js_1.iotRoutes, { prefix: "/api/v1/iot" });
+    await app.register(master_routes_js_1.masterRoutes, { prefix: "/api/v1/master" });
     return app;
 }
 //# sourceMappingURL=app.js.map

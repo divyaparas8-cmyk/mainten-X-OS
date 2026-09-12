@@ -14,6 +14,7 @@ export const productFamilies = pgTable("product_families", {
 export const skus = pgTable("skus", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }),
   skuCode: varchar("sku_code", { length: 100 }).notNull(), // e.g. "SKU-5001"
   name: varchar("name", { length: 255 }).notNull(),        // "500ml Sparkling Citrus Soda"
   category: varchar("category", { length: 100 }).notNull(), // "FINISHED_GOODS", "RAW_MATERIAL", "PACKAGING"
@@ -33,6 +34,7 @@ export const boms = pgTable("boms", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
   skuId: uuid("sku_id").references(() => skus.id, { onDelete: "cascade" }).notNull(),
+  bomNumber: varchar("bom_number", { length: 100 }),
   version: varchar("version", { length: 50 }).default("v1.0").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   batchSize: numeric("batch_size", { precision: 12, scale: 2 }).default("10000").notNull(),
@@ -40,6 +42,8 @@ export const boms = pgTable("boms", {
   yieldPercent: numeric("yield_percent", { precision: 5, scale: 2 }).default("98.50"),
   isDefault: boolean("is_default").default(true).notNull(),
   status: varchar("status", { length: 50 }).default("ACTIVE").notNull(),
+  approvalStatus: varchar("approval_status", { length: 50 }).default("Draft"),
+  createdBy: varchar("created_by", { length: 100 }).default("Alexander Vance"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -47,7 +51,9 @@ export const boms = pgTable("boms", {
 export const bomItems = pgTable("bom_items", {
   id: uuid("id").defaultRandom().primaryKey(),
   bomId: uuid("bom_id").references(() => boms.id, { onDelete: "cascade" }).notNull(),
-  componentSkuId: uuid("component_sku_id").references(() => skus.id, { onDelete: "restrict" }).notNull(),
+  componentSkuId: uuid("component_sku_id").references(() => skus.id, { onDelete: "restrict" }),
+  componentName: varchar("component_name", { length: 255 }),
+  skuCode: varchar("sku_code", { length: 50 }),
   quantity: numeric("quantity", { precision: 14, scale: 4 }).notNull(),
   scrapPercentage: numeric("scrap_percentage", { precision: 5, scale: 2 }).default("0.00"),
   uom: varchar("uom", { length: 50 }).notNull(),
@@ -193,6 +199,25 @@ export const changeoverRules = pgTable("changeover_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const companies = pgTable("companies", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  industry: varchar("industry", { length: 100 }),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const departments = pgTable("departments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  managerName: varchar("manager_name", { length: 255 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 export const operations = pgTable("operations", {
   id: uuid("id").defaultRandom().primaryKey(),
   operationCode: varchar("operation_code", { length: 50 }).notNull(),
@@ -206,6 +231,24 @@ export const operations = pgTable("operations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const lineTargets = pgTable("line_targets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  targetId: varchar("target_id", { length: 50 }),
+  plantId: varchar("plant_id", { length: 50 }).default("PLT-01"),
+  lineId: varchar("line_id", { length: 50 }).notNull(),
+  lineName: varchar("line_name", { length: 255 }),
+  skuId: varchar("sku_id", { length: 50 }),
+  skuCode: varchar("sku_code", { length: 50 }),
+  skuName: varchar("sku_name", { length: 255 }),
+  shift: varchar("shift", { length: 100 }).default("Morning Shift (A)"),
+  targetQuantity: integer("target_quantity").default(0),
+  targetOeePct: numeric("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
+  targetSpeedBpm: integer("target_speed_bpm").default(250),
+  effectiveDate: timestamp("effective_date").defaultNow(),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 export const packaging = pgTable("packaging", {
   id: uuid("id").defaultRandom().primaryKey(),
   packCode: varchar("pack_code", { length: 50 }).notNull(),
@@ -271,6 +314,4 @@ export const uoms = pgTable("uoms", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-
 

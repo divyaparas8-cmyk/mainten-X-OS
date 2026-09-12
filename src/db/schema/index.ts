@@ -11,7 +11,9 @@ export * from "./maintenance.js";
 export * from "./common.js";
 export * from "./ci.js";
 export * from "./plantManager.js";
-export * from "./platform.js";
+export * from "./billing.js";
+export * from "./iot.js";
+export * from "./masterAdmin.js";
 export * from "../relations.js";
 
 

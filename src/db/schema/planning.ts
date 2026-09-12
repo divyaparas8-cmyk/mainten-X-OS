@@ -33,7 +33,7 @@ export const forecasts = pgTable("forecasts", {
   modelType: varchar("model_type", { length: 100 }).default("EXPONENTIAL_SMOOTHING"),
   owner: varchar("owner", { length: 255 }).default("Elena Rostova"),
   reason: text("reason"),
-  status: varchar("status", { length: 50 }).default("Submitted").notNull(),
+  status: varchar("status", { length: 50 }).default("Submitted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

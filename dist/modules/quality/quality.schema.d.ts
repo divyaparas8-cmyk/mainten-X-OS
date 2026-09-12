@@ -57,13 +57,13 @@ export declare const createQualityHoldSchema: z.ZodObject<{
     reason: z.ZodString;
     severity: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    reason: string;
     lotNumber: string;
+    reason: string;
     severity: string;
     batchId?: string | undefined;
 }, {
-    reason: string;
     lotNumber: string;
+    reason: string;
     batchId?: string | undefined;
     severity?: string | undefined;
 }>;
@@ -224,14 +224,14 @@ export declare const submitSanitationSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: string;
-    protocol: string;
     operator: string;
+    protocol: string;
     loop: string;
     steps?: any[] | undefined;
 }, {
     status?: string | undefined;
-    protocol?: string | undefined;
     operator?: string | undefined;
+    protocol?: string | undefined;
     steps?: any[] | undefined;
     loop?: string | undefined;
 }>;

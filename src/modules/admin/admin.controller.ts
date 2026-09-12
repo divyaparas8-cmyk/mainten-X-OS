@@ -35,6 +35,21 @@ export class AdminController {
     return reply.status(200).send(updated);
   }
 
+  async editUser(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const updated = await adminService.editUser(user?.tenantId, id, body);
+    return reply.status(200).send(updated);
+  }
+
+  async deleteUser(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteUser(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
   async bulkUpdateUserStatus(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const { action } = (request.body as any) || {};
@@ -66,6 +81,14 @@ export class AdminController {
     const user = (request as any).user;
     const { id } = request.params as { id: string };
     const res = await adminService.deleteInvitation(user?.tenantId, id);
+    return reply.status(200).send(res);
+  }
+
+  async updateInvitation(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const res = await adminService.updateInvitation(user?.tenantId, id, body);
     return reply.status(200).send(res);
   }
 
@@ -127,6 +150,20 @@ export class AdminController {
     const user = (request as any).user;
     const result = await adminService.scanDataHealth(user?.tenantId);
     return reply.status(200).send({ success: true, data: result });
+  }
+
+  async remediateDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const result = await adminService.remediateDataHealthItem(user?.tenantId, body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const result = await adminService.deleteDataHealthItem(user?.tenantId, body);
+    return reply.status(200).send(result);
   }
 
   // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
@@ -223,6 +260,113 @@ export class AdminController {
     const user = (request as any).user;
     const { id } = request.params as { id: string };
     const result = await adminService.revokeApiKey(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── SECURITY POLICIES ──────────────────────────────────────────────
+  async getSecurityPolicies(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const policies = await adminService.getSecurityPolicies(user?.tenantId);
+    return reply.status(200).send(policies);
+  }
+
+  async saveSecurityPolicies(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.saveSecurityPolicies(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  // ── SYSTEM CONFIGURATION ───────────────────────────────────────────
+  async getSystemConfig(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const config = await adminService.getSystemConfig(user?.tenantId);
+    return reply.status(200).send(config);
+  }
+
+  async saveSystemConfig(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.saveSystemConfig(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  // ── AUDIT LOGS ─────────────────────────────────────────────────────
+  async getAuditLogs(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { query } = request.query as { query?: string };
+    const logs = await adminService.getAuditLogs(user?.tenantId, query);
+    return reply.status(200).send(logs);
+  }
+
+  async createAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.createAuditLog(user?.tenantId, request.body);
+    return reply.status(201).send(result);
+  }
+
+  async updateAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.updateAuditLog(user?.tenantId, id, request.body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteAuditLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteAuditLog(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── DATA REMEDIATION ───────────────────────────────────────────────
+  async getRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const logs = await adminService.getRemediationLog(user?.tenantId);
+    return reply.status(200).send(logs);
+  }
+
+  async executeRemediationEngine(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.executeRemediationEngine(user?.tenantId);
+    return reply.status(200).send(result);
+  }
+
+  async deleteRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteRemediationLog(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── DATA MIGRATION ─────────────────────────────────────────────────
+  async getMigrationBatches(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const batches = await adminService.getMigrationBatches(user?.tenantId);
+    return reply.status(200).send(batches);
+  }
+
+  async executeMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.executeMigrationBatch(user?.tenantId, request.body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteMigrationBatch(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
+  // ── 12. SYSTEM REPORTS ─────────────────────────────────────────────
+  async getSystemReports(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const reports = await adminService.getSystemReports(user?.tenantId);
+    return reply.status(200).send(reports);
+  }
+
+  async exportSystemReport(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.exportSystemReport(user?.tenantId);
     return reply.status(200).send(result);
   }
 }

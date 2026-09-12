@@ -400,7 +400,7 @@ export declare const qaReleases: import("drizzle-orm/pg-core").PgTableWithColumn
             columnType: "PgUUID";
             data: string;
             driverParam: string;
-            notNull: true;
+            notNull: false;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;

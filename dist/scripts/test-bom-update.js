@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Test PUT /master-data/boms/:id (Save Changes)
  */
-const BASE = "http://localhost:4000/api/v1";
+const BASE = "https://mainten-x-os-production.up.railway.app/api/v1";
 async function main() {
     const loginRes = await fetch(`${BASE}/auth/login`, {
         method: "POST",

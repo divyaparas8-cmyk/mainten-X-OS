@@ -134,6 +134,10 @@ class WarehouseController {
         const data = await warehouse_service_js_1.warehouseService.toggleSupplierStatus(request.user.tenantId, request.params.id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Supplier ${data.name} is now ${data.status}`));
     }
+    async deleteSupplier(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteSupplier(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async getSupplierScorecard(request, reply) {
         const data = await warehouse_service_js_1.warehouseService.getSupplierScorecard(request.user.tenantId, request.params.id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));

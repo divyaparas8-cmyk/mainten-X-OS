@@ -1,12 +1,3 @@
-interface InvitationRecord {
-    id: string;
-    email: string;
-    role: string;
-    department: string;
-    invitedBy: string;
-    sentDate: string;
-    status: "Pending" | "Accepted" | "Revoked";
-}
 export declare class AdminService {
     getDashboardMetrics(tenantId?: string): Promise<{
         systemHealth: number;
@@ -102,8 +93,22 @@ export declare class AdminService {
         role: string;
         department?: string;
         plant?: string;
+        plantId?: string;
         status?: string;
+        password?: string;
     }): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        roleCode: string;
+        department: string;
+        plant: any;
+        status: string;
+        lastLogin: string;
+        createdAt: Date;
+    }>;
+    getAllUsers(tenantId?: string): Promise<{
         id: string;
         name: string;
         email: string;
@@ -113,9 +118,9 @@ export declare class AdminService {
         plant: string;
         status: string;
         lastLogin: string;
+        lastLoginAt: Date | null;
         createdAt: Date;
-    }>;
-    getAllUsers(tenantId?: string): Promise<any[]>;
+    }[]>;
     updateUserStatus(tenantId: string | undefined, userId: string, newStatus: string): Promise<{
         id: string;
         name: string;
@@ -129,27 +134,87 @@ export declare class AdminService {
         status: string;
         updatedAt: string;
     }>;
+    editUser(tenantId: string | undefined, userId: string, input: {
+        name?: string;
+        email?: string;
+        role?: string;
+        department?: string;
+        plant?: string;
+        plantId?: string;
+        status?: string;
+        password?: string;
+    }): Promise<{
+        id: string;
+        name: string;
+        email: string;
+        role: any;
+        roleCode: any;
+        department: string;
+        plant: any;
+        status: string;
+        lastLogin: string;
+        createdAt: Date;
+    }>;
+    deleteUser(tenantId: string | undefined, userId: string): Promise<{
+        success: boolean;
+        message: string;
+        deletedId: string;
+    }>;
     bulkUpdateUserStatus(tenantId: string | undefined, action: string): Promise<{
         success: boolean;
         action: string;
         targetStatus: string;
         message: string;
     }>;
-    getInvitations(tenantId?: string): Promise<InvitationRecord[]>;
+    getInvitations(tenantId?: string): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        department: string | null;
+        invitedBy: string | null;
+        sentDate: string;
+        status: string;
+    }[]>;
     createInvitation(tenantId: string | undefined, input: {
         email: string;
         role: string;
         department?: string;
         invitedBy?: string;
-    }): Promise<InvitationRecord>;
+    }): Promise<{
+        id: string;
+        email: string;
+        role: string;
+        department: string | null;
+        invitedBy: string | null;
+        sentDate: string;
+        status: string;
+    }>;
     resendInvitation(tenantId: string | undefined, invitationId: string): Promise<{
         success: boolean;
         message: string;
-        invitation: InvitationRecord;
+        invitation: any;
     }>;
     deleteInvitation(tenantId: string | undefined, invitationId: string): Promise<{
         success: boolean;
         message: string;
+    }>;
+    updateInvitation(tenantId: string | undefined, invitationId: string, data: {
+        email?: string;
+        role?: string;
+        department?: string;
+        status?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        invitation: {
+            id: string;
+            email: string;
+            role: string;
+            department: string | null;
+            invitedBy: string | null;
+            sentDate: string;
+            status: string;
+        };
     }>;
     getActivityLogs(tenantId?: string, query?: string): Promise<any[]>;
     getRoles(tenantId?: string): Promise<any[]>;
@@ -509,6 +574,26 @@ export declare class AdminService {
         invalidReferences: any[];
         brokenRelationships: any[];
     }>;
+    remediateDataHealthItem(tenantId: string | undefined, input: {
+        type?: string;
+        id: string;
+        recordKey?: string;
+        resolution?: string;
+    }): Promise<{
+        success: boolean;
+        id: string;
+        status: string;
+        message: string;
+    }>;
+    deleteDataHealthItem(tenantId: string | undefined, input: {
+        type?: string;
+        id: string;
+        recordKey?: string;
+    }): Promise<{
+        success: boolean;
+        id: string;
+        message: string;
+    }>;
     private inMemoryIoTGateways;
     getIoTGateways(_tenantId?: string): Promise<{
         id: string;
@@ -612,7 +697,108 @@ export declare class AdminService {
         success: boolean;
         id: string;
     }>;
+    getSecurityPolicies(tenantId?: string): Promise<any>;
+    saveSecurityPolicies(tenantId?: string, policies?: any): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getSystemConfig(tenantId?: string): Promise<any>;
+    saveSystemConfig(tenantId?: string, config?: any): Promise<{
+        success: boolean;
+        data: any;
+    }>;
+    getAuditLogs(tenantId?: string, query?: string): Promise<any[]>;
+    createAuditLog(tenantId: string | undefined, data: any): Promise<{
+        success: boolean;
+        auditId: string;
+        id: string;
+        timestamp: string;
+        user: any;
+        userRole: any;
+        entityType: string;
+        entityId: string;
+        action: string;
+        oldValue: {};
+        newValue: {};
+        notes: string;
+    }>;
+    updateAuditLog(tenantId: string | undefined, id: string, data: any): Promise<any>;
+    deleteAuditLog(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    getRemediationLog(tenantId?: string): Promise<any[]>;
+    executeRemediationEngine(tenantId?: string): Promise<{
+        success: boolean;
+        message: string;
+        timestamp: string;
+    }>;
+    deleteRemediationLog(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    getMigrationBatches(tenantId?: string): Promise<any[]>;
+    executeMigrationBatch(tenantId: string | undefined, batchData: any): Promise<{
+        success: boolean;
+        batchRunId: string;
+        message: string;
+    }>;
+    deleteMigrationBatch(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+    }>;
+    getSystemReports(tenantId?: string): Promise<{
+        uptime: string;
+        uptimeStatus: string;
+        uptimeTarget: string;
+        dbStorage: string;
+        dbStorageLimit: string;
+        dbStorageUtilization: string;
+        apiLatencyMs: number;
+        apiLatencyP99: string;
+        seatLicensesUsed: number;
+        seatLicensesTotal: number;
+        seatLicensesAvailable: number;
+        tenantTier: string;
+        resourceUtilization: {
+            label: string;
+            value: number;
+        }[];
+        edgeTelemetryHealth: string;
+        edgeLatency: string;
+        pgStorageHealth: string;
+        pgCapacityHeadroom: string;
+        totalAuditEvents: number;
+        timestamp: string;
+    }>;
+    exportSystemReport(tenantId?: string): Promise<{
+        success: boolean;
+        data: {
+            uptime: string;
+            uptimeStatus: string;
+            uptimeTarget: string;
+            dbStorage: string;
+            dbStorageLimit: string;
+            dbStorageUtilization: string;
+            apiLatencyMs: number;
+            apiLatencyP99: string;
+            seatLicensesUsed: number;
+            seatLicensesTotal: number;
+            seatLicensesAvailable: number;
+            tenantTier: string;
+            resourceUtilization: {
+                label: string;
+                value: number;
+            }[];
+            edgeTelemetryHealth: string;
+            edgeLatency: string;
+            pgStorageHealth: string;
+            pgCapacityHeadroom: string;
+            totalAuditEvents: number;
+            timestamp: string;
+        };
+        generatedAt: string;
+    }>;
 }
 export declare const adminService: AdminService;
-export {};
 //# sourceMappingURL=admin.service.d.ts.map

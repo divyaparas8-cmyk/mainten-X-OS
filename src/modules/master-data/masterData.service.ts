@@ -367,146 +367,11 @@ let inMemoryLineTargets: LineTargetEntity[] = [
   { id: "TGT-02", targetId: "TGT-02", plantId: "PLT-01", lineId: "LIN-02", lineName: "Medium-Speed Glass Line 2", skuId: "SKU-002", skuCode: "SKU-5002", skuName: "Wild Berry Sparkling Water", shift: "Morning Shift (A)", plannedOEE: 85.0, plannedUnitsPerHour: 30000, plannedYieldPct: 98.8, changeoverTimeMin: 25, status: "Active" },
 ];
 
-let inMemoryChangeoverRules: ChangeoverRuleEntity[] = [
-  {
-    id: "CO-01",
-    matrixId: "CO-01",
-    fromSkuId: "SKU-001",
-    fromSkuCode: "SKU-5001",
-    fromFamily: "Sparkling Flavors",
-    toSkuId: "SKU-001",
-    toSkuCode: "SKU-5001",
-    toFamily: "Sparkling Flavors",
-    changeoverDurationMin: 0,
-    sanitationClass: "None (Same SKU Continuous)",
-    allergenCleaningRequired: false,
-    notes: "No changeover downtime required for identical formulation batch continuation.",
-    status: "Active"
-  },
-  {
-    id: "CO-02",
-    matrixId: "CO-02",
-    fromSkuId: "SKU-001",
-    fromSkuCode: "SKU-5001",
-    fromFamily: "Sparkling Flavors",
-    toSkuId: "SKU-002",
-    toSkuCode: "SKU-5002",
-    toFamily: "Tonics & Mixers",
-    changeoverDurationMin: 45,
-    sanitationClass: "Class B - Warm Water Flush & Syrup Line Rinse",
-    allergenCleaningRequired: false,
-    notes: "Requires syrup manifold rinse and bottle capper starwheel size change from 500ml to 1L.",
-    status: "Active"
-  },
-  {
-    id: "CO-03",
-    matrixId: "CO-03",
-    fromSkuId: "SKU-001",
-    fromSkuCode: "SKU-5001",
-    fromFamily: "Sparkling Flavors",
-    toSkuId: "SKU-004",
-    toSkuCode: "SKU-5004",
-    toFamily: "Energy Drinks",
-    changeoverDurationMin: 60,
-    sanitationClass: "Class A - Full CIP Sterilization",
-    allergenCleaningRequired: true,
-    notes: "Mandatory deep CIP due to caffeine and high-taurine flavor carryover risk.",
-    status: "Active"
-  }
-];
+let inMemoryChangeoverRules: ChangeoverRuleEntity[] = [];
 
-let inMemorySanitationClasses: SanitationClassEntity[] = [
-  {
-    id: "SAN-01",
-    sanitationId: "SAN-01",
-    classId: "SAN-01",
-    code: "SAN-CIP-HOT",
-    name: "Class A - Full Caustic CIP (Hot CIP 85°C)",
-    sanitationClass: "Class A - Full Caustic CIP (Hot CIP 85°C)",
-    description: "5-Step full automated clean-in-place: Pre-rinse, Hot Caustic (85°C), Intermediate Rinse, Peracetic Acid Sanitization, Final Sterile Water Rinse.",
-    durationMin: 75,
-    washDurationMin: 75,
-    cleaningMethod: "Automated 5-Step Central CIP Skid",
-    cleaningLevel: "Comprehensive",
-    riskLevel: "Critical / Allergen Elimination",
-    applicableProducts: "Tonics, Ginger Extract Formulations, Allergen Swaps",
-    chemicalAgent: "2.0% NaOH @ 80°C",
-    validationMethod: "Conductivity & Swab Test",
-    frequency: "Daily / Major Changeover",
-    status: "Active"
-  },
-  {
-    id: "SAN-02",
-    sanitationId: "SAN-02",
-    classId: "SAN-02",
-    code: "SAN-RINSE-COLD",
-    name: "Class B - Warm Water Flush & Sanitizer Rinse",
-    sanitationClass: "Class B - Warm Water Flush & Sanitizer Rinse",
-    description: "Warm water flush (55°C) followed by ozone/peracetic acid chemical sanitizer rinse.",
-    durationMin: 35,
-    washDurationMin: 35,
-    cleaningMethod: "Inline CIP Circuit Flush",
-    cleaningLevel: "Intermediate",
-    riskLevel: "Medium (Flavor Swap)",
-    applicableProducts: "Citrus to Cola, Clear Soda to Flavored Soda",
-    chemicalAgent: "0.2% Peracetic Acid",
-    validationMethod: "Visual & ATP Swab",
-    frequency: "Minor Flavor Shift",
-    status: "Active"
-  },
-  {
-    id: "SAN-03",
-    sanitationId: "SAN-03",
-    classId: "SAN-03",
-    code: "SAN-DRY-CLEAN",
-    name: "Class C - Dry Line Sanitation & Vacuum",
-    sanitationClass: "Class C - Dry Line Sanitation & Vacuum",
-    description: "Mechanical dry vacuum, optical sensor lens clean, starwheel sanitization wipe down.",
-    durationMin: 15,
-    washDurationMin: 15,
-    cleaningMethod: "Manual Operator Protocol",
-    cleaningLevel: "Routine",
-    riskLevel: "Low (Same Product Batch Restart)",
-    applicableProducts: "All Finished Goods",
-    chemicalAgent: "Sterile Alcohol Wipes",
-    validationMethod: "Visual Inspection",
-    frequency: "Between Batches",
-    status: "Active"
-  }
-];
+let inMemorySanitationClasses: SanitationClassEntity[] = [];
 
-let inMemoryAllergenRules: AllergenRuleEntity[] = [
-  {
-    id: "ALG-01",
-    ruleId: "ALG-01",
-    allergenId: "ALG-01",
-    allergenType: "Botanical Extracts",
-    allergenName: "Ginger Extract Botanical Essences",
-    skuId: "SKU-003",
-    skuCode: "SKU-5003",
-    riskLevel: "Medium Allergen / Sensory Carryover",
-    cleaningProtocol: "Class A Full CIP + Sensory Swab Verification",
-    protocol: "Class A Full CIP + Sensory Swab Verification",
-    changeoverRestriction: "Must schedule at end of production week prior to weekly deep sanitation.",
-    verificationTest: "ELISA Specific Strip Test",
-    status: "Active"
-  },
-  {
-    id: "ALG-02",
-    ruleId: "ALG-02",
-    allergenId: "ALG-02",
-    allergenType: "Preservatives & Sulfites",
-    allergenName: "Sulfites (Preservatives in Flavorings)",
-    skuId: "SKU-102",
-    skuCode: "ING-1002",
-    riskLevel: "High Regulatory CCP",
-    cleaningProtocol: "Class A CIP + ATP Swab Validation < 10 RLU",
-    protocol: "Class A CIP + ATP Swab Validation < 10 RLU",
-    changeoverRestriction: "Mandatory QA clearance sign-off before commencing allergen-free SKU filling.",
-    verificationTest: "Lateral Flow Strip + QA Signoff",
-    status: "Active"
-  }
-];
+let inMemoryAllergenRules: AllergenRuleEntity[] = [];
 
 let inMemoryLabourStandards: LabourStandardEntity[] = [
   { id: "LBR-01", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", standardCrew: 10, stdLaborHoursPer1kUnits: 2.38, directCostPerHour: "$24.50", status: "Active" },
@@ -2506,18 +2371,18 @@ export class MasterDataService {
         FROM public.changeover_rules
         ORDER BY created_at ASC
       `);
-      if (res.rows) {
+      if (Array.isArray(res?.rows)) {
         return res.rows.map((r: any) => ({
           id: r.id,
           matrixId: r.matrixId || r.id,
-          fromSkuId: r.fromSkuId || "SKU-001",
-          fromSkuCode: r.fromSkuCode || "SKU-5001",
-          fromFamily: r.fromFamily || "All Families",
-          toSkuId: r.toSkuId || "SKU-002",
-          toSkuCode: r.toSkuCode || "SKU-5002",
-          toFamily: r.toFamily || "All Families",
+          fromSkuId: r.fromSkuId || "",
+          fromSkuCode: r.fromSkuCode || "",
+          fromFamily: r.fromFamily || "",
+          toSkuId: r.toSkuId || "",
+          toSkuCode: r.toSkuCode || "",
+          toFamily: r.toFamily || "",
           changeoverDurationMin: Number(r.changeoverDurationMin) || 0,
-          sanitationClass: r.sanitationClass || "Standard Rinse",
+          sanitationClass: r.sanitationClass || "",
           allergenCleaningRequired: Boolean(r.allergenCleaningRequired),
           notes: r.notes || "",
           status: r.status || "Active",
@@ -2528,11 +2393,11 @@ export class MasterDataService {
     } catch (err: any) {
       console.warn("DB listChangeoverRules error:", err.message);
     }
-    return inMemoryChangeoverRules;
+    return [];
   }
 
   async createChangeoverRule(tenantId: string | undefined, input: any) {
-    const newId = input.id || input.matrixId || `CO-0${inMemoryChangeoverRules.length + 1}`;
+    const newId = input.id || input.matrixId || `CO-${Math.floor(1000 + Math.random() * 9000)}`;
     const matrixId = input.matrixId || newId;
     const fromSkuId = input.fromSkuId || "SKU-001";
     const fromSkuCode = input.fromSkuCode || "SKU-5001";
@@ -2687,7 +2552,7 @@ export class MasterDataService {
         FROM public.sanitation_classes
         ORDER BY created_at ASC
       `);
-      if (res.rows && res.rows.length > 0) {
+      if (Array.isArray(res?.rows)) {
         return res.rows.map((r: any) => ({
           id: r.id,
           classId: r.classId || r.id,
@@ -2713,7 +2578,7 @@ export class MasterDataService {
     } catch (err: any) {
       console.warn("DB listSanitationClasses error:", err.message);
     }
-    return inMemorySanitationClasses;
+    return [];
   }
 
   async createSanitationClass(tenantId: string | undefined, input: any) {
@@ -2879,7 +2744,7 @@ export class MasterDataService {
         FROM public.allergen_rules
         ORDER BY created_at ASC
       `);
-      if (res.rows && res.rows.length > 0) {
+      if (Array.isArray(res?.rows)) {
         return res.rows.map((r: any) => ({
           id: r.id,
           ruleId: r.ruleId || r.id,
@@ -2901,7 +2766,7 @@ export class MasterDataService {
     } catch (err: any) {
       console.warn("DB listAllergenRules error:", err.message);
     }
-    return inMemoryAllergenRules;
+    return [];
   }
 
   async createAllergenRule(tenantId: string | undefined, input: any) {

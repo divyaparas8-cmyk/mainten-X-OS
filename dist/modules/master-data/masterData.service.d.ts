@@ -370,7 +370,7 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listChangeoverRules(tenantId?: string): Promise<ChangeoverRuleEntity[] | {
+    listChangeoverRules(tenantId?: string): Promise<{
         id: any;
         matrixId: any;
         fromSkuId: any;
@@ -393,7 +393,7 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listSanitationClasses(tenantId?: string): Promise<SanitationClassEntity[] | {
+    listSanitationClasses(tenantId?: string): Promise<{
         id: any;
         classId: any;
         sanitationId: any;
@@ -420,7 +420,7 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listAllergenRules(tenantId?: string): Promise<AllergenRuleEntity[] | {
+    listAllergenRules(tenantId?: string): Promise<{
         id: any;
         ruleId: any;
         allergenId: any;

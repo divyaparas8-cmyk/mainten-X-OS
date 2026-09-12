@@ -30,7 +30,14 @@ export function authorizeRoles(allowedRoles: string[]) {
     const user = request.user;
     if (!user) throw new ForbiddenError("User context not found");
 
-    if (user.isMasterAdmin || allowedRoles.includes(user.role)) {
+    if (
+      user.isMasterAdmin ||
+      user.role === "master_admin" ||
+      user.role === "super_admin" ||
+      user.role === "admin" ||
+      user.role === "system_admin" ||
+      allowedRoles.includes(user.role)
+    ) {
       return;
     }
 

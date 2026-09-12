@@ -5,7 +5,7 @@ async function testRbacAndErrors() {
     console.log("================================================================");
     console.log("🛡️ MAINTENX OS RBAC & API ERROR VALIDATION SUITE");
     console.log("================================================================");
-    const BASE_URL = "http://localhost:4000/api/v1";
+    const BASE_URL = "https://mainten-x-os-production.up.railway.app/api/v1";
     // 1. Authenticate with Different Roles
     console.log("\n[TEST 1: MULTI-ROLE JWT AUTHENTICATION]");
     const roles = [

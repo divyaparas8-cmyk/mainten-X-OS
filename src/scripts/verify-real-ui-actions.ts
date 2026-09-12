@@ -40,7 +40,7 @@ import {
 } from "../db/schema/index.js";
 import { eq, desc, and } from "drizzle-orm";
 
-const BASE_URL = "http://localhost:4000/api/v1";
+const BASE_URL = "https://mainten-x-os-production.up.railway.app/api/v1";
 
 interface TestResult {
   module: string;

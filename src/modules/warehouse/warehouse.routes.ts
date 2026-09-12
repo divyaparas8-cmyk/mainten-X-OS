@@ -42,6 +42,7 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
   fastify.get("/suppliers", { schema: { tags: ["Warehouse & Purchasing"], summary: "List Approved Suppliers & Metrics" } }, warehouseController.listSuppliers.bind(warehouseController));
   fastify.post("/suppliers", { schema: { tags: ["Warehouse & Purchasing"], summary: "Register Approved Supplier" } }, warehouseController.createSupplier.bind(warehouseController));
   fastify.put("/suppliers/:id", { schema: { tags: ["Warehouse & Purchasing"], summary: "Update Supplier Profile" } }, warehouseController.updateSupplier.bind(warehouseController));
+  fastify.delete("/suppliers/:id", { schema: { tags: ["Warehouse & Purchasing"], summary: "Delete Supplier" } }, warehouseController.deleteSupplier.bind(warehouseController));
   fastify.post("/suppliers/:id/toggle-status", { schema: { tags: ["Warehouse & Purchasing"], summary: "Toggle Supplier Status" } }, warehouseController.toggleSupplierStatus.bind(warehouseController));
   fastify.get("/suppliers/:id/scorecard", { schema: { tags: ["Warehouse & Purchasing"], summary: "Export Supplier Scorecard PDF" } }, warehouseController.getSupplierScorecard.bind(warehouseController));
 

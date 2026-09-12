@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userRoles = exports.rolePermissions = exports.permissions = exports.roles = exports.users = void 0;
+exports.userInvitations = exports.userRoles = exports.rolePermissions = exports.permissions = exports.roles = exports.users = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.users = (0, pg_core_1.pgTable)("users", {
@@ -50,4 +50,16 @@ exports.userRoles = (0, pg_core_1.pgTable)("user_roles", {
 }, (table) => [
     (0, pg_core_1.primaryKey)({ columns: [table.userId, table.roleId] }),
 ]);
+exports.userInvitations = (0, pg_core_1.pgTable)("user_invitations", {
+    id: (0, pg_core_1.varchar)("id", { length: 50 }).primaryKey(), // e.g. "INV-101"
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    email: (0, pg_core_1.varchar)("email", { length: 255 }).notNull(),
+    role: (0, pg_core_1.varchar)("role", { length: 255 }).notNull().default("Quality Analyst"),
+    department: (0, pg_core_1.varchar)("department", { length: 255 }).default("Quality"),
+    invitedBy: (0, pg_core_1.varchar)("invited_by", { length: 255 }).default("Alexander Vance"),
+    sentDate: (0, pg_core_1.varchar)("sent_date", { length: 20 }).notNull(), // ISO date string YYYY-MM-DD
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Pending").notNull(), // "Pending" | "Accepted" | "Revoked"
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
 //# sourceMappingURL=users.js.map

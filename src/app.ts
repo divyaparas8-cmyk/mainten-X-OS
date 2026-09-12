@@ -23,6 +23,9 @@ import { executiveRoutes } from "./modules/executive/executive.routes.js";
 import { ciRoutes } from "./modules/ci/ci.routes.js";
 import { exceptionsRoutes } from "./modules/exceptions/exceptions.routes.js";
 import { aiRoutes } from "./modules/ai/ai.routes.js";
+import { billingRoutes } from "./modules/billing/billing.routes.js";
+import { iotRoutes } from "./modules/iot/iot.routes.js";
+import { masterRoutes } from "./modules/master/master.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -66,26 +69,32 @@ export async function buildApp(): Promise<FastifyInstance> {
     };
   });
 
-  // 4. API v1 Domain Routes
-  await app.register(authRoutes, { prefix: "/api/v1/auth" });
-  await app.register(adminRoutes, { prefix: "/api/v1/admin" });
-  await app.register(masterDataRoutes, { prefix: "/api/v1/master-data" });
-  await app.register(planningRoutes, { prefix: "/api/v1/planning" });
-  await app.register(planningRoutes, { prefix: "/api/v1/planner" });
-  await app.register(planningRoutes, { prefix: "/api/v1" });
-  await app.register(productionRoutes, { prefix: "/api/v1/production" });
-  await app.register(qualityRoutes, { prefix: "/api/v1/quality" });
-  await app.register(warehouseRoutes, { prefix: "/api/v1/warehouse" });
-  await app.register(traceabilityRoutes, { prefix: "/api/v1/traceability" });
-  await app.register(maintenanceRoutes, { prefix: "/api/v1/maintenance" });
-  await app.register(dashboardsRoutes, { prefix: "/api/v1/dashboards" });
-  await app.register(executiveRoutes, { prefix: "/api/v1/executive" });
-  await app.register(executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
-  await app.register(notificationsRoutes, { prefix: "/api/v1/notifications" });
-  await app.register(searchRoutes, { prefix: "/api/v1/search" });
-  await app.register(ciRoutes, { prefix: "/api/v1/ci" });
-  await app.register(exceptionsRoutes, { prefix: "/api/v1/exceptions" });
-  await app.register(aiRoutes, { prefix: "/api/v1/ai" });
+  // 4. API Domain Routes (Supporting both /api/v1 and /api prefixes)
+  const apiPrefixes = ["/api/v1", "/api"];
+  for (const prefix of apiPrefixes) {
+    await app.register(authRoutes, { prefix: `${prefix}/auth` });
+    await app.register(adminRoutes, { prefix: `${prefix}/admin` });
+    await app.register(masterDataRoutes, { prefix: `${prefix}/master-data` });
+    await app.register(planningRoutes, { prefix: `${prefix}/planning` });
+    await app.register(planningRoutes, { prefix: `${prefix}/planner` });
+    await app.register(productionRoutes, { prefix: `${prefix}/production` });
+    await app.register(qualityRoutes, { prefix: `${prefix}/quality` });
+    await app.register(warehouseRoutes, { prefix: `${prefix}/warehouse` });
+    await app.register(traceabilityRoutes, { prefix: `${prefix}/traceability` });
+    await app.register(maintenanceRoutes, { prefix: `${prefix}/maintenance` });
+    await app.register(dashboardsRoutes, { prefix: `${prefix}/dashboards` });
+    await app.register(executiveRoutes, { prefix: `${prefix}/executive` });
+    await app.register(executiveRoutes, { prefix: `${prefix}/dashboards/executive` });
+    await app.register(notificationsRoutes, { prefix: `${prefix}/notifications` });
+    await app.register(searchRoutes, { prefix: `${prefix}/search` });
+    await app.register(ciRoutes, { prefix: `${prefix}/ci` });
+    await app.register(exceptionsRoutes, { prefix: `${prefix}/exceptions` });
+    await app.register(aiRoutes, { prefix: `${prefix}/ai` });
+    await app.register(billingRoutes, { prefix: `${prefix}/billing` });
+    await app.register(iotRoutes, { prefix: `${prefix}/iot` });
+    await app.register(masterRoutes, { prefix: `${prefix}/master` });
+  }
+
 
   return app;
 }

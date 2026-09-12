@@ -16,7 +16,7 @@ exports.default = (0, fastify_plugin_1.default)(async (fastify) => {
             },
             servers: [
                 {
-                    url: "http://localhost:4000",
+                    url: "https://mainten-x-os-production.up.railway.app",
                     description: "Local Development Server",
                 },
             ],

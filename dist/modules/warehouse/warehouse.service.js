@@ -90,93 +90,7 @@ let purchaseOrdersStore = [
         ]
     }
 ];
-let suppliersStore = [
-    {
-        id: "SUP-001",
-        supplierCode: "VND-CVF-01",
-        name: "Citrus Valley Farms Co.",
-        category: "Raw Material Concentrate",
-        materialsSupplied: "Valencia Orange Concentrate 65° Brix, Lime Puree, Essential Citrus Oils",
-        status: "Active",
-        otifScore: 98.2,
-        qualityAcceptanceRate: 99.6,
-        avgLeadTimeDays: 4.5,
-        riskRating: "Low Risk",
-        contactEmail: "orders@citrusvalleyfarms.com",
-        contactPhone: "+1 (555) 349-8821",
-        lastOrder: "2026-08-28 (PO-441)",
-        openOrdersCount: 2,
-        activeContractsCount: 3
-    },
-    {
-        id: "SUP-002",
-        supplierCode: "VND-AMC-03",
-        name: "Amcor Rigid Packaging",
-        category: "Packaging Containers",
-        materialsSupplied: "500ml PET Bottles, 28mm Oxygen Barrier Caps, Shrink Bundling Films",
-        status: "Active",
-        otifScore: 96.5,
-        qualityAcceptanceRate: 99.1,
-        avgLeadTimeDays: 3.2,
-        riskRating: "Low Risk",
-        contactEmail: "orders@amcor.com",
-        contactPhone: "+1 (555) 812-4409",
-        lastOrder: "2026-08-22 (PO-429)",
-        openOrdersCount: 1,
-        activeContractsCount: 2
-    },
-    {
-        id: "SUP-003",
-        supplierCode: "VND-BEI-06",
-        name: "Botanical Extracts International",
-        category: "Specialty Flavors & Extracts",
-        materialsSupplied: "Organic Yuzu Terpenes, Blood Orange Distillate, Ginger Root Oleoresin",
-        status: "Active",
-        otifScore: 88.0,
-        qualityAcceptanceRate: 97.4,
-        avgLeadTimeDays: 8.0,
-        riskRating: "Medium Risk",
-        contactEmail: "supply@botanicalextracts.com",
-        contactPhone: "+1 (555) 902-1144",
-        lastOrder: "2026-08-10 (PO-398)",
-        openOrdersCount: 1,
-        activeContractsCount: 1
-    },
-    {
-        id: "SUP-004",
-        supplierCode: "VND-BLL-04",
-        name: "Ball Metal Beverage Packaging",
-        category: "Packaging Cans",
-        materialsSupplied: "330ml Sleek Cans (BPA-NI), 202 Dia CDL Can Ends w/ Gold Tab",
-        status: "Active",
-        otifScore: 99.1,
-        qualityAcceptanceRate: 99.8,
-        avgLeadTimeDays: 2.8,
-        riskRating: "Low Risk",
-        contactEmail: "orders@ballmetal.com",
-        contactPhone: "+1 (555) 671-3302",
-        lastOrder: "2026-08-18 (PO-422)",
-        openOrdersCount: 1,
-        activeContractsCount: 4
-    },
-    {
-        id: "SUP-005",
-        supplierCode: "VND-SVR-05",
-        name: "Sugar Valley Refining Ltd.",
-        category: "Sweeteners & Sugars",
-        materialsSupplied: "Non-GMO Liquid Cane Sugar 67.5° Brix, Granulated Sucrose Grade A",
-        status: "Active",
-        otifScore: 97.5,
-        qualityAcceptanceRate: 99.4,
-        avgLeadTimeDays: 3.5,
-        riskRating: "Low Risk",
-        contactEmail: "dispatch@sugarvalley.com",
-        contactPhone: "+1 (555) 438-7719",
-        lastOrder: "2026-08-15 (PO-415)",
-        openOrdersCount: 0,
-        activeContractsCount: 2
-    }
-];
+let suppliersStore = [];
 let wmsReceivingStore = [
     { id: "RCV-2026-901", poNumber: "PO-SUP-2026-441", supplier: "Citrus Valley Farms Co.", item: "Valencia Orange Concentrate", qty: "6,000 kg", dock: "Dock Bay 01", status: "Dock Arrived", tempCheck: "3.4°C" },
     { id: "RCV-2026-902", poNumber: "PO-SUP-2026-438", supplier: "Alfa Laval Parts Global", item: "High-Temp Gasket Pack", qty: "5 packs", dock: "Dock Bay 03", status: "Inspected", tempCheck: "Ambient" },
@@ -1437,7 +1351,12 @@ class WarehouseService {
     }
     async createPurchaseOrder(tenantId, input) {
         const poNumber = input.poNumber || `PO-SUP-2026-${Math.floor(600 + Math.random() * 400)}`;
-        const matchedSup = suppliersStore.find((s) => s.name === input.supplierName);
+        let matchedSup = null;
+        try {
+            const sups = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.name, input.supplierName || "")).limit(1);
+            matchedSup = sups[0];
+        }
+        catch { }
         const newPO = {
             poNumber,
             supplierName: input.supplierName || "Citrus Valley Farms Co.",
@@ -1513,12 +1432,24 @@ class WarehouseService {
     // SUPPLIERS & VENDOR SLA SCORECARDS
     // ==========================================
     async listSuppliers(tenantId) {
-        const activeVendors = suppliersStore.filter(s => s.status === "Active").length;
-        const meanOtif = (suppliersStore.reduce((sum, s) => sum + (s.otifScore || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
-        const avgLead = (suppliersStore.reduce((sum, s) => sum + (s.avgLeadTimeDays || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
-        const meanQuality = (suppliersStore.reduce((sum, s) => sum + (s.qualityAcceptanceRate || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
+        let dbSuppliers = [];
+        try {
+            const condition = (0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.tenantId, tenantId) : undefined;
+            dbSuppliers = condition
+                ? await database_js_1.db.select().from(warehouse_js_1.suppliers).where(condition).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.suppliers.createdAt))
+                : await database_js_1.db.select().from(warehouse_js_1.suppliers).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.suppliers.createdAt));
+        }
+        catch (e) {
+            console.warn("Could not query suppliers table, falling back to empty:", e);
+            dbSuppliers = [];
+        }
+        const activeVendors = dbSuppliers.filter(s => s.status === "Active").length;
+        const count = dbSuppliers.length;
+        const meanOtif = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.otifScore) || 0), 0) / count).toFixed(1) : "0.0";
+        const avgLead = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.avgLeadTimeDays) || 0), 0) / count).toFixed(1) : "0.0";
+        const meanQuality = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.qualityAcceptanceRate) || 0), 0) / count).toFixed(1) : "0.0";
         return {
-            suppliers: suppliersStore,
+            suppliers: dbSuppliers,
             metrics: {
                 activeVendors,
                 meanOtif: `${meanOtif}%`,
@@ -1528,58 +1459,85 @@ class WarehouseService {
         };
     }
     async createSupplier(tenantId, input) {
+        const supId = input.id || `SUP-${Math.floor(100 + Math.random() * 900)}`;
         const supCode = input.supplierCode || `VND-${(input.name || "SUP").substring(0, 3).toUpperCase()}-${Math.floor(10 + Math.random() * 90)}`;
-        const newSupplier = {
-            id: `SUP-${Math.floor(100 + Math.random() * 900)}`,
+        const newRecord = {
+            id: supId,
+            tenantId: (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null,
             supplierCode: supCode,
             name: input.name,
             category: input.category || "Raw Material Concentrate",
             materialsSupplied: input.materialsSupplied || "Packaging & Ingredients",
-            status: "Active",
-            otifScore: 98.0,
-            qualityAcceptanceRate: 99.5,
-            avgLeadTimeDays: parseFloat(input.avgLeadTimeDays) || 4.0,
+            status: input.status || "Active",
+            otifScore: input.otifScore ? String(input.otifScore) : "98.00",
+            qualityAcceptanceRate: input.qualityAcceptanceRate ? String(input.qualityAcceptanceRate) : "99.50",
+            avgLeadTimeDays: input.avgLeadTimeDays ? String(input.avgLeadTimeDays) : "4.00",
             riskRating: input.riskRating || "Low Risk",
             contactEmail: input.contactEmail || "procurement@vendor.com",
             contactPhone: input.contactPhone || "+1 (555) 000-0000",
-            lastOrder: "Pending Initial PO",
-            openOrdersCount: 0,
-            activeContractsCount: 1
+            lastOrder: input.lastOrder || "Pending Initial PO",
+            openOrdersCount: input.openOrdersCount || 0,
+            activeContractsCount: input.activeContractsCount || 1,
         };
-        suppliersStore = [newSupplier, ...suppliersStore];
-        return newSupplier;
+        await database_js_1.db.insert(warehouse_js_1.suppliers).values(newRecord);
+        return newRecord;
     }
     async updateSupplier(tenantId, id, input) {
-        const index = suppliersStore.findIndex(s => s.id === id);
-        if (index === -1)
+        const [existing] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        if (!existing)
             throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
-        suppliersStore[index] = {
-            ...suppliersStore[index],
-            ...input,
-            avgLeadTimeDays: input.avgLeadTimeDays !== undefined ? parseFloat(input.avgLeadTimeDays) : suppliersStore[index].avgLeadTimeDays
-        };
-        return suppliersStore[index];
+        const updates = { updatedAt: new Date() };
+        if (input.name !== undefined)
+            updates.name = input.name;
+        if (input.supplierCode !== undefined)
+            updates.supplierCode = input.supplierCode;
+        if (input.category !== undefined)
+            updates.category = input.category;
+        if (input.materialsSupplied !== undefined)
+            updates.materialsSupplied = input.materialsSupplied;
+        if (input.status !== undefined)
+            updates.status = input.status;
+        if (input.riskRating !== undefined)
+            updates.riskRating = input.riskRating;
+        if (input.contactEmail !== undefined)
+            updates.contactEmail = input.contactEmail;
+        if (input.contactPhone !== undefined)
+            updates.contactPhone = input.contactPhone;
+        if (input.avgLeadTimeDays !== undefined)
+            updates.avgLeadTimeDays = String(input.avgLeadTimeDays);
+        if (input.otifScore !== undefined)
+            updates.otifScore = String(input.otifScore);
+        if (input.qualityAcceptanceRate !== undefined)
+            updates.qualityAcceptanceRate = String(input.qualityAcceptanceRate);
+        await database_js_1.db.update(warehouse_js_1.suppliers).set(updates).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        const [updated] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return updated || { id, ...input };
     }
     async toggleSupplierStatus(tenantId, id) {
-        const sup = suppliersStore.find(s => s.id === id);
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
         if (!sup)
             throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
-        sup.status = sup.status === "Active" ? "Inactive" : "Active";
-        return sup;
+        const nextStatus = sup.status === "Active" ? "Inactive" : "Active";
+        await database_js_1.db.update(warehouse_js_1.suppliers).set({ status: nextStatus, updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return { ...sup, status: nextStatus };
+    }
+    async deleteSupplier(tenantId, id) {
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        if (!sup)
+            throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
+        await database_js_1.db.delete(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return { success: true, message: `Supplier ${id} deleted successfully` };
     }
     async getSupplierScorecard(tenantId, id) {
-        const sup = suppliersStore.find(s => s.id === id || s.supplierCode === id || s.name === id) || {
-            id,
-            name: id || "Supplier Partner",
-            supplierCode: "VND-GEN"
-        };
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        const finalSup = sup || { id, name: id || "Supplier Partner", supplierCode: "VND-GEN" };
         return {
             success: true,
-            supplierId: sup.id || id,
-            supplierName: sup.name,
-            scorecardUrl: `/api/v1/warehouse/suppliers/${sup.id || id}/scorecard.pdf`,
+            supplierId: finalSup.id,
+            supplierName: finalSup.name,
+            scorecardUrl: `/api/v1/warehouse/suppliers/${finalSup.id}/scorecard.pdf`,
             downloadedAt: new Date().toISOString(),
-            message: `Vendor SLA scorecard exported for ${sup.name}`
+            message: `Vendor SLA scorecard exported for ${finalSup.name}`
         };
     }
     // ==========================================

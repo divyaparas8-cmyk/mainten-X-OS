@@ -5,11 +5,14 @@ export declare class AdminController {
     provisionUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getUsers(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateUserStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    editUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteUser(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     bulkUpdateUserStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getInvitations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createInvitation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     resendInvitation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     deleteInvitation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateInvitation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getActivityLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getRoles(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createRole(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -19,6 +22,8 @@ export declare class AdminController {
     updateUserRoleMapping(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getApprovalRules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     scanDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    remediateDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteDataHealth(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getIoTGateways(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createIoTGateway(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateIoTGateway(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -33,6 +38,22 @@ export declare class AdminController {
     getApiKeys(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createApiKey(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     revokeApiKey(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSecurityPolicies(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    saveSecurityPolicies(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    saveSystemConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getAuditLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteAuditLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getRemediationLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    executeRemediationEngine(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteRemediationLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getMigrationBatches(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    executeMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteMigrationBatch(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getSystemReports(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    exportSystemReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const adminController: AdminController;
 //# sourceMappingURL=admin.controller.d.ts.map

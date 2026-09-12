@@ -43,7 +43,8 @@ class DashboardsController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async getKPIs(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getExecutiveKPIs(request.query?.plantId || request.user.plantId);
+        const user = request.user || {};
+        const data = await dashboards_service_js_1.dashboardsService.getExecutiveKPIs(request.query?.plantId || user.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     // ─── H/B Management ─────────────────────────────────────────────────────────

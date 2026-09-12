@@ -50,7 +50,8 @@ export class DashboardsController {
   }
 
   async getKPIs(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getExecutiveKPIs((request.query as any)?.plantId || request.user.plantId);
+    const user = (request as any).user || {};
+    const data = await dashboardsService.getExecutiveKPIs((request.query as any)?.plantId || user.plantId);
     return reply.send(formatSuccess(data));
   }
 

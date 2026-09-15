@@ -247,6 +247,7 @@ let inMemoryChangeoverRules: ChangeoverRuleEntity[] = [];
 let inMemorySanitationClasses: SanitationClassEntity[] = [];
 let inMemoryAllergenRules: AllergenRuleEntity[] = [];
 let inMemoryLabourStandards: LabourStandardEntity[] = [];
+let inMemoryEmployeeSkills: any[] = [];
 let inMemorySkus: any[] = [];
 
 function matchKey(entity: any, keyVal: string, candidateProps: string[] = ["id", "code", "companyId", "plantId", "departmentId", "lineId", "workCenterId", "operationId", "routingId", "familyId", "uomId", "configId", "targetId", "ruleId", "classId", "name"]): boolean {
@@ -3276,30 +3277,6 @@ export class MasterDataService {
 
   async listAssets(tenantId: string | undefined, plantId?: string) {
     try {
-<<<<<<< HEAD
-      let query = sql`SELECT * FROM public.assets`;
-      if (plantId && plantId !== "ALL") {
-        query = sql`SELECT * FROM public.assets WHERE (plant_id IS NULL OR plant_id::text = ${plantId})`;
-      }
-      query = sql`${query} ORDER BY created_at DESC`;
-      const res = await db.execute(query);
-      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
-      return rows.map((a: any) => ({
-        id: String(a.id),
-        assetId: a.asset_code || `AST-${String(a.id).substring(0, 4)}`,
-        name: a.name,
-        type: a.model_number || "Packaging / Filling",
-        lineId: a.line_id ? String(a.line_id) : null,
-        plantId: a.plant_id ? String(a.plant_id) : "",
-        criticality: a.critical_level || "Critical (Class A)",
-        status: a.status || "Operational",
-        manufacturer: a.manufacturer || "Krones AG",
-        serialNumber: a.model_number || "",
-        healthScore: a.health_percent || 98
-      }));
-    } catch (e: any) {
-      console.warn("DB listAssets error:", e.message);
-=======
       const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
       const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
       let rows: any[];
@@ -3370,25 +3347,11 @@ export class MasterDataService {
       });
     } catch (err: any) {
       console.error("listAssets error:", err.message);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
       return [];
     }
   }
 
   async createAsset(tenantId: string | undefined, input: any) {
-<<<<<<< HEAD
-    try {
-      let resolvedTenantId = tenantId;
-      if (!resolvedTenantId) {
-        const [t] = await db.select({ id: tenants.id }).from(tenants).limit(1);
-        resolvedTenantId = t?.id;
-      }
-
-      // Auto-increment code: AST-001, AST-002, AST-003...
-      let code = input.assetCode || input.assetId;
-      const isAutoFormat = !code || code.startsWith("AST-00") || code.startsWith("AST-");
-      if (isAutoFormat) {
-=======
     const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
     let plantId = input.plantId;
     if (!plantId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
@@ -3407,7 +3370,6 @@ export class MasterDataService {
     const isAutoFormat = !assetCode || assetCode.startsWith("AST-00") || assetCode.startsWith("AST-");
     if (isAutoFormat) {
       try {
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         const existingRes = await db.execute(sql`SELECT asset_code FROM public.assets`);
         const rows = ((existingRes as any)?.rows || (Array.isArray(existingRes) ? existingRes : []));
         let maxNum = 0;
@@ -3418,85 +3380,6 @@ export class MasterDataService {
             if (n > maxNum) maxNum = n;
           }
         }
-<<<<<<< HEAD
-        code = `AST-${String(maxNum + 1).padStart(3, '0')}`;
-      } else {
-        code = String(code).trim().toUpperCase();
-      }
-
-      const name = String(input.name || "Equipment").trim();
-      const model = input.type || input.modelNumber || "Packaging / Filling";
-      const manufacturer = input.manufacturer || "Krones AG";
-      const criticality = input.criticality || input.criticalLevel || "Critical (Class A)";
-      const status = input.status || "Operational";
-      const plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
-      const lineId = (input.lineId && input.lineId.length === 36 && input.lineId.includes("-")) ? input.lineId : null;
-
-      const res = await db.execute(sql`
-        INSERT INTO public.assets (
-          tenant_id, plant_id, line_id, asset_code, name, model_number, manufacturer, critical_level, status, health_percent, created_at, updated_at
-        ) VALUES (
-          ${resolvedTenantId || null}, ${plantId}, ${lineId}, ${code}, ${name}, ${model}, ${manufacturer}, ${criticality}, ${status}, 98, NOW(), NOW()
-        ) RETURNING *
-      `);
-      const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
-      const newId = row?.id ? String(row.id) : `AST-${Date.now().toString().slice(-4)}`;
-      return {
-        id: newId,
-        assetId: code,
-        name,
-        type: model,
-        lineId,
-        plantId: input.plantId || "",
-        criticality,
-        status,
-        manufacturer,
-        healthScore: 98
-      };
-    } catch (err: any) {
-      console.warn("DB createAsset error:", err.message);
-      throw err;
-    }
-  }
-
-  async updateAsset(tenantId: string | undefined, id: string, input: any) {
-    try {
-      const lineId = (input.lineId && input.lineId.length === 36 && input.lineId.includes("-")) ? input.lineId : null;
-      const model = input.type || input.modelNumber || null;
-      const manufacturer = input.manufacturer || null;
-      const isUuid = id && id.length === 36 && id.includes("-");
-      const condition = isUuid ? sql`id::text = ${id}` : sql`asset_code = ${id}`;
-
-      await db.execute(sql`
-        UPDATE public.assets
-        SET 
-          name = COALESCE(${input.name || null}, name),
-          model_number = COALESCE(${model}, model_number),
-          manufacturer = COALESCE(${manufacturer}, manufacturer),
-          line_id = COALESCE(${lineId}, line_id),
-          status = COALESCE(${input.status || null}, status),
-          critical_level = COALESCE(${input.criticality || input.criticalLevel || null}, critical_level),
-          updated_at = NOW()
-        WHERE ${condition}
-      `);
-      return { id, ...input };
-    } catch (err: any) {
-      console.warn("DB updateAsset error:", err.message);
-      return { id, ...input };
-    }
-  }
-
-  async deleteAsset(tenantId: string | undefined, id: string) {
-    try {
-      const isUuid = id && id.length === 36 && id.includes("-");
-      const condition = isUuid ? sql`id::text = ${id}` : sql`asset_code = ${id}`;
-      await db.execute(sql`DELETE FROM public.assets WHERE ${condition}`);
-      return { id, message: "Asset deleted" };
-    } catch (err: any) {
-      console.warn("DB deleteAsset error:", err.message);
-      return { id, message: "Asset deleted" };
-    }
-=======
         assetCode = `AST-${String(maxNum + 1).padStart(3, "0")}`;
       } catch {
         assetCode = `AST-${Date.now().toString().slice(-4)}`;
@@ -3688,7 +3571,6 @@ export class MasterDataService {
       dbId: target.id,
       message: `Asset ${target.assetCode} (${target.name}) deleted successfully`,
     };
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   }
 
   async listStaff(tenantId: string | undefined, plantId?: string) {
@@ -4050,7 +3932,11 @@ export class MasterDataService {
     return { id, message: "Labour standard deleted" };
   }
 
-async listEmployeeSkills(tenantId?: string, plantId?: string) {
+  // ==========================================
+  // 17. EMPLOYEE SKILLS MATRIX
+  // ==========================================
+
+  async listEmployeeSkills(tenantId?: string, plantId?: string) {
     try {
       const res = await db.execute(sql`
         SELECT 
@@ -4199,7 +4085,7 @@ async listEmployeeSkills(tenantId?: string, plantId?: string) {
       console.warn("DB updateEmployeeSkill error:", err.message);
     }
 
-    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    const idx = inMemoryEmployeeSkills.findIndex((e: any) => e.id === id || e.employeeId === id);
     if (idx !== -1) {
       inMemoryEmployeeSkills[idx] = { ...inMemoryEmployeeSkills[idx], ...input, updatedAt: new Date().toISOString() };
       return inMemoryEmployeeSkills[idx];
@@ -4214,7 +4100,7 @@ async listEmployeeSkills(tenantId?: string, plantId?: string) {
       console.warn("DB deleteEmployeeSkill error:", err.message);
     }
 
-    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    const idx = inMemoryEmployeeSkills.findIndex((e: any) => e.id === id || e.employeeId === id);
     if (idx !== -1) {
       const deleted = inMemoryEmployeeSkills.splice(idx, 1);
       return deleted[0];

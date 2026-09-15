@@ -458,22 +458,12 @@ export class MasterDataController {
   }
 
   async updateAsset(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
-<<<<<<< HEAD
     const data = await masterDataService.updateAsset(request.user?.tenantId, request.params.id, request.body);
-=======
-    const id = request.params.id;
-    const data = await masterDataService.updateAsset(request.user?.tenantId, id, request.body);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, "Machine asset updated successfully"));
   }
 
   async deleteAsset(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-<<<<<<< HEAD
     const data = await masterDataService.deleteAsset(request.user?.tenantId, request.params.id);
-=======
-    const id = request.params.id;
-    const data = await masterDataService.deleteAsset(request.user?.tenantId, id);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, "Machine asset deleted successfully"));
   }
 
@@ -498,43 +488,23 @@ export class MasterDataController {
   }
 
   async getQualitySpecs(request: FastifyRequest<{ Querystring: { skuId?: string } }>, reply: FastifyReply) {
-<<<<<<< HEAD
     const data = await masterDataService.listQualitySpecs(request.user?.tenantId, request.query?.skuId);
-=======
-    const data = await masterDataService.listQualitySpecs(request.user?.tenantId);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data));
   }
 
   async createQualitySpec(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
     const data = await masterDataService.createQualitySpec(request.user?.tenantId, request.body);
-<<<<<<< HEAD
-    return reply.status(201).send(formatSuccess(data, "Quality specification created successfully"));
-  }
-
-  async updateQualitySpec(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
-    const data = await masterDataService.updateQualitySpec(request.user?.tenantId, request.params.id, request.body);
-    return reply.send(formatSuccess(data, "Quality specification updated successfully"));
-  }
-
-  async deleteQualitySpec(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
-    return reply.send(formatSuccess(data, "Quality specification deleted successfully"));
-=======
     return reply.status(201).send(formatSuccess(data, "Quality parameter specification created successfully"));
   }
 
   async updateQualitySpec(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
-    const id = request.params.id;
-    const data = await masterDataService.updateQualitySpec(request.user?.tenantId, id, request.body);
+    const data = await masterDataService.updateQualitySpec(request.user?.tenantId, request.params.id, request.body);
     return reply.send(formatSuccess(data, "Quality parameter specification updated successfully"));
   }
 
   async deleteQualitySpec(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const id = request.params.id;
-    const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, id);
+    const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
     return reply.send(formatSuccess(data, "Quality parameter specification deleted successfully"));
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   }
 
   // ==========================================

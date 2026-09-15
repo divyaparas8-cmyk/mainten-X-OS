@@ -911,8 +911,7 @@ export class DashboardsController {
 
   async updateSupervisorProfile(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
-<<<<<<< HEAD
-    const data = await dashboardsService.updateSupervisorProfile(request.user?.tenantId, body);
+    const data = await dashboardsService.updateSupervisorProfile(request.user?.tenantId, request.user?.userId, body);
     return reply.send(formatSuccess(data, data.message));
   }
 
@@ -940,9 +939,6 @@ export class DashboardsController {
   async deleteLabourAllocation(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
     const data = await dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
-=======
-    const data = await dashboardsService.updateSupervisorProfile(request.user.tenantId, request.user.userId, body);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, data.message));
   }
 }

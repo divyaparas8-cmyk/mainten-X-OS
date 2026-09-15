@@ -24,10 +24,6 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
         currentUser.tenantId = headerTenantId;
       }
     }
-<<<<<<< HEAD
-    if (!currentUser.tenantId) {
-      currentUser.tenantId = "5bce8458-909a-4dd2-b221-614c32ac7c89";
-=======
     if (!currentUser.plantId && currentUser.tenantId) {
       try {
         const [p] = await db.select().from(plants).where(eq(plants.tenantId, currentUser.tenantId)).limit(1);
@@ -36,7 +32,6 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
     }
     if (!currentUser.tenantId) {
       currentUser.tenantId = headerTenantId || "5bce8458-909a-4dd2-b221-614c32ac7c89";
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     return;
   }
@@ -83,16 +78,6 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
     }
   }
 
-<<<<<<< HEAD
-  // 4. Default fallback: attach default active tenant context so requests never fail with 500
-  (request as any).user = {
-    id: "default-admin",
-    tenantId: "5bce8458-909a-4dd2-b221-614c32ac7c89",
-    plantId: "83c90534-4761-495c-b2bf-6a61de2260c4",
-    role: "admin",
-    email: "admin@maintenx.com",
-    isMasterAdmin: false,
-=======
   // 4. Default Enterprise Tenant & Plant Fallback (ensures development, demo mode, and unauthenticated page loads never throw 500)
   try {
     const [demoTenant] = await db.select().from(tenants).limit(1);
@@ -117,12 +102,11 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
   (request as any).user = {
     id: "admin-default",
     userId: "4a9fe1e0-6512-444d-a639-25ca55ff4866",
-    tenantId: headerTenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
-    plantId: "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+    tenantId: headerTenantId || "5bce8458-909a-4dd2-b221-614c32ac7c89",
+    plantId: "83c90534-4761-495c-b2bf-6a61de2260c4",
     role: "admin",
-    email: "admin@beverage-corp.com",
+    email: "admin@maintenx.com",
     isMasterAdmin: true,
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   };
 }
 

@@ -343,11 +343,7 @@ export class WarehouseController {
   // ==========================================
 
   async getTraceability(request: FastifyRequest<{ Querystring: { lot?: string }; Params: { lotNumber?: string } }>, reply: FastifyReply) {
-<<<<<<< HEAD
-    const lotNumber = request.params?.lotNumber || (request.query as any)?.lot || (request.query as any)?.lotNumber;
-=======
     const lotNumber = request.params?.lotNumber || (request.query as any)?.lot || (request.query as any)?.lotNumber || "";
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     if (!lotNumber) {
       return reply.send(formatSuccess(null));
     }

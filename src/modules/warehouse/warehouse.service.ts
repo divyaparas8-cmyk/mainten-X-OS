@@ -1,17 +1,10 @@
 import { db } from "../../config/database.js";
-<<<<<<< HEAD
-import { inventoryLots, inventoryTransactions, warehouses, locationBins, goodsReceipts, shipmentOrders } from "../../db/schema/warehouse.js";
-import { lotGenealogies, recallEvents } from "../../db/schema/traceability.js";
-import { skus } from "../../db/schema/masterData.js";
-import { eq, and, or, sql, desc } from "drizzle-orm";
-=======
 import { inventoryLots, inventoryTransactions, warehouses, locationBins, goodsReceipts, shipmentOrders, suppliers, warehouseLocations, wmsReceiving, finishedGoods } from "../../db/schema/warehouse.js";
-import { recallEvents } from "../../db/schema/traceability.js";
+import { lotGenealogies, recallEvents } from "../../db/schema/traceability.js";
 import { skus } from "../../db/schema/masterData.js";
 import { batches, batchSteps, productionOrders } from "../../db/schema/production.js";
 import { ccpChecks, qaReleases, qualityHolds } from "../../db/schema/quality.js";
 import { eq, and, or, isNull, sql, desc } from "drizzle-orm";
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 import { CreateLotInput, CreateTransactionInput } from "./warehouse.schema.js";
 import { NotFoundError, BusinessRuleError } from "../../shared/errors/AppError.js";
 
@@ -1963,54 +1956,6 @@ export class WarehouseService {
     };
   }
 
-<<<<<<< HEAD
-  // 360° Supply Lot Traceability API — reads from real inventory_lots DB table
-      async getTraceability(tenantId: string, lotNumber?: string) {
-    if (!lotNumber || !lotNumber.trim()) return null;
-    const rawKey = lotNumber.trim();
-    const key = rawKey.toUpperCase();
-
-    try {
-      // 1. Find the target lot by lotNumber, or by production order number, or by SKU code
-      let lot: any = null;
-
-      // Check lot_number match first
-      const lotRows = await db
-        .select()
-        .from(inventoryLots)
-        .where(
-          and(
-            eq(inventoryLots.tenantId, tenantId),
-            sql`UPPER(${inventoryLots.lotNumber}) LIKE ${'%' + key + '%'}`
-          )
-        )
-        .limit(10);
-
-      if (lotRows && lotRows.length > 0) {
-        lot = lotRows[0];
-      } else {
-        // Fallback: Check if key matches a Production Order number (e.g. ORD-2511)
-        const poRows = await db.execute(sql`
-          SELECT * FROM production_orders 
-          WHERE tenant_id = ${tenantId} AND UPPER(order_number) LIKE ${'%' + key + '%'}
-          LIMIT 1
-        `);
-        if (poRows.rows && poRows.rows.length > 0) {
-          const po = poRows.rows[0] as any;
-          const poLotRows = await db
-            .select()
-            .from(inventoryLots)
-            .where(
-              and(
-                eq(inventoryLots.tenantId, tenantId),
-                eq(inventoryLots.skuId, po.sku_id)
-              )
-            )
-            .limit(1);
-          if (poLotRows && poLotRows.length > 0) {
-            lot = poLotRows[0];
-          }
-=======
   // 360° Supply Lot Traceability API (Connected directly to PostgreSQL `batches` and `skus`)
   async getTraceability(tenantId: string, lotNumber?: string) {
     let dbBatches: any[] = [];
@@ -2094,7 +2039,6 @@ export class WarehouseService {
           pallets: [
             { palletId: `PLT-${String(selectedBatch.batchNumber).replace(/\D/g, '').slice(-4) || '01'}`, cases: 50, lpn: `LPN-${selectedBatch.batchNumber}`, dest: "Central Warehouse Hub" }
           ]
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         }
       ],
       recallImpact: {
@@ -2135,229 +2079,8 @@ export class WarehouseService {
         const firstSku = (await db.select().from(skus).limit(1))[0];
         if (firstSku) resolvedSkuId = firstSku.id;
       }
-
-<<<<<<< HEAD
-      // Fallback 2: Check if key matches an SKU code or name (e.g. afdgh, sku-1)
-      if (!lot) {
-        const skuSearch = await db.execute(sql`
-          SELECT * FROM skus 
-          WHERE tenant_id = ${tenantId} 
-            AND (UPPER(sku_code) LIKE ${'%' + key + '%'} OR UPPER(name) LIKE ${'%' + key + '%'})
-          LIMIT 1
-        `);
-        if (skuSearch.rows && skuSearch.rows.length > 0) {
-          const foundSku = skuSearch.rows[0] as any;
-          const skuLotRows = await db
-            .select()
-            .from(inventoryLots)
-            .where(
-              and(
-                eq(inventoryLots.tenantId, tenantId),
-                eq(inventoryLots.skuId, foundSku.id)
-              )
-            )
-            .limit(1);
-          if (skuLotRows && skuLotRows.length > 0) {
-            lot = skuLotRows[0];
-          }
-        }
-      }
-
-      if (!lot) return null;
-
-      // 2. Query SKU details
-      let skuInfo: any = null;
-      if (lot.skuId) {
-        const skuRows = await db.execute(sql`
-          SELECT * FROM skus WHERE id = ${lot.skuId} LIMIT 1
-        `);
-        if (skuRows.rows && skuRows.rows.length > 0) {
-          skuInfo = skuRows.rows[0];
-        }
-      }
-
-      // 3. Query Linked Production Orders & Lines
-      let prodOrders: any[] = [];
-      if (lot.skuId) {
-        const poRes = await db.execute(sql`
-          SELECT po.*, pl.name as line_name, pl.line_code 
-          FROM production_orders po 
-          LEFT JOIN production_lines pl ON po.line_id = pl.id 
-          WHERE po.tenant_id = ${tenantId} AND po.sku_id = ${lot.skuId}
-        `);
-        prodOrders = poRes.rows || [];
-      }
-
-      // 4. Query Linked Batches
-      let batchList: any[] = [];
-      const batchRes = await db.execute(sql`
-        SELECT b.*, po.order_number, pl.name as line_name, pl.line_code 
-        FROM batches b 
-        LEFT JOIN production_orders po ON b.production_order_id = po.id 
-        LEFT JOIN production_lines pl ON po.line_id = pl.id 
-        WHERE b.tenant_id = ${tenantId} 
-          AND (b.sku_id = ${lot.skuId} OR b.production_order_id = ANY(SELECT id FROM production_orders WHERE sku_id = ${lot.skuId}))
-      `);
-      batchList = batchRes.rows || [];
-
-      // 5. Query Quality Specs (Critical Control Points / CCPs)
-      let qualitySpecs: any[] = [];
-      if (lot.skuId) {
-        const qsRes = await db.execute(sql`
-          SELECT * FROM quality_specs WHERE tenant_id = ${tenantId} AND sku_id = ${lot.skuId}
-        `);
-        qualitySpecs = qsRes.rows || [];
-      }
-      const ccpSpec = qualitySpecs.find(q => q.is_ccp) || qualitySpecs[0];
-      const ccpDesc = ccpSpec 
-        ? `Parameter ${ccpSpec.parameter_name}: Target ${ccpSpec.target_value} ${ccpSpec.uom || ''} (Validated CCP)`
-        : 'In-line Quality Parameters & Metal Detector Clear';
-
-      // 6. Query Customer Orders (Downstream Exposure & Pallet Shipments)
-      let customerOrders: any[] = [];
-      if (lot.skuId) {
-        const coRes = await db.execute(sql`
-          SELECT * FROM customer_orders WHERE tenant_id = ${tenantId} AND sku_id = ${lot.skuId}
-        `);
-        customerOrders = coRes.rows || [];
-      }
-
-      // 7. Query Lot Genealogies (Upstream Ingredients & Downstream links)
-      const genRes = await db.execute(sql`
-        SELECT lg.*, 
-               il_parent.lot_number as parent_lot_number, 
-               il_parent.supplier_name as parent_supplier,
-               il_parent.lot_type as parent_type,
-               il_child.lot_number as child_lot_number,
-               il_child.supplier_name as child_supplier
-        FROM lot_genealogies lg
-        LEFT JOIN inventory_lots il_parent ON lg.parent_lot_id = il_parent.id
-        LEFT JOIN inventory_lots il_child ON lg.child_lot_id = il_child.id
-        WHERE lg.tenant_id = ${tenantId} 
-          AND (lg.child_lot_id = ${lot.id} OR lg.parent_lot_id = ${lot.id})
-      `);
-      const genealogies = genRes.rows || [];
-
-      // Build ingredients list (Upstream Backward Genealogy)
-      const ingredientLots: any[] = [];
-      const upstreamGen = genealogies.filter((g: any) => g.child_lot_id === lot.id);
-      for (const g of upstreamGen) {
-        ingredientLots.push({
-          componentType: (g as any).parent_type === 'packaging' ? 'Packaging Material' : 'Raw Ingredient',
-          materialName: (g as any).parent_lot_number ? `Source Raw Material (${(g as any).parent_lot_number})` : (skuInfo?.name || 'Raw Ingredient'),
-          sourceLot: (g as any).parent_lot_number || 'LOT-RM-SOURCE',
-          supplier: (g as any).parent_supplier || 'Approved Supplier',
-          qaClearance: 'Pass (COA Verified)',
-          storageRack: 'Raw Materials Warehouse Bay'
-        });
-      }
-
-      // Check BOM items if ingredientLots is empty
-      if (ingredientLots.length === 0 && lot.skuId) {
-        const bomRes = await db.execute(sql`
-          SELECT bi.*, b.name as bom_name, b.bom_number 
-          FROM bom_items bi 
-          JOIN boms b ON bi.bom_id = b.id 
-          WHERE b.tenant_id = ${tenantId} AND b.sku_id = ${lot.skuId}
-        `);
-        for (const item of (bomRes.rows || [])) {
-          ingredientLots.push({
-            componentType: 'Recipe Component',
-            materialName: (item as any).component_name || skuInfo?.name || 'Component Item',
-            sourceLot: (item as any).sku_code || 'BOM-COMP',
-            supplier: 'Verified Production Sourcing',
-            qaClearance: 'Pass (Formulation Spec)',
-            storageRack: 'Production Staging Area'
-          });
-        }
-      }
-
-      // Build Batches for Tab 1 (Forward Traceability Pipeline)
-      const formattedBatches = batchList.map((b: any) => ({
-        batchId: b.batch_number,
-        date: b.created_at ? new Date(b.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent',
-        product: skuInfo?.name || 'Production Good',
-        sku: skuInfo?.sku_code || 'SKU',
-        line: b.line_name ? `Line ${b.line_name} (${b.line_code || 'Main'})` : 'Production Line 1',
-        quantityProduced: `${Number(b.actual_volume || b.target_volume || 0).toLocaleString()} ${b.uom || 'units'}`,
-        status: b.status === 'Completed' ? 'Completed & QA Released' : (b.status || 'Active Execution'),
-        ccpStatus: ccpDesc,
-        pallets: customerOrders.map((co: any, pIdx: number) => ({
-          palletId: `PLT-${co.order_number || (pIdx + 1)}`,
-          cases: `${Number(co.quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
-          lpn: `LPN-${(co.order_number || '').replace(/[^a-zA-Z0-9]/g, '')}-${pIdx + 1}`,
-          dest: co.customer_name || 'Regional Distribution'
-        }))
-      }));
-
-      // Fallback batch from production orders if no batch record exists
-      if (formattedBatches.length === 0 && prodOrders.length > 0) {
-        const po = prodOrders[0];
-        formattedBatches.push({
-          batchId: `BAT-${po.order_number}`,
-          date: po.created_at ? new Date(po.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent',
-          product: skuInfo?.name || 'Production Good',
-          sku: skuInfo?.sku_code || 'SKU',
-          line: po.line_name ? `Line ${po.line_name} (${po.line_code || 'Main'})` : 'Production Line 1',
-          quantityProduced: `${Number(po.target_quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
-          status: po.status === 'Completed' ? 'Completed & Released' : (po.status || 'Scheduled'),
-          ccpStatus: ccpDesc,
-          pallets: customerOrders.map((co: any, pIdx: number) => ({
-            palletId: `PLT-${co.order_number || (pIdx + 1)}`,
-            cases: `${Number(co.quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
-            lpn: `LPN-${(co.order_number || '').replace(/[^a-zA-Z0-9]/g, '')}-${pIdx + 1}`,
-            dest: co.customer_name || 'Regional Distribution'
-          }))
-        });
-      }
-
-      const isQuarantine = lot.status === 'quarantine' || lot.status === 'HOLD';
-      const currentQtyNum = Number(lot.currentQuantity || 0);
-      const estPallets = customerOrders.length > 0 ? customerOrders.length : Math.max(1, Math.ceil(currentQtyNum / 100));
-
-      const customerNames = customerOrders.map((c: any) => c.customer_name);
-
-      return {
-        lotNumber: lot.lotNumber,
-        lotType: lot.lotType,
-        category: skuInfo?.category ? skuInfo.category.replace(/_/g, ' ') : (lot.lotType === 'finished_goods' ? 'FINISHED GOODS' : 'RAW MATERIAL'),
-        type: lot.lotType === 'finished_goods' ? 'Finished Good' : (lot.lotType === 'packaging' ? 'Packaging' : 'Raw Material'),
-        materialName: skuInfo?.name || lot.lotNumber,
-        skuCode: skuInfo?.sku_code || 'N/A',
-        barcode: skuInfo?.barcode || lot.lotNumber,
-        initialQuantity: lot.initialQuantity,
-        currentQuantity: lot.currentQuantity,
-        quantity: `${currentQtyNum.toLocaleString()} ${lot.uom || skuInfo?.uom || 'units'}`,
-        uom: lot.uom || skuInfo?.uom || 'units',
-        supplier: lot.supplierName || (prodOrders[0]?.line_name ? `Internal Line ${prodOrders[0].line_name}` : 'Internal Warehouse'),
-        supplierLot: lot.supplierLotNumber || (prodOrders[0]?.order_number || 'N/A'),
-        mfgDate: lot.mfgDate ? new Date(lot.mfgDate).toISOString().split('T')[0] : (lot.createdAt ? new Date(lot.createdAt).toISOString().split('T')[0] : 'N/A'),
-        expiryDate: lot.expiryDate ? new Date(lot.expiryDate).toISOString().split('T')[0] : 'N/A',
-        status: lot.status || 'Active',
-        qaStatus: isQuarantine ? 'Quarantine Active' : (lot.status === 'released' || lot.status === 'ACTIVE' ? 'QA Cleared (Pass)' : 'Pending Inspection'),
-        qaCert: `COA-${lot.lotNumber.replace(/[^a-zA-Z0-9]/g, '').slice(-8) || 'PASS'}`,
-        receivedDate: lot.createdAt ? new Date(lot.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
-        currentLocation: lot.lotType === 'finished_goods' ? 'Warehouse Finished Goods Staging' : 'Warehouse Storage Bay',
-        receivedLocation: prodOrders[0]?.line_name ? `Line ${prodOrders[0].line_name} Outfeed` : 'Inbound Receiving Dock',
-        poNumber: lot.supplierLotNumber || (prodOrders[0]?.order_number ? `PO-${prodOrders[0].order_number}` : 'N/A'),
-        tempLog: 'Ambient Controlled (Pass)',
-        integrityScore: '100%',
-        batches: formattedBatches,
-        productionOrders: prodOrders.map((p: any) => p.order_number),
-        ingredients: ingredientLots,
-        recallImpact: {
-          affectedBatches: formattedBatches.length,
-          finishedCases: currentQtyNum,
-          palletsCount: estPallets,
-          customersExposed: customerNames
-        },
-        allLots: [lot]
-      };
-    } catch (err: any) {
-      console.error('[getTraceability] DB error:', err?.message);
-      return null;
     }
-=======
+
     const newBatchNumber = input.batchNumber?.trim() || `BAT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const [created] = await db.insert(batches).values({
       tenantId: resolvedTenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
@@ -2401,7 +2124,6 @@ export class WarehouseService {
 
     const res = await db.delete(batches).where(or(sql`id::text = ${idOrBatch}`, eq(batches.batchNumber, idOrBatch))).returning();
     return { success: true, deleted: res };
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   }
 
   async simulateRecall(tenantId: string, input: any, userId?: string) {
@@ -3213,5 +2935,4 @@ let warehouseProfileStore = {
 };
 
 export const warehouseService = new WarehouseService();
-
 

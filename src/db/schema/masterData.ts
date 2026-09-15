@@ -343,7 +343,6 @@ export const uoms = pgTable("uoms", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-<<<<<<< HEAD
 export const labourAllocations = pgTable("labour_allocations", {
   id: varchar("id", { length: 64 }).primaryKey(),
   tenantId: uuid("tenant_id"),
@@ -361,8 +360,6 @@ export const labourAllocations = pgTable("labour_allocations", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-
-=======
 export const labourStandards = pgTable("labour_standards", {
   id: uuid("id").defaultRandom().primaryKey(),
   standardId: varchar("standard_id", { length: 50 }),
@@ -427,5 +424,4 @@ export const storageResources = pgTable("storage_resources", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 

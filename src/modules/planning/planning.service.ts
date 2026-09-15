@@ -414,7 +414,6 @@ export class PlanningService {
     const allSkus = await db.select().from(skus).where(eq(skus.tenantId, tenantId));
     const skuMap = new Map(allSkus.map(s => [s.id, s]));
 
-<<<<<<< HEAD
     if (orders.length === 0) {
       const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
       const defaultSku = await this.resolveSkuId(tenantId);
@@ -476,9 +475,6 @@ export class PlanningService {
         return seedData.map((o, idx) => this.mapOrderRow({ ...o, id: `seed-order-${idx + 1}` }, skuMap));
       }
     }
-
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return orders.map(o => this.mapOrderRow(o, skuMap));
   }
 
@@ -583,7 +579,6 @@ export class PlanningService {
     const allSkus = await db.select().from(skus).where(eq(skus.tenantId, tenantId));
     const skuMap = new Map(allSkus.map(s => [s.id, s]));
 
-<<<<<<< HEAD
     if (fcRows.length === 0) {
       const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
       const defaultSku = await this.resolveSkuId(tenantId);
@@ -676,9 +671,6 @@ export class PlanningService {
         });
       }
     }
-
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return fcRows.map(f => {
       const sku = skuMap.get(f.skuId);
       return {

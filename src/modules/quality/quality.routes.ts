@@ -11,20 +11,27 @@ export async function qualityRoutes(fastify: FastifyInstance) {
   fastify.get("/ccp", { schema: { tags: ["Quality & QMS"], summary: "List Critical Control Point Checks" } }, qualityController.getCcpChecks.bind(qualityController));
   fastify.post("/ccp", { schema: { tags: ["Quality & QMS"], summary: "Record In-Process CCP Check (Auto PASS/FAIL)" } }, qualityController.recordCcpCheck.bind(qualityController));
   fastify.post("/ccp/export", { schema: { tags: ["Quality & QMS"], summary: "Export Critical Control Point Checks Report" } }, qualityController.exportCcpChecks.bind(qualityController));
+  fastify.delete("/ccp/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Critical Control Point Check Record" } }, qualityController.deleteCcpCheck.bind(qualityController));
 
   fastify.get("/release/queue", { schema: { tags: ["Quality & QMS"], summary: "List Batches Pending QA Release" } }, qualityController.getQaReleaseQueue.bind(qualityController));
+  fastify.get("/release/metrics", { schema: { tags: ["Quality & QMS"], summary: "Get QA Release Queue KPI Metrics from DB" } }, qualityController.getQaReleaseMetrics.bind(qualityController));
   fastify.get("/queue", { schema: { tags: ["Quality & QMS"], summary: "List Batches Pending QA Release" } }, qualityController.getQaReleaseQueue.bind(qualityController));
   fastify.post("/release/authorize", { schema: { tags: ["Quality & QMS"], summary: "21 CFR Part 11 QA Digital Batch Release Authorization" } }, qualityController.authorizeBatchRelease.bind(qualityController));
   fastify.post("/release/export", { schema: { tags: ["Quality & QMS"], summary: "Export QA Release Queue Report" } }, qualityController.exportReleaseQueue.bind(qualityController));
 
   fastify.get("/holds", { schema: { tags: ["Quality & QMS"], summary: "List Quarantined / Lot Holds" } }, qualityController.getQualityHolds.bind(qualityController));
   fastify.post("/holds", { schema: { tags: ["Quality & QMS"], summary: "Place Lot on Quality Quarantine Hold" } }, qualityController.createQualityHold.bind(qualityController));
+  fastify.delete("/holds/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Quality Quarantine Hold" } }, qualityController.deleteQualityHold.bind(qualityController));
   fastify.post("/holds/export", { schema: { tags: ["Quality & QMS"], summary: "Export Quality Quarantine Holds Report" } }, qualityController.exportQualityHolds.bind(qualityController));
 
   fastify.get("/deviations", { schema: { tags: ["Quality & QMS"], summary: "List Quality Deviations" } }, qualityController.getDeviations.bind(qualityController));
   fastify.post("/deviations", { schema: { tags: ["Quality & QMS"], summary: "Report Quality Deviation" } }, qualityController.reportDeviation.bind(qualityController));
+  fastify.delete("/deviations/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Quality Deviation" } }, qualityController.deleteDeviation.bind(qualityController));
   fastify.post("/deviations/investigate", { schema: { tags: ["Quality & QMS"], summary: "Start Investigation from Deviation" } }, qualityController.startInvestigation.bind(qualityController));
   fastify.post("/deviations/export", { schema: { tags: ["Quality & QMS"], summary: "Export Quality Deviations Report" } }, qualityController.exportDeviations.bind(qualityController));
+  fastify.get("/deviation-categories", { schema: { tags: ["Quality & QMS"], summary: "List Master Deviation Categories from DB" } }, qualityController.getDeviationCategories.bind(qualityController));
+  fastify.post("/deviation-categories", { schema: { tags: ["Quality & QMS"], summary: "Save Master Deviation Category to DB" } }, qualityController.saveDeviationCategory.bind(qualityController));
+  fastify.delete("/deviation-categories/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Master Deviation Category from DB" } }, qualityController.deleteDeviationCategory.bind(qualityController));
 
   fastify.get("/investigations", { schema: { tags: ["Quality & QMS"], summary: "List Quality Investigations" } }, qualityController.getInvestigations.bind(qualityController));
   fastify.post("/investigations", { schema: { tags: ["Quality & QMS"], summary: "Start Investigation" } }, qualityController.startInvestigation.bind(qualityController));
@@ -79,6 +86,12 @@ export async function qualityRoutes(fastify: FastifyInstance) {
   fastify.get("/sanitation/preop", { schema: { tags: ["Quality & QMS"], summary: "Get Pre-Op Startup Checklist & Status" } }, qualityController.getPreOpChecklist.bind(qualityController));
   fastify.post("/sanitation/preop", { schema: { tags: ["Quality & QMS"], summary: "Submit Pre-Op Startup Clearance" } }, qualityController.submitPreOp.bind(qualityController));
   fastify.post("/sanitation/preop/save", { schema: { tags: ["Quality & QMS"], summary: "Save Pre-Op Startup Progress" } }, qualityController.savePreOpProgress.bind(qualityController));
+  fastify.post("/sanitation/preop/item", { schema: { tags: ["Quality & QMS"], summary: "Add Pre-Op Inspection Item" } }, qualityController.createPreOpItem.bind(qualityController));
+  fastify.put("/sanitation/preop/item/:id", { schema: { tags: ["Quality & QMS"], summary: "Update Pre-Op Inspection Item" } }, qualityController.updatePreOpItem.bind(qualityController));
+  fastify.delete("/sanitation/preop/item/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Pre-Op Inspection Item" } }, qualityController.deletePreOpItem.bind(qualityController));
+  fastify.post("/sanitation/preop/mark-all-pass", { schema: { tags: ["Quality & QMS"], summary: "Mark All Pre-Op Items Pass" } }, qualityController.markAllPreOpPass.bind(qualityController));
+  fastify.post("/sanitation/preop/reset", { schema: { tags: ["Quality & QMS"], summary: "Reset Pre-Op Items" } }, qualityController.resetPreOpChecklist.bind(qualityController));
+  fastify.post("/sanitation/preop/seed-standard", { schema: { tags: ["Quality & QMS"], summary: "Seed Standard 6 HACCP Items" } }, qualityController.seedStandardPreOp.bind(qualityController));
 
   fastify.get("/sanitation/checklist", { schema: { tags: ["Quality & QMS"], summary: "Get Line Sanitation CIP Checklist" } }, qualityController.getSanitationChecklist.bind(qualityController));
   fastify.post("/sanitation/checklist", { schema: { tags: ["Quality & QMS"], summary: "Submit Line Sanitation CIP Log" } }, qualityController.submitSanitation.bind(qualityController));
@@ -107,6 +120,7 @@ export async function qualityRoutes(fastify: FastifyInstance) {
   fastify.get("/checks/product", { schema: { tags: ["Quality & QMS"], summary: "List Product Quality Checks" } }, qualityController.getProductChecks.bind(qualityController));
   fastify.post("/checks/product", { schema: { tags: ["Quality & QMS"], summary: "Record/Complete Product Quality Check" } }, qualityController.recordProductCheck.bind(qualityController));
   fastify.post("/checks/product/export", { schema: { tags: ["Quality & QMS"], summary: "Export Product Quality Checks Report" } }, qualityController.exportProductChecks.bind(qualityController));
+  fastify.delete("/checks/product/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Product Quality Check Record" } }, qualityController.deleteProductCheck.bind(qualityController));
 
   fastify.get("/specs", { schema: { tags: ["Quality & QMS"], summary: "List Product Specification Limits" } }, qualityController.getQualitySpecs.bind(qualityController));
   fastify.post("/specs", { schema: { tags: ["Quality & QMS"], summary: "Create Product Specification Limit" } }, qualityController.createQualitySpec.bind(qualityController));

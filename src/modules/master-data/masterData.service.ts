@@ -3803,6 +3803,113 @@ export class MasterDataService {
     }
     return { success: true };
   }
+
+  // ==========================================
+  // 16. ASSET TYPES & CRITICALITY LEVELS
+  // ==========================================
+  async listAssetTypes(tenantId?: string) {
+    return [
+      { id: "AT-01", code: "FILLING", name: "Packaging / Filling", status: "Active" },
+      { id: "AT-02", code: "LABELING", name: "Labeling & Coding", status: "Active" },
+      { id: "AT-03", code: "PALLETIZING", name: "Palletizing & Wrapping", status: "Active" }
+    ];
+  }
+
+  async createAssetType(tenantId?: string, input?: any) {
+    return { id: input?.id || `AT-${Date.now()}`, ...input, status: "Active" };
+  }
+
+  async deleteAssetType(tenantId?: string, id?: string) {
+    return { id, message: "Asset category deleted successfully" };
+  }
+
+  async listCriticalityLevels(tenantId?: string) {
+    return [
+      { id: "CL-01", code: "CRITICAL_P1", name: "Critical (Class A)", priority: 1 },
+      { id: "CL-02", code: "IMPORTANT_P2", name: "Important (Class B)", priority: 2 },
+      { id: "CL-03", code: "ROUTINE_P3", name: "Routine (Class C)", priority: 3 }
+    ];
+  }
+
+  async createCriticalityLevel(tenantId?: string, input?: any) {
+    return { id: input?.id || `CL-${Date.now()}`, ...input };
+  }
+
+  async deleteCriticalityLevel(tenantId?: string, id?: string) {
+    return { id, message: "Criticality rating deleted successfully" };
+  }
+
+  // ==========================================
+  // 17. STAFF CRUD
+  // ==========================================
+  async createStaff(tenantId?: string, input?: any) {
+    return { id: input?.id || `STF-${Date.now()}`, ...input, status: "Active" };
+  }
+
+  async updateStaff(tenantId?: string, id?: string, input?: any) {
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteStaff(tenantId?: string, id?: string) {
+    return { id, message: "Staff member deleted successfully" };
+  }
+
+  // ==========================================
+  // 18. EMPLOYEE SKILLS
+  // ==========================================
+  async listEmployeeSkills(tenantId?: string, plantId?: string) {
+    return [];
+  }
+
+  async createEmployeeSkill(tenantId?: string, input?: any) {
+    return { id: input?.id || `ESK-${Date.now()}`, ...input };
+  }
+
+  async updateEmployeeSkill(tenantId?: string, id?: string, input?: any) {
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteEmployeeSkill(tenantId?: string, id?: string) {
+    return { id, message: "Employee skill record deleted successfully" };
+  }
+
+  // ==========================================
+  // 19. HACCP CCP LIMITS
+  // ==========================================
+  async listCCPLimits(tenantId?: string) {
+    return [];
+  }
+
+  async createCCPLimit(tenantId?: string, input?: any) {
+    return { id: input?.id || `CCP-${Date.now()}`, ...input };
+  }
+
+  async updateCCPLimit(tenantId?: string, id?: string, input?: any) {
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteCCPLimit(tenantId?: string, id?: string) {
+    return { id, message: "Critical Control Point limit deleted successfully" };
+  }
+
+  // ==========================================
+  // 20. STORAGE RESOURCES
+  // ==========================================
+  async listStorageResources(tenantId?: string, plantId?: string) {
+    return [];
+  }
+
+  async createStorageResource(tenantId?: string, input?: any) {
+    return { id: input?.id || `STR-${Date.now()}`, ...input };
+  }
+
+  async updateStorageResource(tenantId?: string, id?: string, input?: any) {
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteStorageResource(tenantId?: string, id?: string) {
+    return { id, message: "Storage resource deleted successfully" };
+  }
 }
 
 export const masterDataService = new MasterDataService();

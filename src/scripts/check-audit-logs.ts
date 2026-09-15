@@ -1,4 +1,4 @@
-import { pool } from "../config/database.js";
+import { pool } from "d:/Kiaan Project/Maintance os/MaintenX-OS/backend/src/config/database.js";
 
 async function main() {
   const res = await pool.query("SELECT id, action, entity_type, entity_id, created_at FROM audit_logs ORDER BY created_at DESC;");

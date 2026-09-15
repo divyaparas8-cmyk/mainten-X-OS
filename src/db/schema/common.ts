@@ -11,6 +11,7 @@ export const notifications = pgTable("notifications", {
   message: text("message").notNull(),
   category: varchar("category", { length: 100 }).default("SYSTEM").notNull(), // "PRODUCTION", "QUALITY_CCP", "MAINTENANCE", "WAREHOUSE", "PLANNING"
   severity: varchar("severity", { length: 50 }).default("INFO").notNull(), // "INFO", "WARNING", "CRITICAL"
+  targetRole: varchar("target_role", { length: 100 }).default("ALL").notNull(), // "SUPERVISOR", "MAINTENANCE", "OPERATOR", "QUALITY", "ALL"
   isRead: boolean("is_read").default(false).notNull(),
   linkUrl: text("link_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -69,4 +70,19 @@ export const purchasingVendors = pgTable("purchasing_vendors", {
   rating: numeric("rating", { precision: 3, scale: 2 }).default("4.8"),
   leadTimeDays: integer("lead_time_days").default(5),
   status: varchar("status", { length: 50 }).default("ACTIVE").notNull(),
+});
+
+export const shiftApprovals = pgTable("shift_approvals", {
+  id: varchar("id", { length: 100 }).primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: varchar("plant_id", { length: 100 }).default("PLT-01"),
+  approvalCode: varchar("approval_code", { length: 100 }).notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  details: text("details").notNull(),
+  status: varchar("status", { length: 50 }).default("PENDING").notNull(),
+  requestedBy: varchar("requested_by", { length: 255 }).default("Line Operator"),
+  proposedSpeed: integer("proposed_speed"),
+  supervisorComment: text("supervisor_comment"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
 });

@@ -177,11 +177,6 @@ export async function migrateIntegrations() {
       CREATE INDEX IF NOT EXISTS idx_user_invitations_status ON user_invitations(status);
     `);
 
-    // 7. Ensure companies table has tax_id column
-    await client.query(`
-      ALTER TABLE companies ADD COLUMN IF NOT EXISTS tax_id VARCHAR(100);
-    `);
-
     await client.query("COMMIT");
     console.log("=== [MIGRATION] Migration successfully committed! ===");
   } catch (err: any) {

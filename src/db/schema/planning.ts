@@ -31,6 +31,9 @@ export const forecasts = pgTable("forecasts", {
   finalForecast: numeric("final_forecast", { precision: 12, scale: 2 }).notNull(),
   mapeAccuracy: numeric("mape_accuracy", { precision: 5, scale: 2 }).default("94.60"),
   modelType: varchar("model_type", { length: 100 }).default("EXPONENTIAL_SMOOTHING"),
+  owner: varchar("owner", { length: 255 }).default("Elena Rostova"),
+  reason: text("reason"),
+  status: varchar("status", { length: 50 }).default("Submitted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -58,13 +61,19 @@ export const mrpRequirements = pgTable("mrp_requirements", {
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
   plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }).notNull(),
   skuId: uuid("sku_id").references(() => skus.id, { onDelete: "cascade" }).notNull(),
+  materialName: varchar("material_name", { length: 255 }),
+  skuCode: varchar("sku_code", { length: 100 }),
+  category: varchar("category", { length: 100 }),
+  uom: varchar("uom", { length: 50 }),
   grossRequirement: numeric("gross_requirement", { precision: 14, scale: 4 }).notNull(),
+  safetyStock: numeric("safety_stock", { precision: 14, scale: 4 }).default("1000.00"),
   availableStock: numeric("available_stock", { precision: 14, scale: 4 }).notNull(),
   reservedStock: numeric("reserved_stock", { precision: 14, scale: 4 }).default("0.00"),
   scheduledReceipts: numeric("scheduled_receipts", { precision: 14, scale: 4 }).default("0.00"),
   netShortage: numeric("net_shortage", { precision: 14, scale: 4 }).notNull(),
   requiredDate: timestamp("required_date").notNull(),
   status: varchar("status", { length: 50 }).default("SHORTAGE_ALERT"), // "CRITICAL", "SHORTAGE_ALERT", "COVERED"
+  suggestedAction: varchar("suggested_action", { length: 255 }),
   calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
 });
 
@@ -98,3 +107,4 @@ export const promotionCampaigns = pgTable("promotion_campaigns", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+

@@ -1,10 +1,7 @@
-import process from "node:process";
 import { buildApp } from "./app.js";
 import { env } from "./config/env.js";
-import { checkDatabaseConnection, db } from "./config/database.js";
+import { checkDatabaseConnection } from "./config/database.js";
 import { migrateIntegrations } from "./migrate-integrations.js";
-import { runDatabaseSeed } from "./db/seed.js";
-import { users } from "./db/schema/index.js";
 
 async function start() {
   const app = await buildApp();
@@ -17,18 +14,6 @@ async function start() {
     await migrateIntegrations();
   } catch (err: any) {
     console.warn("⚠️ Integrations auto-migration check warning:", err.message);
-  }
-
-  // Auto-seed: if no users exist in database, initialize comprehensive seed
-  try {
-    const [existingUser] = await db.select({ id: users.id }).from(users).limit(1);
-    if (!existingUser) {
-      console.log("🌱 No users detected in database. Running auto-seed for all 12 roles & dashboards...");
-      await runDatabaseSeed();
-      console.log("✅ Auto-seed completed successfully. All dashboards ready.");
-    }
-  } catch (seedErr: any) {
-    console.warn("⚠️ Auto-seed check warning:", seedErr.message);
   }
 
   try {

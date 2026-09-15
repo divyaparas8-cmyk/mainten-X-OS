@@ -179,7 +179,7 @@ export class MasterAdminService {
   async getCompanies(query?: { search?: string; status?: string }) {
     const allTenants = await db.select().from(tenants).orderBy(desc(tenants.createdAt));
     const allPlants = await db.select().from(plants);
-    const allUsers = await db.select().from(users);
+    const allUsers = await db.select().from(users).orderBy(asc(users.createdAt));
     const allSubs = await db.select().from(subscriptions);
     const allModules = await db.select().from(tenantModules);
 
@@ -236,7 +236,7 @@ export class MasterAdminService {
       const sub = tenantSubs.get(t.id);
       const admin = tenantAdmins.get(t.id) || { name: "System Administrator", email: `admin@${t.slug}.com`, phone: "", lastLogin: "Never" };
       const expiry = sub ? new Date(sub.currentPeriodEnd).toISOString().split("T")[0] : "2027-01-01";
-      const subName = sub ? sub.planName : t.plan || "MaintenX OS Complete";
+      const subName = sub ? sub.planName : (t.plan || "Plant Pilot");
 
       return {
         id: t.id,
@@ -295,7 +295,7 @@ export class MasterAdminService {
     const companyPlants = await db.select().from(plants).where(eq(plants.tenantId, id));
 
     // 2. Users & Admins
-    const companyUsers = await db.select().from(users).where(eq(users.tenantId, id));
+    const companyUsers = await db.select().from(users).where(eq(users.tenantId, id)).orderBy(asc(users.createdAt));
     const adminRoles = await db.select().from(roles).where(eq(roles.code, "admin"));
     const adminRoleIds = new Set(adminRoles.map((r) => r.id));
 
@@ -338,7 +338,7 @@ export class MasterAdminService {
       name: tenant.name,
       slug: tenant.slug,
       status: tenant.status.charAt(0).toUpperCase() + tenant.status.slice(1).toLowerCase(),
-      subscription: activeSub?.planName || tenant.plan || "MaintenX OS Complete",
+      subscription: activeSub?.planName || tenant.plan || "Plant Pilot",
       admin: primaryAdmin ? `${primaryAdmin.firstName} ${primaryAdmin.lastName}` : "System Admin",
       adminEmail: primaryAdmin ? primaryAdmin.email : `admin@${tenant.slug}.com`,
       usersCount: companyUsers.length,
@@ -381,6 +381,7 @@ export class MasterAdminService {
       admin: string;
       adminEmail: string;
       adminPhone?: string;
+      password?: string;
       subscription?: string;
       plantsCount?: number;
       currency?: string;
@@ -395,6 +396,15 @@ export class MasterAdminService {
     try {
       await client.query("BEGIN");
 
+      // Check if user email already exists
+      const { rows: existingUsers } = await client.query(
+        "SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1",
+        [input.adminEmail.trim()]
+      );
+      if (existingUsers.length > 0) {
+        throw new ValidationError(`A user with email "${input.adminEmail}" already exists. Please use a different email.`);
+      }
+
       const slug = input.name
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "-")
@@ -402,7 +412,7 @@ export class MasterAdminService {
         .substring(0, 50) + `-${Date.now().toString(36)}`;
 
       // 1. Create Tenant
-      const planName = input.subscription || "MaintenX OS Complete";
+      const planName = input.subscription?.trim() || "Plant Pilot";
       const { rows: tenantRows } = await client.query(
         `INSERT INTO tenants (name, slug, plan, status, settings)
          VALUES ($1, $2, $3, 'ACTIVE', $4)
@@ -422,7 +432,8 @@ export class MasterAdminService {
       // 3. Create Admin User
       const [firstName, ...lastNames] = input.admin.trim().split(" ");
       const lastName = lastNames.join(" ") || "Admin";
-      const defaultPasswordHash = await bcrypt.hash("Password@123", 10);
+      const rawPassword = (input.password || "").trim() || "Password@123";
+      const passwordHash = await bcrypt.hash(rawPassword, 10);
       const defaultPinHash = await bcrypt.hash("1234", 10);
 
       const { rows: userRows } = await client.query(
@@ -435,16 +446,25 @@ export class MasterAdminService {
            phone = COALESCE(EXCLUDED.phone, users.phone),
            status = 'ACTIVE'
          RETURNING *`,
-        [newTenant.id, input.adminEmail.toLowerCase().trim(), defaultPasswordHash, firstName, lastName, input.adminPhone || null, defaultPinHash]
+        [newTenant.id, input.adminEmail.toLowerCase().trim(), passwordHash, firstName, lastName, input.adminPhone || null, defaultPinHash]
       );
       const newUser = userRows[0];
 
       // 4. Assign Admin Role
+      let roleId: string | undefined;
       const { rows: roleRows } = await client.query(`SELECT id FROM roles WHERE code = 'admin' LIMIT 1`);
       if (roleRows.length > 0) {
+        roleId = roleRows[0].id;
+      } else {
+        const { rows: newRoleRows } = await client.query(
+          `INSERT INTO roles (code, name, description, is_system) VALUES ('admin', 'Company Administrator', 'Full company governance, master data, security, user administration', true) RETURNING id`
+        );
+        roleId = newRoleRows[0]?.id;
+      }
+      if (roleId) {
         await client.query(
           `INSERT INTO user_roles ("userId", "roleId") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-          [newUser.id, roleRows[0].id]
+          [newUser.id, roleId]
         );
       }
 
@@ -527,7 +547,17 @@ export class MasterAdminService {
     return { id, status: newStatus };
   }
 
-  async updateCompanyDetails(id: string, updates: { name?: string; subscription?: string }, actor?: ActorContext) {
+  async updateCompanyDetails(
+    id: string,
+    updates: {
+      name?: string;
+      subscription?: string;
+      adminName?: string;
+      adminEmail?: string;
+      adminPhone?: string;
+    },
+    actor?: ActorContext
+  ) {
     const [company] = await db.select().from(tenants).where(eq(tenants.id, id)).limit(1);
     if (!company) throw new NotFoundError("Company not found");
 
@@ -543,6 +573,27 @@ export class MasterAdminService {
         .update(subscriptions)
         .set({ planName: updates.subscription, updatedAt: new Date() })
         .where(eq(subscriptions.tenantId, id));
+    }
+
+    // Update Primary Admin user details if supplied
+    if (updates.adminName || updates.adminEmail || updates.adminPhone !== undefined) {
+      const companyUsers = await db.select().from(users).where(eq(users.tenantId, id));
+      if (companyUsers.length > 0) {
+        const primaryAdmin = companyUsers[0];
+        const userPatch: any = { updatedAt: new Date() };
+        if (updates.adminName) {
+          const [firstName, ...lastNames] = updates.adminName.trim().split(" ");
+          userPatch.firstName = firstName;
+          userPatch.lastName = lastNames.join(" ") || "Admin";
+        }
+        if (updates.adminEmail) {
+          userPatch.email = updates.adminEmail.trim();
+        }
+        if (updates.adminPhone !== undefined) {
+          userPatch.phone = updates.adminPhone.trim();
+        }
+        await db.update(users).set(userPatch).where(eq(users.id, primaryAdmin.id));
+      }
     }
 
     await this.writeAudit({
@@ -626,6 +677,7 @@ export class MasterAdminService {
     input: {
       name: string;
       email?: string;
+      password?: string;
       company?: string;
       companyId?: string;
     },
@@ -658,7 +710,8 @@ export class MasterAdminService {
       ? input.email.toLowerCase().trim() 
       : `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/[^a-z0-9]/g, "")}_${Date.now().toString(36)}@${tenant.slug}.com`;
 
-    const defaultPasswordHash = await bcrypt.hash("Password@123", 10);
+    const rawPassword = (input.password || "").trim() || "Password@123";
+    const passwordHash = await bcrypt.hash(rawPassword, 10);
     const defaultPinHash = await bcrypt.hash("1234", 10);
 
     const client = await pool.connect();
@@ -668,15 +721,24 @@ export class MasterAdminService {
         `INSERT INTO users (tenant_id, email, password_hash, first_name, last_name, digital_signature_pin_hash, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'ACTIVE')
          RETURNING *`,
-        [tenant.id, email, defaultPasswordHash, firstName, lastName, defaultPinHash]
+        [tenant.id, email, passwordHash, firstName, lastName, defaultPinHash]
       );
       const newUser = userRows[0];
 
+      let roleId: string | undefined;
       const { rows: roleRows } = await client.query(`SELECT id FROM roles WHERE code = 'admin' LIMIT 1`);
       if (roleRows.length > 0) {
+        roleId = roleRows[0].id;
+      } else {
+        const { rows: newRoleRows } = await client.query(
+          `INSERT INTO roles (code, name, description, is_system) VALUES ('admin', 'Company Administrator', 'Full company governance, master data, security, user administration', true) RETURNING id`
+        );
+        roleId = newRoleRows[0]?.id;
+      }
+      if (roleId) {
         await client.query(
           `INSERT INTO user_roles ("userId", "roleId") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-          [newUser.id, roleRows[0].id]
+          [newUser.id, roleId]
         );
       }
       await client.query("COMMIT");
@@ -890,14 +952,7 @@ export class MasterAdminService {
     const [existing] = await db.select().from(plans).where(eq(plans.id, id)).limit(1);
     if (!existing) throw new NotFoundError(`Plan '${id}' not found`);
 
-    // Check if subscriptions rely on this plan
-    const usedInSubs = await db.select().from(subscriptions).where(eq(subscriptions.planId, id)).limit(1);
-    if (usedInSubs.length > 0) {
-      // Soft-deactivate instead of breaking foreign keys
-      await db.update(plans).set({ status: "Inactive", updatedAt: new Date() }).where(eq(plans.id, id));
-      return { success: true, message: `Plan '${id}' has active subscriptions; marked Inactive safely.` };
-    }
-
+    // Always hard-delete plan from PostgreSQL table
     await db.delete(plans).where(eq(plans.id, id));
 
     await this.writeAudit({
@@ -1366,6 +1421,11 @@ export class MasterAdminService {
     await db.delete(auditLogs).where(eq(auditLogs.id, id));
 
     return { success: true, message: `Audit log ${id} deleted successfully` };
+  }
+
+  async clearAllAuditLogs() {
+    await db.delete(auditLogs);
+    return { success: true, message: "All audit logs cleared successfully" };
   }
 
   // =========================================================================

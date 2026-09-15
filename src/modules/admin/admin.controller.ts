@@ -99,6 +99,28 @@ export class AdminController {
     return reply.status(200).send(logs);
   }
 
+  async createActivityLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const res = await adminService.createActivityLog(user?.tenantId, body);
+    return reply.status(201).send(res);
+  }
+
+  async updateActivityLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const res = await adminService.updateActivityLog(user?.tenantId, id, body);
+    return reply.status(200).send(res);
+  }
+
+  async deleteActivityLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const res = await adminService.deleteActivityLog(user?.tenantId, id);
+    return reply.status(200).send(res);
+  }
+
   // Roles & Permissions
   async getRoles(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
@@ -111,6 +133,21 @@ export class AdminController {
     const body = request.body as any;
     const newRole = await adminService.createRole(user?.tenantId, body);
     return reply.status(201).send(newRole);
+  }
+
+  async updateRole(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const updated = await adminService.updateRole(user?.tenantId, id, body);
+    return reply.status(200).send(updated);
+  }
+
+  async deleteRole(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteRole(user?.tenantId, id);
+    return reply.status(200).send(result);
   }
 
   async getPermissionMatrix(request: FastifyRequest, reply: FastifyReply) {
@@ -146,6 +183,28 @@ export class AdminController {
     return reply.status(200).send(rules);
   }
 
+  async createApprovalRule(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const created = await adminService.createApprovalRule(user?.tenantId, body);
+    return reply.status(201).send(created);
+  }
+
+  async updateApprovalRule(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const updated = await adminService.updateApprovalRule(user?.tenantId, id, body);
+    return reply.status(200).send(updated);
+  }
+
+  async deleteApprovalRule(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteApprovalRule(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
   async scanDataHealth(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const result = await adminService.scanDataHealth(user?.tenantId);
@@ -161,8 +220,27 @@ export class AdminController {
 
   async deleteDataHealth(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
+    const body = (request.body as any) || {};
+    const params = (request.params as any) || {};
+    const id = params.id || body.id;
+    const category = params.category || body.category;
+    const result = await adminService.deleteDataHealthItem(user?.tenantId, { ...body, id, category });
+    return reply.status(200).send(result);
+  }
+
+  async createDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { category } = request.params as { category: string };
     const body = request.body as any;
-    const result = await adminService.deleteDataHealthItem(user?.tenantId, body);
+    const result = await adminService.createDataHealthRecord(user?.tenantId, category, body);
+    return reply.status(201).send(result);
+  }
+
+  async updateDataHealth(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { category, id } = request.params as { category: string; id: string };
+    const body = request.body as any;
+    const result = await adminService.updateDataHealthRecord(user?.tenantId, category, id, body);
     return reply.status(200).send(result);
   }
 
@@ -207,9 +285,29 @@ export class AdminController {
     return reply.status(200).send(status);
   }
 
+  async updateERPConfig(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const body = request.body as any;
+    const updated = await adminService.updateERPConfig(user?.tenantId, body);
+    return reply.status(200).send(updated);
+  }
+
   async syncERP(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const result = await adminService.syncERP(user?.tenantId);
+    return reply.status(200).send(result);
+  }
+
+  async getERPEvents(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const events = await adminService.getERPEvents(user?.tenantId);
+    return reply.status(200).send(events);
+  }
+
+  async deleteERPEvent(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteERPEvent(user?.tenantId, id);
     return reply.status(200).send(result);
   }
 
@@ -254,6 +352,14 @@ export class AdminController {
     const body = request.body as any;
     const created = await adminService.createApiKey(user?.tenantId, body);
     return reply.status(201).send(created);
+  }
+
+  async updateApiKey(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const body = request.body as any;
+    const updated = await adminService.updateApiKey(user?.tenantId, id, body);
+    return reply.status(200).send(updated);
   }
 
   async revokeApiKey(request: FastifyRequest, reply: FastifyReply) {
@@ -337,11 +443,37 @@ export class AdminController {
     return reply.status(200).send(result);
   }
 
+  async createRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.createRemediationLog(user?.tenantId, request.body);
+    return reply.status(201).send(result);
+  }
+
+  async updateRemediationLog(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.updateRemediationLog(user?.tenantId, id, request.body);
+    return reply.status(200).send(result);
+  }
+
   // ── DATA MIGRATION ─────────────────────────────────────────────────
   async getMigrationBatches(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const batches = await adminService.getMigrationBatches(user?.tenantId);
     return reply.status(200).send(batches);
+  }
+
+  async createMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.createMigrationBatch(user?.tenantId, request.body);
+    return reply.status(201).send(result);
+  }
+
+  async updateMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.updateMigrationBatch(user?.tenantId, id, request.body);
+    return reply.status(200).send(result);
   }
 
   async executeMigrationBatch(request: FastifyRequest, reply: FastifyReply) {
@@ -364,6 +496,32 @@ export class AdminController {
     return reply.status(200).send(reports);
   }
 
+  async getSystemGovernanceReports(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const reports = await adminService.getSystemGovernanceReports(user?.tenantId);
+    return reply.status(200).send(reports);
+  }
+
+  async createSystemReport(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const result = await adminService.createSystemReport(user?.tenantId, request.body);
+    return reply.status(201).send(result);
+  }
+
+  async updateSystemReport(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.updateSystemReport(user?.tenantId, id, request.body);
+    return reply.status(200).send(result);
+  }
+
+  async deleteSystemReport(request: FastifyRequest, reply: FastifyReply) {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+    const result = await adminService.deleteSystemReport(user?.tenantId, id);
+    return reply.status(200).send(result);
+  }
+
   async exportSystemReport(request: FastifyRequest, reply: FastifyReply) {
     const user = (request as any).user;
     const result = await adminService.exportSystemReport(user?.tenantId);
@@ -372,6 +530,7 @@ export class AdminController {
 }
 
 export const adminController = new AdminController();
+
 
 
 

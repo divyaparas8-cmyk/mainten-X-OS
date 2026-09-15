@@ -10,18 +10,17 @@ import {
   updatePromotionSchema,
   createApsScheduleSchema,
   createPromotionCampaignSchema,
-  updateShipmentStatusSchema
+  updateShipmentStatusSchema,
+  updateMrpRequirementSchema
 } from "./planning.schema.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
-import { resolvePlantId, isValidUuid } from "../../shared/utils/tenantContext.js";
+import { resolvePlantId } from "../../shared/utils/tenantContext.js";
 
 export class PlanningController {
   // Demand Orders
   async getCustomerOrders(request: FastifyRequest, reply: FastifyReply) {
-    const user = (request as any).user || {};
-    const tenantId = (user.tenantId && isValidUuid(user.tenantId)) ? user.tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-    const plantId = await resolvePlantId(tenantId, user.plantId);
-    const data = await planningService.listCustomerOrders(tenantId, plantId);
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await planningService.listCustomerOrders(request.user.tenantId, plantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -45,9 +44,7 @@ export class PlanningController {
 
   // Forecasts & Overrides
   async getForecasts(request: FastifyRequest, reply: FastifyReply) {
-    const user = (request as any).user || {};
-    const tenantId = (user.tenantId && isValidUuid(user.tenantId)) ? user.tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-    const data = await planningService.listForecasts(tenantId, user.plantId);
+    const data = await planningService.listForecasts(request.user.tenantId, request.user.plantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -174,6 +171,30 @@ export class PlanningController {
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await planningService.runMrpExplosion(request.user.tenantId, plantId);
     return reply.send(formatSuccess(data, "MRP Net Requirements calculated"));
+  }
+
+  async getMrpRequirementById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await planningService.getMrpRequirementById(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, "MRP Requirement details retrieved"));
+  }
+
+  async updateMrpRequirement(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const input = updateMrpRequirementSchema.parse(request.body);
+    const data = await planningService.updateMrpRequirement(request.user.tenantId, id, input);
+    return reply.send(formatSuccess(data, "MRP Requirement updated successfully in database"));
+  }
+
+  async deleteMrpRequirement(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await planningService.deleteMrpRequirement(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, "MRP Requirement deleted successfully from database"));
+  }
+
+  async generateMrpRequirements(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.generateMrpBaselineRequirements(request.user.tenantId, request.user.plantId);
+    return reply.send(formatSuccess(data, "Material requirements generated from demand orders and BOMs"));
   }
 
   async getPromotionCampaigns(request: FastifyRequest, reply: FastifyReply) {

@@ -193,119 +193,98 @@ export async function runDatabaseSeed() {
     console.log(`✅ 14 Users configured and mapped to their respective roles`);
 
     // 4. Seed Product Families & SKUs
-    let [beverageFamily] = await db.select().from(productFamilies).where(eq(productFamilies.code, "CARB-BEV")).limit(1);
-    if (!beverageFamily) {
-      [beverageFamily] = await db
-        .insert(productFamilies)
-        .values({
-          tenantId: demoTenant.id,
-          code: "CARB-BEV",
-          name: "Sparkling & Carbonated Beverages",
-        })
-        .returning();
-    }
+    const [beverageFamily] = await db
+      .insert(productFamilies)
+      .values({
+        tenantId: demoTenant.id,
+        code: "CARB-BEV",
+        name: "Sparkling & Carbonated Beverages",
+      })
+      .returning();
 
-    let [citrusSku] = await db.select().from(skus).where(eq(skus.skuCode, "SKU-5001")).limit(1);
-    if (!citrusSku) {
-      [citrusSku] = await db
-        .insert(skus)
-        .values({
-          tenantId: demoTenant.id,
-          skuCode: "SKU-5001",
-          name: "500ml Sparkling Citrus Soda",
-          category: "FINISHED_GOODS",
-          familyId: beverageFamily.id,
-          uom: "Units",
-          barcode: "8901020304051",
-          standardCost: "14.50",
-        })
-        .returning();
-    }
+    const [citrusSku] = await db
+      .insert(skus)
+      .values({
+        tenantId: demoTenant.id,
+        skuCode: "SKU-5001",
+        name: "500ml Sparkling Citrus Soda",
+        category: "FINISHED_GOODS",
+        familyId: beverageFamily.id,
+        uom: "Units",
+        barcode: "8901020304051",
+        standardCost: "14.50",
+      })
+      .returning();
 
-    let [orangeJuiceRaw] = await db.select().from(skus).where(eq(skus.skuCode, "RM-ORG-101")).limit(1);
-    if (!orangeJuiceRaw) {
-      [orangeJuiceRaw] = await db
-        .insert(skus)
-        .values({
-          tenantId: demoTenant.id,
-          skuCode: "RM-ORG-101",
-          name: "Valencia Organic Orange Juice Concentrate 65° Brix",
-          category: "RAW_MATERIAL",
-          uom: "Liters",
-          barcode: "LOT-RM-ORG-4402",
-          standardCost: "85.00",
-        })
-        .returning();
-    }
+    const [orangeJuiceRaw] = await db
+      .insert(skus)
+      .values({
+        tenantId: demoTenant.id,
+        skuCode: "RM-ORG-101",
+        name: "Valencia Organic Orange Juice Concentrate 65° Brix",
+        category: "RAW_MATERIAL",
+        uom: "Liters",
+        barcode: "LOT-RM-ORG-4402",
+        standardCost: "85.00",
+      })
+      .returning();
 
-    let [aluminumCan] = await db.select().from(skus).where(eq(skus.skuCode, "PKG-CAN-330")).limit(1);
-    if (!aluminumCan) {
-      [aluminumCan] = await db
-        .insert(skus)
-        .values({
-          tenantId: demoTenant.id,
-          skuCode: "PKG-CAN-330",
-          name: "330ml Slimline Aluminum Beverage Cans",
-          category: "PACKAGING",
-          uom: "Can",
-          barcode: "LOT-CAN-ALU-9912",
-          standardCost: "3.20",
-        })
-        .returning();
-    }
+    const [aluminumCan] = await db
+      .insert(skus)
+      .values({
+        tenantId: demoTenant.id,
+        skuCode: "PKG-CAN-330",
+        name: "330ml Slimline Aluminum Beverage Cans",
+        category: "PACKAGING",
+        uom: "Can",
+        barcode: "LOT-CAN-ALU-9912",
+        standardCost: "3.20",
+      })
+      .returning();
 
     console.log(`✅ Master SKUs & Packaging created`);
 
     // 5. Seed Production Line & Work Center
-    let [wc1] = await db.select().from(workCenters).where(eq(workCenters.code, "WC-BOT-01")).limit(1);
-    if (!wc1) {
-      [wc1] = await db
-        .insert(workCenters)
-        .values({
-          tenantId: demoTenant.id,
-          plantId: indorePlant.id,
-          code: "WC-BOT-01",
-          name: "High-Speed Bottling & Formulation Bay 1",
-          category: "BOTTLING",
-        })
-        .returning();
-    }
+    const [wc1] = await db
+      .insert(workCenters)
+      .values({
+        tenantId: demoTenant.id,
+        plantId: indorePlant.id,
+        code: "WC-BOT-01",
+        name: "High-Speed Bottling & Formulation Bay 1",
+        category: "BOTTLING",
+      })
+      .returning();
 
-    let [line1] = await db.select().from(productionLines).where(eq(productionLines.code, "LINE-1")).limit(1);
-    if (!line1) {
-      [line1] = await db
-        .insert(productionLines)
-        .values({
-          tenantId: demoTenant.id,
-          plantId: indorePlant.id,
-          workCenterId: wc1.id,
-          code: "LINE-1",
-          name: "Line 1 Bottling & Canning (250 BPM)",
-          lineType: "BOTTLING",
-          nominalSpeedBpm: 250,
-          status: "RUNNING",
-        })
-        .returning();
-    }
+    const [line1] = await db
+      .insert(productionLines)
+      .values({
+        tenantId: demoTenant.id,
+        plantId: indorePlant.id,
+        workCenterId: wc1.id,
+        code: "LINE-1",
+        name: "Line 1 Bottling & Canning (250 BPM)",
+        lineType: "BOTTLING",
+        nominalSpeedBpm: 250,
+        status: "RUNNING",
+      })
+      .returning();
 
     // 6. Seed Equipment Asset
-    let [fillerAsset] = await db.select().from(assets).where(eq(assets.assetCode, "FM-001")).limit(1);
-    if (!fillerAsset) {
-      [fillerAsset] = await db
-        .insert(assets)
-        .values({
-          tenantId: demoTenant.id,
-          plantId: indorePlant.id,
-          lineId: line1.id,
-          assetCode: "FM-001",
-          name: "Rotary Filling Machine 48-Valve",
-          criticalLevel: "CRITICAL_P1",
-          status: "OPERATIONAL",
-          healthPercent: 92,
-          mtbfHours: "412.5",
-        })
-        .returning();
-    }
+    const [fillerAsset] = await db
+      .insert(assets)
+      .values({
+        tenantId: demoTenant.id,
+        plantId: indorePlant.id,
+        lineId: line1.id,
+        assetCode: "FM-001",
+        name: "Rotary Filling Machine 48-Valve",
+        criticalLevel: "CRITICAL_P1",
+        status: "OPERATIONAL",
+        healthPercent: 92,
+        mtbfHours: "412.5",
+      })
+      .returning();
 
     // 7. Seed Routings & Steps (Master Recipes)
     const [existingRtg] = await db.select().from(routings).where(eq(routings.routingCode, "RTG-5001-L1")).limit(1);

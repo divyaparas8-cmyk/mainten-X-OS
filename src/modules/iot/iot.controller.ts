@@ -30,7 +30,14 @@ export class IoTController {
     return reply.send(formatSuccess(history));
   }
 
-  async stream(_request: FastifyRequest, reply: FastifyReply) {
+  async stream(request: FastifyRequest, reply: FastifyReply) {
+    // Explicit CORS headers for raw Server-Sent Events (SSE) stream
+    const origin = (request.headers.origin as string) || "*";
+    reply.raw.setHeader("Access-Control-Allow-Origin", origin);
+    reply.raw.setHeader("Access-Control-Allow-Credentials", "true");
+    reply.raw.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    reply.raw.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+
     // Set headers for Server-Sent Events (SSE)
     reply.raw.setHeader("Content-Type", "text/event-stream");
     reply.raw.setHeader("Cache-Control", "no-cache, no-transform");

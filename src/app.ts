@@ -77,14 +77,14 @@ export async function buildApp(): Promise<FastifyInstance> {
     await app.register(masterDataRoutes, { prefix: `${prefix}/master-data` });
     await app.register(planningRoutes, { prefix: `${prefix}/planning` });
     await app.register(planningRoutes, { prefix: `${prefix}/planner` });
-    await app.register(planningRoutes, { prefix: prefix });
-    await app.register(dashboardsRoutes, { prefix: `${prefix}/plant-manager` });
+    await app.register(planningRoutes, { prefix: `${prefix}` });
     await app.register(productionRoutes, { prefix: `${prefix}/production` });
     await app.register(qualityRoutes, { prefix: `${prefix}/quality` });
     await app.register(warehouseRoutes, { prefix: `${prefix}/warehouse` });
     await app.register(traceabilityRoutes, { prefix: `${prefix}/traceability` });
     await app.register(maintenanceRoutes, { prefix: `${prefix}/maintenance` });
     await app.register(dashboardsRoutes, { prefix: `${prefix}/dashboards` });
+    await app.register(dashboardsRoutes, { prefix: `${prefix}/plant-manager` });
     await app.register(executiveRoutes, { prefix: `${prefix}/executive` });
     await app.register(executiveRoutes, { prefix: `${prefix}/dashboards/executive` });
     await app.register(notificationsRoutes, { prefix: `${prefix}/notifications` });
@@ -96,7 +96,6 @@ export async function buildApp(): Promise<FastifyInstance> {
     await app.register(iotRoutes, { prefix: `${prefix}/iot` });
     await app.register(masterRoutes, { prefix: `${prefix}/master` });
   }
-
 
   return app;
 }

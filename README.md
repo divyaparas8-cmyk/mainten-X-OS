@@ -21,7 +21,7 @@
 ```text
 React Frontend (MaintenX-OS)
       ↓
-REST API (http://localhost:4000/api/v1/...)
+REST API (https://mainten-x-os-production.up.railway.app/api/v1/...)
       ↓
 Fastify Routes & Middlewares (Auth, RBAC, Tenant Isolation, Audit Context)
       ↓
@@ -72,9 +72,9 @@ npm run db:seed
 npm run dev
 ```
 
-Server will start on: **`http://localhost:4000`**  
-OpenAPI Interactive Docs: **`http://localhost:4000/docs`**  
-Health Check: **`http://localhost:4000/health`**
+Server will start on: **`https://mainten-x-os-production.up.railway.app`**  
+OpenAPI Interactive Docs: **`https://mainten-x-os-production.up.railway.app/docs`**  
+Health Check: **`https://mainten-x-os-production.up.railway.app/health`**
 
 ---
 

@@ -12,8 +12,8 @@ export declare const createWorkOrderSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION";
     title: string;
-    priority: "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM";
     assetId: string;
+    priority: "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM";
     estimatedHours: number;
     description?: string | undefined;
     scheduledDate?: string | undefined;

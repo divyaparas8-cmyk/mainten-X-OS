@@ -6,74 +6,11 @@ const masterData_js_1 = require("../../db/schema/masterData.js");
 const tenants_js_1 = require("../../db/schema/tenants.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
-let inMemoryCompanies = [
-    {
-        id: "CMP-01",
-        companyId: "CMP-01",
-        code: "ABCMFG",
-        name: "ABC Manufacturing Global",
-        taxId: "US-9842109-K",
-        currency: "USD",
-        hqLocation: "Austin, Texas, USA",
-        fiscalYearStart: "January",
-        status: "Active",
-    },
-];
-let inMemoryPlants = [
-    {
-        id: "PLT-01",
-        plantId: "PLT-01",
-        companyId: "CMP-01",
-        code: "PLT-IND",
-        name: "Indore Plant - Processing & Bottling",
-        location: "Sector 3 Industrial Corridor, Indore, MP",
-        city: "Indore",
-        state: "MP",
-        country: "India",
-        capacity: "350,000 Units/Day",
-        dailyCapacity: "350,000 Units/Day",
-        operatingShifts: 3,
-        timezone: "Asia/Kolkata (IST)",
-        linesCount: 3,
-        status: "Active",
-    },
-    {
-        id: "PLT-02",
-        plantId: "PLT-02",
-        companyId: "CMP-01",
-        code: "PLT-AUST",
-        name: "Austin Facility - Canning & Logistics",
-        location: "7400 Metropolis Dr, Austin, TX",
-        city: "Austin",
-        state: "TX",
-        country: "USA",
-        capacity: "280,000 Units/Day",
-        dailyCapacity: "280,000 Units/Day",
-        operatingShifts: 2,
-        timezone: "America/Chicago (CST)",
-        linesCount: 2,
-        status: "Active",
-    },
-];
-let inMemoryDepartments = [
-    { id: "DEP-01", departmentId: "DEP-01", plantId: "PLT-01", code: "PROD", name: "Production & Bottling", deptHead: "Robert Thorne", managerName: "Robert Thorne", costCenter: "CC-101", operatingShifts: "3 Shifts (24/7 Continuous)", status: "Active" },
-    { id: "DEP-02", departmentId: "DEP-02", plantId: "PLT-01", code: "MAINT", name: "Maintenance & Reliability", deptHead: "Marcus Vance", managerName: "Marcus Vance", costCenter: "CC-102", operatingShifts: "3 Shifts (24/7 Continuous)", status: "Active" },
-    { id: "DEP-03", departmentId: "DEP-03", plantId: "PLT-01", code: "QAQC", name: "Quality Assurance & Lab", deptHead: "Sarah Jenkins", managerName: "Sarah Jenkins", costCenter: "CC-103", operatingShifts: "2 Shifts (Day & Night)", status: "Active" },
-    { id: "DEP-04", departmentId: "DEP-04", plantId: "PLT-01", code: "WHSE", name: "Warehouse & Materials", deptHead: "David Kim", managerName: "David Kim", costCenter: "CC-104", operatingShifts: "3 Shifts (24/7 Continuous)", status: "Active" },
-    { id: "DEP-05", departmentId: "DEP-05", plantId: "PLT-01", code: "CI-ENG", name: "Continuous Improvement & Engineering", deptHead: "Alexander Vance", managerName: "Alexander Vance", costCenter: "CC-105", operatingShifts: "1 Shift (General)", status: "Active" },
-];
-let inMemoryLines = [
-    { lineId: "LIN-01", id: "LIN-01", lineCode: "LINE-1", code: "LINE-1", name: "High-Speed Bottling Line 1", plantId: "PLT-01", plantName: "Indore Plant", type: "Continuous Flow", lineType: "BOTTLING", ratedSpeed: "38,000 BPH", ratedSpeedBPH: 38000, status: "Active", healthScore: 96 },
-    { lineId: "LIN-02", id: "LIN-02", lineCode: "LINE-2", code: "LINE-2", name: "Medium-Speed Glass Bottling Line 2", plantId: "PLT-01", plantName: "Indore Plant", type: "Continuous Flow", lineType: "BOTTLING", ratedSpeed: "38,000 BPH", ratedSpeedBPH: 38000, status: "Active", healthScore: 92 },
-    { lineId: "LIN-03", id: "LIN-03", lineCode: "LINE-3", code: "LINE-3", name: "Automated Sleek Canning Line 3", plantId: "PLT-02", plantName: "Austin Facility", type: "Continuous Flow", lineType: "CANNING", ratedSpeed: "38,000 BPH", ratedSpeedBPH: 38000, status: "Active", healthScore: 94 },
-];
-let inMemoryWorkCenters = [
-    { id: "WC-101", workCenterId: "WC-101", code: "FILL-01", name: "Rotary Isobaric Filler", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", plantId: "PLT-01", capacity: "38,000 BPH", category: "PACKAGING", status: "Active" },
-    { id: "WC-102", workCenterId: "WC-102", code: "CAPP-01", name: "Induction Cap Sealer", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", plantId: "PLT-01", capacity: "38,000 BPH", category: "PACKAGING", status: "Active" },
-    { id: "WC-103", workCenterId: "WC-103", code: "LABL-01", name: "Sleeve Rotary Labeler", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", plantId: "PLT-01", capacity: "40,000 BPH", category: "PACKAGING", status: "Active" },
-    { id: "WC-201", workCenterId: "WC-201", code: "PAST-02", name: "HTST Flash Pasteurizer", lineId: "LIN-02", lineName: "Line 2 — Formulation & Pasteurizer", plantId: "PLT-01", capacity: "30,000 L/hr", category: "PROCESSING", status: "Active" },
-    { id: "WC-301", workCenterId: "WC-301", code: "SEAM-03", name: "Can Seamer Station", lineId: "LIN-03", lineName: "Line 3 — Canning Line", plantId: "PLT-02", capacity: "45,000 CPH", category: "PACKAGING", status: "Active" },
-];
+let inMemoryCompanies = [];
+let inMemoryPlants = [];
+let inMemoryDepartments = [];
+let inMemoryLines = [];
+let inMemoryWorkCenters = [];
 let inMemoryOperations = [
     { id: "OP-01", operationId: "OP-01", operationCode: "OP-DEPAL", code: "OP-DEPAL", name: "Bulk Depalletization", sequence: 10, department: "Packaging", stdDurationMin: 30, setupDurationMin: 15, status: "Active" },
     { id: "OP-02", operationId: "OP-02", operationCode: "OP-RINSE", code: "OP-RINSE", name: "Ionized Air & Water Rinse", sequence: 20, department: "Packaging", stdDurationMin: 45, setupDurationMin: 15, status: "Active" },
@@ -83,163 +20,17 @@ let inMemoryOperations = [
     { id: "OP-06", operationId: "OP-06", operationCode: "OP-CASE", code: "OP-CASE", name: "Wrap-Around Case Packing", sequence: 60, department: "Packaging", stdDurationMin: 40, setupDurationMin: 15, status: "Active" },
     { id: "OP-07", operationId: "OP-07", operationCode: "OP-PALLET", code: "OP-PALLET", name: "Robotic High-Level Palletizing", sequence: 70, department: "Packaging", stdDurationMin: 30, setupDurationMin: 10, status: "Active" },
 ];
-let inMemoryRoutings = [
-    { id: "RTG-001", routingId: "RTG-001", routingCode: "RTG-SKU5001-L1", skuId: "SKU-001", skuCode: "SKU-5001", skuName: "Citrus Burst Soda 500ml PET", lineId: "LIN-01", lineCode: "LINE-1", lineName: "High-Speed Bottling Line 1", revision: "R1", approvalStatus: "Approved", status: "Active", stdRunRateBPH: 38000, setupDurationMin: 30, expectedYieldPct: 99.2, effectiveFrom: "2024-01-01", effectiveTo: "2030-12-31" },
-    { id: "RTG-002", routingId: "RTG-002", routingCode: "RTG-SKU5002-L2", skuId: "SKU-002", skuCode: "SKU-5002", skuName: "Wild Berry Sparkling Water 330ml Can", lineId: "LIN-02", lineCode: "LINE-2", lineName: "Medium-Speed Glass Bottling Line 2", revision: "R1", approvalStatus: "Approved", status: "Active", stdRunRateBPH: 32000, setupDurationMin: 25, expectedYieldPct: 98.8, effectiveFrom: "2024-01-01", effectiveTo: "2030-12-31" },
-];
-let inMemoryProductFamilies = [
-    { id: "PF-01", familyId: "PF-01", code: "CSD-CARBONATED", name: "Carbonated Soft Drinks", category: "BEVERAGE", description: "High carbonation CSD beverages in PET and cans", status: "Active", skusCount: 12 },
-    { id: "PF-02", familyId: "PF-02", code: "SPARK-WATER", name: "Flavored Sparkling Waters", category: "BEVERAGE", description: "Zero-sugar naturally flavored mineral waters", status: "Active", skusCount: 8 },
-    { id: "PF-03", familyId: "PF-03", code: "JUICE-ASEPTIC", name: "Aseptic Juices & Nectars", category: "BEVERAGE", description: "100% fruit pulp juices in aseptic cartons & PET", status: "Active", skusCount: 6 },
-];
-let inMemoryUoms = [
-    { id: "UOM-01", uomId: "UOM-01", code: "EA", name: "Each / Unit", category: "Count", baseUnit: "EA", conversionFactor: 1, status: "Active" },
-    { id: "UOM-02", uomId: "UOM-02", code: "CS-24", name: "Case of 24", category: "Packaging", baseUnit: "EA", conversionFactor: 24, status: "Active" },
-    { id: "UOM-03", uomId: "UOM-03", code: "PLT-72", name: "Pallet of 72 Cases", category: "Logistics", baseUnit: "CS-24", conversionFactor: 72, status: "Active" },
-    { id: "UOM-04", uomId: "UOM-04", code: "LTR", name: "Liter", category: "Volume", baseUnit: "LTR", conversionFactor: 1, status: "Active" },
-    { id: "UOM-05", uomId: "UOM-05", code: "KG", name: "Kilogram", category: "Weight", baseUnit: "KG", conversionFactor: 1, status: "Active" },
-];
-let inMemoryPackConfigs = [
-    {
-        id: "PC-01", configId: "PC-01",
-        packConfigId: "PC-01",
-        code: "AHSK-7", packCode: "AHSK-7",
-        name: "500ml PET 24-Pack Shrink Tray",
-        skuName: "500ml Sparkling Citrus Soda", skuCode: "SKU-5001", skuId: "SKU-001",
-        unitsPerPack: 24, primaryUnitCount: 24,
-        packType: "Corrugated Tray & Shrink Wrap", packagingType: "Corrugated Tray & Shrink Wrap",
-        caseConfiguration: "4x6 Units (24 Count)",
-        palletConfiguration: "60 Cases / 1,440 Units per Pallet", palletCount: 60,
-        packagingUom: "CASE-24", tareWeightKg: 12.8, grossWeightKg: 12.8,
-        status: "Active"
-    },
-    {
-        id: "PC-02", configId: "PC-02",
-        packConfigId: "PC-02",
-        code: "LMCN-12", packCode: "LMCN-12",
-        name: "330ml Sleek Can 24-Pack Corrugated Box",
-        skuName: "1L Tonic Water Natural Quinine", skuCode: "SKU-5002", skuId: "SKU-002",
-        unitsPerPack: 12, primaryUnitCount: 12,
-        packType: "RSC Cardboard Box", packagingType: "RSC Cardboard Box",
-        caseConfiguration: "4x3 Units (12 Count)",
-        palletConfiguration: "80 Cases / 960 Units per Pallet", palletCount: 80,
-        packagingUom: "CASE-12", tareWeightKg: 8.4, grossWeightKg: 8.4,
-        status: "Active"
-    },
-];
-let inMemoryLineTargets = [
-    { id: "TGT-01", targetId: "TGT-01", plantId: "PLT-01", lineId: "LIN-01", lineName: "High-Speed Bottling Line 1", skuId: "SKU-001", skuCode: "SKU-5001", skuName: "Citrus Burst Soda", shift: "Morning Shift (A)", plannedOEE: 88.0, plannedUnitsPerHour: 36000, plannedYieldPct: 99.2, changeoverTimeMin: 20, status: "Active" },
-    { id: "TGT-02", targetId: "TGT-02", plantId: "PLT-01", lineId: "LIN-02", lineName: "Medium-Speed Glass Line 2", skuId: "SKU-002", skuCode: "SKU-5002", skuName: "Wild Berry Sparkling Water", shift: "Morning Shift (A)", plannedOEE: 85.0, plannedUnitsPerHour: 30000, plannedYieldPct: 98.8, changeoverTimeMin: 25, status: "Active" },
-];
+let inMemoryRoutings = [];
+let inMemoryProductFamilies = [];
+let inMemoryUoms = [];
+let inMemoryPackConfigs = [];
+let inMemoryLineTargets = [];
 let inMemoryChangeoverRules = [];
 let inMemorySanitationClasses = [];
 let inMemoryAllergenRules = [];
-let inMemoryLabourStandards = [
-    { id: "LBR-01", lineId: "LIN-01", lineName: "Line 1 — Aseptic Bottling", standardCrew: 10, stdLaborHoursPer1kUnits: 2.38, directCostPerHour: "$24.50", status: "Active" },
-    { id: "LBR-02", lineId: "LIN-02", lineName: "Line 2 — Formulation & Pasteurizer", standardCrew: 6, stdLaborHoursPer1kUnits: 1.85, directCostPerHour: "$28.00", status: "Active" },
-    { id: "LBR-03", lineId: "LIN-03", lineName: "Line 3 — Canning Line", standardCrew: 8, stdLaborHoursPer1kUnits: 2.15, directCostPerHour: "$24.50", status: "Active" }
-];
-let inMemorySkus = [
-    {
-        id: "SKU-001",
-        skuId: "SKU-001",
-        skuCode: "SKU-5001",
-        code: "SKU-5001",
-        name: "500ml Sparkling Citrus Soda",
-        category: "Finished Goods",
-        itemType: "Finished Good",
-        familyId: "PF-01",
-        family: "Sparkling Flavors",
-        uom: "Bottles",
-        plantId: "PLT-01",
-        stdCost: 0.42,
-        revision: "R3",
-        status: "Active",
-        approvalStatus: "Approved",
-        shelfLifeDays: 365,
-        packConfigCode: "PCK-5001-24",
-        packSize: "24 x 500ml",
-        eligibleLineIds: ["LIN-01", "LIN-02"],
-        stdRunRateBPH: 42000,
-        expectedYieldPct: 99.4,
-    },
-    {
-        id: "SKU-002",
-        skuId: "SKU-002",
-        skuCode: "SKU-5002",
-        code: "SKU-5002",
-        name: "1L Tonic Water Natural Quinine",
-        category: "Finished Goods",
-        itemType: "Finished Good",
-        familyId: "PF-02",
-        family: "Tonics & Mixers",
-        uom: "Bottles",
-        plantId: "PLT-01",
-        stdCost: 0.68,
-        revision: "R2",
-        status: "Active",
-        approvalStatus: "Approved",
-        shelfLifeDays: 540,
-        packConfigCode: "PCK-5002-12",
-        packSize: "12 x 1L",
-        eligibleLineIds: ["LIN-01", "LIN-02"],
-        stdRunRateBPH: 28000,
-        expectedYieldPct: 99.2,
-    },
-    {
-        id: "SKU-003",
-        skuId: "SKU-003",
-        skuCode: "SKU-5003",
-        code: "SKU-5003",
-        name: "330ml Organic Ginger Beer",
-        category: "Finished Goods",
-        itemType: "Finished Good",
-        familyId: "PF-03",
-        family: "Ginger Beers",
-        uom: "Cans",
-        plantId: "PLT-02",
-        stdCost: 0.38,
-        revision: "R4",
-        status: "Active",
-        approvalStatus: "Approved",
-        shelfLifeDays: 270,
-        packConfigCode: "PCK-5003-24",
-        packSize: "24 x 330ml",
-        eligibleLineIds: ["LIN-03"],
-        stdRunRateBPH: 55000,
-        expectedYieldPct: 99.0,
-    },
-    {
-        id: "SKU-101",
-        skuId: "SKU-101",
-        skuCode: "ING-1001",
-        code: "ING-1001",
-        name: "Liquid Cane Sugar 67°Bx",
-        category: "Raw Ingredients",
-        itemType: "Raw Material",
-        familyId: "FAM-04",
-        family: "Sweeteners",
-        uom: "Liters",
-        plantId: "PLT-01",
-        stdCost: 1.20,
-        status: "Active",
-    },
-    {
-        id: "SKU-201",
-        skuId: "SKU-201",
-        skuCode: "PKG-2001",
-        code: "PKG-2001",
-        name: "28mm Tamper-Evident HDPE Bottle Cap",
-        category: "Packaging",
-        itemType: "Packaging Component",
-        familyId: "FAM-05",
-        family: "Caps & Closures",
-        uom: "Units",
-        plantId: "PLT-01",
-        stdCost: 0.025,
-        status: "Active",
-    },
-];
+let inMemoryLabourStandards = [];
+let inMemoryEmployeeSkills = [];
+let inMemorySkus = [];
 function matchKey(entity, keyVal, candidateProps = ["id", "code", "companyId", "plantId", "departmentId", "lineId", "workCenterId", "operationId", "routingId", "familyId", "uomId", "configId", "targetId", "ruleId", "classId", "name"]) {
     if (!keyVal || !entity)
         return false;
@@ -289,15 +80,16 @@ class MasterDataService {
         FROM public.companies
         ORDER BY created_at DESC
       `);
-            if (res.rows && res.rows.length > 0) {
-                return res.rows.map((r) => ({
-                    id: r.id,
-                    companyId: r.id,
+            const rows = res?.rows || (Array.isArray(res) ? res : []);
+            if (rows && rows.length > 0) {
+                return rows.map((r) => ({
+                    id: String(r.id),
+                    companyId: String(r.id),
                     code: r.code,
                     name: r.name,
-                    taxId: r.tax_id || "US-9842109-K",
+                    taxId: r.tax_id || "TAX-001",
                     currency: r.currency || "USD ($)",
-                    hqLocation: r.hq_location || "Austin, Texas, USA",
+                    hqLocation: r.hq_location || "Headquarters",
                     fiscalYearStart: r.fiscal_year_start || "January",
                     status: r.status || "Active",
                 }));
@@ -306,40 +98,63 @@ class MasterDataService {
         catch (err) {
             console.warn("DB listCompanies from companies table fallback:", err.message);
         }
-        return inMemoryCompanies;
+        if (tenantId) {
+            try {
+                const [tenantRecord] = await database_js_1.db
+                    .select()
+                    .from(tenants_js_1.tenants)
+                    .where((0, drizzle_orm_1.eq)(tenants_js_1.tenants.id, tenantId))
+                    .limit(1);
+                if (tenantRecord) {
+                    return [{
+                            id: tenantRecord.id,
+                            companyId: tenantRecord.id,
+                            code: tenantRecord.slug ? tenantRecord.slug.substring(0, 8).toUpperCase() : "CMP",
+                            name: tenantRecord.name,
+                            taxId: "TAX-" + (tenantRecord.slug ? tenantRecord.slug.substring(0, 6).toUpperCase() : "001"),
+                            currency: tenantRecord.settings?.currency || "USD ($)",
+                            hqLocation: "Corporate Headquarters",
+                            fiscalYearStart: "January",
+                            status: tenantRecord.status === "ACTIVE" ? "Active" : "Suspended",
+                        }];
+                }
+            }
+            catch (_) { }
+        }
+        return [];
     }
     async createCompany(tenantId, input) {
-        const code = (input.code || `CMP-0${inMemoryCompanies.length + 1}`).toUpperCase();
-        const newCompany = {
-            id: "",
-            companyId: "",
-            code,
-            name: input.name,
-            taxId: input.taxId || "US-EIN-94821039",
-            currency: input.currency || "USD ($)",
-            hqLocation: input.hqLocation || input.headquarters || "Austin, Texas, USA",
-            fiscalYearStart: input.fiscalYearStart || "January",
-            status: input.status || "Active",
-        };
+        const code = (input.code || `CMP-${Date.now().toString().slice(-4)}`).toUpperCase();
+        const name = String(input.name || "Company").trim();
+        const taxId = input.taxId || "TAX-001";
+        const currency = input.currency || "USD ($)";
+        const hqLocation = input.hqLocation || input.headquarters || "Corporate Headquarters";
+        const fiscalYearStart = input.fiscalYearStart || "January";
+        const status = input.status || "Active";
         try {
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         INSERT INTO public.companies (code, name, tax_id, currency, hq_location, fiscal_year_start, status, created_at, updated_at)
-        VALUES (${code}, ${input.name}, ${newCompany.taxId}, ${newCompany.currency}, ${newCompany.hqLocation}, ${newCompany.fiscalYearStart}, ${newCompany.status}, NOW(), NOW())
-        RETURNING id, code, name, tax_id, currency, hq_location, fiscal_year_start, status
+        VALUES (${code}, ${name}, ${taxId}, ${currency}, ${hqLocation}, ${fiscalYearStart}, ${status}, NOW(), NOW())
+        RETURNING *
       `);
-            if (res.rows && res.rows[0]) {
-                const created = res.rows[0];
-                newCompany.id = created.id;
-                newCompany.companyId = created.id;
-            }
+            const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+            const newId = row?.id ? String(row.id) : `CMP-${Date.now().toString().slice(-4)}`;
+            return {
+                id: newId,
+                companyId: newId,
+                code,
+                name,
+                taxId,
+                currency,
+                hqLocation,
+                fiscalYearStart,
+                status,
+            };
         }
         catch (err) {
             console.warn("DB createCompany into companies table error:", err.message);
-            newCompany.id = `CMP-0${Date.now().toString().slice(-4)}`;
-            newCompany.companyId = newCompany.id;
+            throw err;
         }
-        inMemoryCompanies.unshift(newCompany);
-        return newCompany;
     }
     async updateCompany(tenantId, id, input) {
         try {
@@ -367,30 +182,21 @@ class MasterDataService {
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id, code, name, tax_id, currency, hq_location, fiscal_year_start, status FROM public.companies WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id}) LIMIT 1`);
             if (res.rows && res.rows[0]) {
                 const u = res.rows[0];
-                const updated = {
-                    id: u.id,
-                    companyId: u.id,
+                return {
+                    id: String(u.id),
+                    companyId: String(u.id),
                     code: u.code,
                     name: u.name,
-                    taxId: u.tax_id || "US-9842109-K",
-                    currency: u.currency || "USD",
-                    hqLocation: u.hq_location || "Austin, Texas, USA",
+                    taxId: u.tax_id || "TAX-001",
+                    currency: u.currency || "USD ($)",
+                    hqLocation: u.hq_location || "Corporate Headquarters",
                     fiscalYearStart: u.fiscal_year_start || "January",
                     status: u.status || "Active",
                 };
-                const idx = inMemoryCompanies.findIndex((c) => matchKey(c, id, ["id", "companyId", "code", "name"]));
-                if (idx !== -1)
-                    inMemoryCompanies[idx] = updated;
-                return updated;
             }
         }
         catch (err) {
-            console.warn("DB updateCompany strictly in companies table error:", err.message);
-        }
-        const idx = inMemoryCompanies.findIndex((c) => matchKey(c, id, ["id", "companyId", "code", "name"]));
-        if (idx !== -1) {
-            inMemoryCompanies[idx] = { ...inMemoryCompanies[idx], ...input };
-            return inMemoryCompanies[idx];
+            console.warn("DB updateCompany error:", err.message);
         }
         return { id, ...input };
     }
@@ -400,23 +206,21 @@ class MasterDataService {
         DELETE FROM public.companies
         WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
       `);
+            return { id, message: "Company removed" };
         }
         catch (err) {
-            console.warn("DB deleteCompany from companies table error:", err.message);
+            console.warn("DB deleteCompany error:", err.message);
+            return { id, message: "Company removed" };
         }
-        const idx = inMemoryCompanies.findIndex((c) => matchKey(c, id, ["id", "companyId", "code", "name"]));
-        if (idx !== -1) {
-            const deleted = inMemoryCompanies.splice(idx, 1);
-            return deleted[0];
-        }
-        return { id, message: "Company removed" };
     }
     // ==========================================
     // 2. PLANTS / FACILITIES (STRICTLY public.plants)
     // ==========================================
     async listPlants(tenantId) {
         try {
-            const dbPlants = await database_js_1.db.select().from(tenants_js_1.plants).orderBy((0, drizzle_orm_1.desc)(tenants_js_1.plants.createdAt));
+            const dbPlants = tenantId
+                ? await database_js_1.db.select().from(tenants_js_1.plants).where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId)).orderBy((0, drizzle_orm_1.desc)(tenants_js_1.plants.createdAt))
+                : await database_js_1.db.select().from(tenants_js_1.plants).orderBy((0, drizzle_orm_1.desc)(tenants_js_1.plants.createdAt));
             if (dbPlants && dbPlants.length > 0) {
                 return dbPlants.map((p) => ({
                     id: p.id,
@@ -429,15 +233,22 @@ class MasterDataService {
                     timezone: p.timezone ? `${p.timezone} (IST)` : "Asia/Kolkata (IST)",
                     location: `${p.city}, ${p.state || ""}, ${p.country || ""}`.replace(/,\s*,/g, ",").replace(/,\s*$/, ""),
                     status: p.isActive ? "Active" : "Inactive",
+                    isActive: p.isActive,
                     capacity: "350,000 Units/Day",
+                    dailyCapacity: "350,000 Units/Day",
                     linesCount: 3,
+                    createdAt: p.createdAt,
+                    updatedAt: p.updatedAt,
                 }));
+            }
+            if (tenantId) {
+                return [];
             }
         }
         catch (err) {
             console.warn("DB listPlants fallback:", err.message);
         }
-        return inMemoryPlants;
+        return tenantId ? [] : inMemoryPlants;
     }
     async createPlant(tenantId, input) {
         const newId = `PLT-0${inMemoryPlants.length + 1}`;
@@ -552,290 +363,361 @@ class MasterDataService {
     // ==========================================
     async listDepartments(tenantId, plantId) {
         try {
-            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, plant_id, code, name, dept_head, cost_center, operating_shifts, status
-        FROM public.departments
-        ORDER BY created_at ASC
-      `);
-            if (res.rows && res.rows.length > 0) {
-                let depts = res.rows.map((d) => ({
-                    id: d.id,
-                    departmentId: d.id,
-                    plantId: d.plant_id || "PLT-01",
-                    code: d.code,
-                    name: d.name,
-                    deptHead: d.dept_head || "Robert Thorne",
-                    managerName: d.dept_head || "Robert Thorne",
-                    costCenter: d.cost_center || "CC-101",
-                    operatingShifts: d.operating_shifts || "3 Shifts (24/7 Continuous)",
-                    status: d.status || "Active",
-                }));
-                if (plantId && plantId !== "ALL") {
-                    depts = depts.filter((d) => d.plantId === plantId);
-                }
-                return depts;
+            let query = (0, drizzle_orm_1.sql) `SELECT id, plant_id, code, name, manager_name, dept_head, cost_center, operating_shifts, status FROM public.departments`;
+            if (plantId && plantId !== "ALL") {
+                query = (0, drizzle_orm_1.sql) `SELECT id, plant_id, code, name, manager_name, dept_head, cost_center, operating_shifts, status FROM public.departments WHERE plant_id::text = ${plantId}`;
             }
+            query = (0, drizzle_orm_1.sql) `${query} ORDER BY created_at ASC`;
+            const res = await database_js_1.db.execute(query);
+            const rows = res?.rows || (Array.isArray(res) ? res : []);
+            return rows.map((d) => ({
+                id: String(d.id),
+                departmentId: String(d.id),
+                plantId: d.plant_id || "",
+                code: d.code,
+                name: d.name,
+                deptHead: d.dept_head || d.manager_name || "Department Lead",
+                managerName: d.dept_head || d.manager_name || "Department Lead",
+                costCenter: d.cost_center || "CC-101",
+                operatingShifts: d.operating_shifts || "3 Shifts (24/7 Continuous)",
+                status: d.status || "Active",
+            }));
         }
         catch (err) {
-            console.warn("DB listDepartments fallback:", err.message);
+            console.warn("DB listDepartments error:", err.message);
+            return [];
         }
-        if (plantId && plantId !== "ALL") {
-            return inMemoryDepartments.filter((d) => d.plantId === plantId);
-        }
-        return inMemoryDepartments;
     }
     async createDepartment(tenantId, input) {
-        const code = input.code ? String(input.code).trim().toUpperCase() : `DEP-0${inMemoryDepartments.length + 1}`;
+        let resolvedTenantId = tenantId;
+        if (!resolvedTenantId) {
+            const [t] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+            resolvedTenantId = t?.id;
+        }
+        const code = input.code ? String(input.code).trim().toUpperCase() : `DEP-${Date.now().toString().slice(-4)}`;
         const name = String(input.name || "Department").trim();
-        const newId = `DEP-0${Date.now().toString().slice(-4)}`;
-        const newDept = {
-            id: newId,
-            departmentId: newId,
-            plantId: input.plantId || "PLT-01",
-            code,
-            name,
-            deptHead: input.deptHead || input.managerName || "Robert Thorne",
-            managerName: input.deptHead || input.managerName || "Robert Thorne",
-            costCenter: input.costCenter || "CC-101",
-            operatingShifts: input.operatingShifts || "3 Shifts (24/7 Continuous)",
-            status: input.status || "Active",
-        };
+        const deptHead = input.deptHead || input.managerName || "Department Lead";
+        const costCenter = input.costCenter || "CC-101";
+        const operatingShifts = input.operatingShifts || "3 Shifts (24/7 Continuous)";
+        const status = input.status || "Active";
+        const plantId = input.plantId || null;
         try {
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        INSERT INTO public.departments (id, plant_id, code, name, dept_head, cost_center, operating_shifts, status, created_at, updated_at)
-        VALUES (${newId}, ${newDept.plantId}, ${newDept.code}, ${newDept.name}, ${newDept.deptHead}, ${newDept.costCenter}, ${newDept.operatingShifts}, ${newDept.status}, NOW(), NOW())
-        RETURNING id, plant_id, code, name, dept_head, cost_center, operating_shifts, status
+        INSERT INTO public.departments (tenant_id, plant_id, code, name, manager_name, dept_head, cost_center, operating_shifts, status, is_active, created_at)
+        VALUES (${resolvedTenantId || null}, ${plantId}, ${code}, ${name}, ${deptHead}, ${deptHead}, ${costCenter}, ${operatingShifts}, ${status}, ${status === "Active"}, NOW())
+        RETURNING *
       `);
-            if (res.rows && res.rows[0]) {
-                const d = res.rows[0];
-                newDept.id = d.id;
-                newDept.departmentId = d.id;
-            }
+            const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+            const newId = row?.id ? String(row.id) : `DEP-${Date.now().toString().slice(-4)}`;
+            return {
+                id: newId,
+                departmentId: newId,
+                plantId: plantId || "PLT-01",
+                code,
+                name,
+                deptHead,
+                managerName: deptHead,
+                costCenter,
+                operatingShifts,
+                status,
+            };
         }
         catch (err) {
             console.warn("DB createDepartment error:", err.message);
+            throw err;
         }
-        inMemoryDepartments.unshift(newDept);
-        return newDept;
     }
     async updateDepartment(tenantId, id, input) {
         try {
-            if (input.name) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET name = ${input.name}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.code) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET code = ${String(input.code).trim().toUpperCase()}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.deptHead || input.managerName) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET dept_head = ${input.deptHead || input.managerName}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.costCenter) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET cost_center = ${input.costCenter}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.operatingShifts) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET operating_shifts = ${input.operatingShifts}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.status) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET status = ${input.status}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            if (input.plantId) {
-                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.departments SET plant_id = ${input.plantId}, updated_at = NOW() WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
-            }
-            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id, plant_id, code, name, dept_head, cost_center, operating_shifts, status FROM public.departments WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id}) LIMIT 1`);
-            if (res.rows && res.rows[0]) {
-                const d = res.rows[0];
-                const updated = {
-                    id: d.id,
-                    departmentId: d.id,
-                    plantId: d.plant_id || "PLT-01",
-                    code: d.code,
-                    name: d.name,
-                    deptHead: d.dept_head,
-                    managerName: d.dept_head,
-                    costCenter: d.cost_center,
-                    operatingShifts: d.operating_shifts,
-                    status: d.status,
-                };
-                const idx = inMemoryDepartments.findIndex((m) => matchKey(m, id, ["id", "departmentId", "code", "name"]));
-                if (idx !== -1)
-                    inMemoryDepartments[idx] = updated;
-                return updated;
-            }
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.departments
+        SET 
+          name = COALESCE(${input.name || null}, name),
+          code = COALESCE(${input.code ? String(input.code).trim().toUpperCase() : null}, code),
+          dept_head = COALESCE(${input.deptHead || input.managerName || null}, dept_head),
+          manager_name = COALESCE(${input.deptHead || input.managerName || null}, manager_name),
+          cost_center = COALESCE(${input.costCenter || null}, cost_center),
+          operating_shifts = COALESCE(${input.operatingShifts || null}, operating_shifts),
+          status = COALESCE(${input.status || null}, status),
+          is_active = COALESCE(${input.status ? input.status === "Active" : null}, is_active),
+          plant_id = COALESCE(${input.plantId || null}, plant_id)
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
+      `);
+            return { id, ...input };
         }
         catch (err) {
             console.warn("DB updateDepartment error:", err.message);
+            return { id, ...input };
         }
-        const idx = inMemoryDepartments.findIndex((d) => matchKey(d, id, ["id", "departmentId", "code", "name"]));
-        if (idx !== -1) {
-            inMemoryDepartments[idx] = { ...inMemoryDepartments[idx], ...input };
-            return inMemoryDepartments[idx];
-        }
-        return { id, ...input };
     }
     async deleteDepartment(tenantId, id) {
         try {
-            await database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.departments WHERE id = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.departments WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})`);
+            return { id, message: "Department deleted" };
         }
         catch (err) {
             console.warn("DB deleteDepartment error:", err.message);
+            return { id, message: "Department deleted" };
         }
-        const idx = inMemoryDepartments.findIndex((d) => matchKey(d, id, ["id", "departmentId", "code", "name"]));
-        if (idx !== -1) {
-            const deleted = inMemoryDepartments.splice(idx, 1);
-            return deleted[0];
-        }
-        return { id, message: "Department deleted" };
     }
     // ==========================================
     // 4. PRODUCTION LINES
     // ==========================================
     async listLines(tenantId, plantId) {
-        if (plantId && plantId !== "ALL") {
-            return inMemoryLines.filter((l) => l.plantId === plantId);
+        try {
+            let query = (0, drizzle_orm_1.sql) `
+        SELECT l.*, p.name as plant_name 
+        FROM public.lines l 
+        LEFT JOIN public.plants p ON l.plant_id = p.id 
+        ORDER BY l.created_at DESC
+      `;
+            if (plantId && plantId !== "ALL" && plantId !== "undefined") {
+                query = (0, drizzle_orm_1.sql) `
+          SELECT l.*, p.name as plant_name 
+          FROM public.lines l 
+          LEFT JOIN public.plants p ON l.plant_id = p.id 
+          WHERE l.plant_id::text = ${plantId} OR p.code = ${plantId} OR p.name = ${plantId}
+          ORDER BY l.created_at DESC
+        `;
+            }
+            const res = await database_js_1.db.execute(query);
+            const rows = res?.rows || (Array.isArray(res) ? res : []);
+            return rows.map((l) => {
+                const nominalBpm = Number(l.nominal_speed_bpm) || 633;
+                const bph = nominalBpm * 60;
+                return {
+                    id: String(l.id),
+                    lineId: String(l.id),
+                    lineCode: l.code || `LINE-${String(l.id).substring(0, 4)}`,
+                    code: l.code || `LINE-${String(l.id).substring(0, 4)}`,
+                    name: l.name || "Production Line",
+                    plantId: l.plant_id ? String(l.plant_id) : "",
+                    plantName: l.plant_name || "Indore Facility",
+                    type: l.line_type || "Continuous Flow",
+                    lineType: l.line_type || "BOTTLING",
+                    ratedSpeed: `${bph.toLocaleString()} BPH`,
+                    ratedSpeedBPH: bph,
+                    status: l.status || "Active",
+                    healthScore: l.health_score || 95,
+                    supervisorId: "EMP-005",
+                    supervisorName: "David Kim",
+                    ratedOEE: "88.0%",
+                    currentRunningSku: "SKU-5001"
+                };
+            });
         }
-        return inMemoryLines;
+        catch (e) {
+            console.warn("DB listLines error:", e.message);
+            return [];
+        }
     }
     async createLine(tenantId, input) {
-        const newId = `LIN-0${inMemoryLines.length + 1}`;
-        const newLine = {
-            id: newId,
-            lineId: newId,
-            lineCode: input.lineCode ? String(input.lineCode).trim().toUpperCase() : (input.code ? String(input.code).trim().toUpperCase() : `LINE-${inMemoryLines.length + 1}`),
-            code: input.lineCode ? String(input.lineCode).trim().toUpperCase() : (input.code ? String(input.code).trim().toUpperCase() : `LINE-${inMemoryLines.length + 1}`),
-            name: String(input.name || "Production Line").trim(),
-            plantId: input.plantId || "PLT-01",
-            plantName: input.plantId === "PLT-02" ? "Austin Facility" : "Indore Plant",
-            type: input.type || "Continuous Flow",
-            lineType: input.lineType || "BOTTLING",
-            ratedSpeed: input.ratedSpeed || "38,000 BPH",
-            ratedSpeedBPH: Number(input.ratedSpeedBPH) || 38000,
-            status: input.status || "Active",
-            healthScore: 95,
-        };
-        inMemoryLines.push(newLine);
         try {
-            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-            const [p] = await database_js_1.db.select().from(tenants_js_1.plants).where((0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tId)).limit(1);
-            const [insertedLine] = await database_js_1.db.insert(masterData_js_1.productionLines).values({
-                tenantId: tId,
-                plantId: p?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a",
-                code: newLine.code || "LINE-01",
-                name: newLine.name || "Production Line",
-                lineType: newLine.lineType || "BOTTLING",
-                nominalSpeedBpm: newLine.ratedSpeedBPH ? Math.round(newLine.ratedSpeedBPH / 60) : 250,
-            }).returning();
-            if (insertedLine) {
-                newLine.id = insertedLine.id;
+            let resolvedTenantId = tenantId;
+            if (!resolvedTenantId) {
+                const [t] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                resolvedTenantId = t?.id;
             }
+            const code = (input.lineCode || input.code || `LINE-${Date.now().toString().slice(-4)}`).toUpperCase();
+            const name = String(input.name || "Production Line").trim();
+            const lineType = input.lineType || input.type || "BOTTLING";
+            const ratedSpeedBPH = Number(input.ratedSpeedBPH) || (input.ratedSpeed ? parseInt(String(input.ratedSpeed).replace(/[^0-9]/g, ""), 10) : 38000) || 38000;
+            const nominalSpeedBpm = Math.round(ratedSpeedBPH / 60) || 250;
+            const status = input.status || "Active";
+            let plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
+            if (!plantId) {
+                const pRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id FROM public.plants LIMIT 1`);
+                const pRow = pRes?.rows?.[0] || (Array.isArray(pRes) ? pRes[0] : null);
+                if (pRow?.id)
+                    plantId = pRow.id;
+            }
+            // Insert into public.lines (Primary lines table shown in pgAdmin)
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.lines (
+          plant_id, code, name, line_type, nominal_speed_bpm, health_score, status, created_at
+        ) VALUES (
+          ${plantId}, ${code}, ${name}, ${lineType}, ${nominalSpeedBpm}, 95, ${status}, NOW()
+        ) RETURNING *
+      `);
+            const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+            const newId = row?.id ? String(row.id) : `LIN-${Date.now().toString().slice(-4)}`;
+            // Sync into public.production_lines
+            try {
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          INSERT INTO public.production_lines (
+            id, tenant_id, plant_id, code, name, line_type, nominal_speed_bpm, health_score, status, created_at
+          ) VALUES (
+            ${row.id}, ${resolvedTenantId || null}, ${plantId}, ${code}, ${name}, ${lineType}, ${nominalSpeedBpm}, 95, ${status}, NOW()
+          ) ON CONFLICT (id) DO NOTHING
+        `);
+            }
+            catch (errSync) {
+                console.warn("production_lines sync warning:", errSync.message);
+            }
+            return {
+                id: newId,
+                lineId: newId,
+                code,
+                lineCode: code,
+                name,
+                lineType,
+                type: lineType,
+                ratedSpeed: `${ratedSpeedBPH.toLocaleString()} BPH`,
+                ratedSpeedBPH,
+                status,
+                plantId: plantId || "",
+                plantName: input.plantName || "Main Facility",
+                supervisorName: input.supervisorName || "David Kim",
+                supervisorId: input.supervisorId || "EMP-005",
+                ratedOEE: "88.0%",
+                currentRunningSku: "SKU-5001",
+                healthScore: 95
+            };
         }
         catch (err) {
-            console.warn("DB insert line error:", err.message);
+            console.warn("DB createLine error:", err.message);
+            throw err;
         }
-        return newLine;
     }
     async updateLine(tenantId, id, input) {
-        const idx = inMemoryLines.findIndex((l) => matchKey(l, id, ["id", "lineId", "lineCode", "code", "name"]));
-        if (idx === -1) {
-            const fallback = {
-                lineId: id,
-                id,
-                lineCode: input.lineCode || id,
-                name: input.name || "Production Line",
-                plantId: input.plantId || "PLT-01",
-                status: input.status || "Active",
-            };
-            inMemoryLines.push(fallback);
-            return fallback;
+        try {
+            const code = input.code || input.lineCode || null;
+            const name = input.name || null;
+            const lineType = input.lineType || input.type || null;
+            const status = input.status || null;
+            const ratedSpeedBPH = input.ratedSpeedBPH != null ? Number(input.ratedSpeedBPH) : (input.ratedSpeed ? parseInt(String(input.ratedSpeed).replace(/[^0-9]/g, ""), 10) : null);
+            const nominalSpeedBpm = ratedSpeedBPH ? Math.round(ratedSpeedBPH / 60) : null;
+            // Update public.lines
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.lines
+        SET 
+          name = COALESCE(${name}, name),
+          code = COALESCE(${code}, code),
+          line_type = COALESCE(${lineType}, line_type),
+          nominal_speed_bpm = COALESCE(${nominalSpeedBpm}, nominal_speed_bpm),
+          status = COALESCE(${status}, status)
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
+      `);
+            // Update public.production_lines
+            try {
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          UPDATE public.production_lines
+          SET 
+            name = COALESCE(${name}, name),
+            code = COALESCE(${code}, code),
+            line_type = COALESCE(${lineType}, line_type),
+            nominal_speed_bpm = COALESCE(${nominalSpeedBpm}, nominal_speed_bpm),
+            status = COALESCE(${status}, status)
+          WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
+        `);
+            }
+            catch (_) { }
+            return { id, ...input };
         }
-        inMemoryLines[idx] = {
-            ...inMemoryLines[idx],
-            ...input,
-            lineId: inMemoryLines[idx].lineId || inMemoryLines[idx].id || id,
-            id: inMemoryLines[idx].id || inMemoryLines[idx].lineId || id,
-        };
-        return inMemoryLines[idx];
+        catch (err) {
+            console.warn("DB updateLine error:", err.message);
+            return { id, ...input };
+        }
     }
     async deleteLine(tenantId, id) {
-        const idx = inMemoryLines.findIndex((l) => matchKey(l, id, ["id", "lineId", "lineCode", "code", "name"]));
-        if (idx !== -1) {
-            const deleted = inMemoryLines.splice(idx, 1);
-            return deleted[0];
+        try {
+            // 1. Unlink referencing tables if needed
+            try {
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.work_centers SET line_id = NULL WHERE line_id = ${id} OR line_id::text = ${id}`);
+            }
+            catch (_) { }
+            // 2. Delete from production_lines
+            try {
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          DELETE FROM public.production_lines
+          WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
+        `);
+            }
+            catch (errProd) {
+                console.warn("production_lines delete warning:", errProd.message);
+            }
+            // 3. Delete from public.lines (Primary lines table shown in pgAdmin)
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.lines
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
+      `);
+            return { id, message: "Line deleted successfully" };
         }
-        return { id, message: "Line deleted" };
+        catch (err) {
+            console.warn("DB deleteLine error:", err.message);
+            return { id, message: "Line deleted" };
+        }
     }
     // ==========================================
     // 5. WORK CENTERS
     // ==========================================
     async listWorkCenters(tenantId, plantId) {
         try {
-            const dbWcs = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, plant_id, code, name, category, capacity, line_id, line_name, status, created_at
-        FROM public.work_centers
-        ORDER BY created_at ASC
-      `);
-            const rows = dbWcs?.rows || (Array.isArray(dbWcs) ? dbWcs : []);
-            if (rows.length > 0) {
-                return rows.map((r) => ({
-                    id: String(r.id),
-                    workCenterId: String(r.id),
-                    code: r.code,
-                    name: r.name,
-                    category: r.category || "PACKAGING",
-                    capacity: r.capacity || "35,000 BPH",
-                    lineId: r.line_id || "LIN-01",
-                    lineName: r.line_name || "Line 1 — Aseptic Bottling",
-                    plantId: r.plant_id ? String(r.plant_id) : "PLT-01",
-                    status: r.status || "Active",
-                }));
+            let query = (0, drizzle_orm_1.sql) `SELECT * FROM public.work_centers ORDER BY created_at DESC`;
+            if (plantId && plantId !== "ALL" && plantId !== "undefined") {
+                query = (0, drizzle_orm_1.sql) `SELECT * FROM public.work_centers WHERE plant_id::text = ${plantId} ORDER BY created_at DESC`;
             }
+            const res = await database_js_1.db.execute(query);
+            const rows = res?.rows || (Array.isArray(res) ? res : []);
+            return rows.map((w) => ({
+                id: String(w.id),
+                workCenterId: String(w.id),
+                code: w.code,
+                name: w.name,
+                category: w.category || "PACKAGING",
+                capacity: w.capacity || (w.capacity_per_hour ? `${Number(w.capacity_per_hour).toLocaleString()} Units/Hr` : "38,000 BPH"),
+                lineId: w.line_id || "LIN-01",
+                lineName: w.line_name || "Line 1",
+                plantId: w.plant_id ? String(w.plant_id) : "",
+                status: w.status || (w.is_active ? "Active" : "Inactive"),
+            }));
         }
         catch (err) {
             console.warn("DB listWorkCenters error:", err.message);
+            return [];
         }
-        if (plantId && plantId !== "ALL") {
-            return inMemoryWorkCenters.filter((w) => w.plantId === plantId || !w.plantId);
-        }
-        return inMemoryWorkCenters;
     }
     async createWorkCenter(tenantId, input) {
-        const code = input.code ? String(input.code).trim().toUpperCase() : `WC-${Date.now()}`;
-        const name = String(input.name || "Work Center").trim();
-        const lineId = input.lineId || "LIN-01";
-        const lineObj = inMemoryLines.find((l) => matchKey(l, lineId, ["id", "lineId", "lineCode", "code", "name"]));
-        const lineName = input.lineName || (lineObj ? lineObj.name : "Line 1 — Aseptic Bottling");
-        const capacity = input.capacity || "35,000 BPH";
-        const category = input.category || "PACKAGING";
-        const status = input.status || "Active";
-        let dbId = null;
         try {
+            let resolvedTenantId = tenantId;
+            if (!resolvedTenantId) {
+                const [t] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                resolvedTenantId = t?.id;
+            }
+            const code = input.code ? String(input.code).trim().toUpperCase() : `WC-${Date.now().toString().slice(-4)}`;
+            const name = String(input.name || "Work Center").trim();
+            const category = input.category || "PACKAGING";
+            const capacity = input.capacity || "35,000 BPH";
+            const lineId = input.lineId || null;
+            const lineName = input.lineName || "Line 1";
+            const status = input.status || "Active";
+            const plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        INSERT INTO public.work_centers (code, name, category, capacity, line_id, line_name, status)
-        VALUES (${code}, ${name}, ${category}, ${capacity}, ${lineId}, ${lineName}, ${status})
-        RETURNING id, code, name, category, capacity, line_id, line_name, status
+        INSERT INTO public.work_centers (
+          tenant_id, plant_id, code, name, category, capacity, line_id, line_name, status, is_active, created_at
+        ) VALUES (
+          ${resolvedTenantId || null}, ${plantId}, ${code}, ${name}, ${category}, ${capacity}, ${lineId}, ${lineName}, ${status}, ${status === "Active"}, NOW()
+        ) RETURNING *
       `);
             const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
-            if (row?.id) {
-                dbId = String(row.id);
-            }
+            const newId = row?.id ? String(row.id) : `WC-${Date.now().toString().slice(-4)}`;
+            return {
+                id: newId,
+                workCenterId: newId,
+                code,
+                name,
+                category,
+                capacity,
+                lineId,
+                lineName,
+                plantId: plantId || "",
+                status
+            };
         }
         catch (err) {
-            console.warn("DB insert public.work_centers error:", err.message);
+            console.warn("DB createWorkCenter error:", err.message);
+            throw err;
         }
-        const newId = dbId || `WC-${Math.floor(400 + Math.random() * 99)}`;
-        const newWC = {
-            id: newId,
-            workCenterId: newId,
-            code,
-            name,
-            lineId,
-            lineName,
-            plantId: input.plantId || (lineObj ? lineObj.plantId : "PLT-01"),
-            capacity,
-            category,
-            status,
-        };
-        inMemoryWorkCenters.unshift(newWC);
-        return newWC;
     }
     async updateWorkCenter(tenantId, id, input) {
         try {
@@ -844,57 +726,33 @@ class MasterDataService {
         SET 
           name = COALESCE(${input.name || null}, name),
           code = COALESCE(${input.code || null}, code),
+          category = COALESCE(${input.category || null}, category),
+          capacity = COALESCE(${input.capacity || null}, capacity),
           line_id = COALESCE(${input.lineId || null}, line_id),
           line_name = COALESCE(${input.lineName || null}, line_name),
-          capacity = COALESCE(${input.capacity || null}, capacity),
-          status = COALESCE(${input.status || null}, status)
-        WHERE id::text = ${id} OR code = ${id}
+          status = COALESCE(${input.status || null}, status),
+          is_active = COALESCE(${input.status ? input.status === "Active" : null}, is_active)
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
       `);
+            return { id, ...input };
         }
         catch (err) {
-            console.warn("DB update public.work_centers error:", err.message);
+            console.warn("DB updateWorkCenter error:", err.message);
+            return { id, ...input };
         }
-        const idx = inMemoryWorkCenters.findIndex((w) => matchKey(w, id, ["id", "workCenterId", "code", "name"]));
-        const lineObj = input.lineId ? inMemoryLines.find((l) => matchKey(l, input.lineId, ["id", "lineId", "lineCode", "code", "name"])) : undefined;
-        if (idx === -1) {
-            const fallback = {
-                id,
-                workCenterId: id,
-                code: input.code || id,
-                name: input.name || "Work Center",
-                lineId: input.lineId || "LIN-01",
-                lineName: input.lineName || "Line 1",
-                capacity: input.capacity || "38,000 BPH",
-                status: input.status || "Active",
-            };
-            inMemoryWorkCenters.push(fallback);
-            return fallback;
-        }
-        inMemoryWorkCenters[idx] = {
-            ...inMemoryWorkCenters[idx],
-            ...input,
-            lineName: lineObj ? lineObj.name : (input.lineName || inMemoryWorkCenters[idx].lineName),
-            id: inMemoryWorkCenters[idx].id,
-            workCenterId: inMemoryWorkCenters[idx].workCenterId || inMemoryWorkCenters[idx].id,
-        };
-        return inMemoryWorkCenters[idx];
     }
     async deleteWorkCenter(tenantId, id) {
         try {
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         DELETE FROM public.work_centers
-        WHERE id::text = ${id} OR code = ${id} OR name = ${id}
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id}) OR name = ${id}
       `);
+            return { id, message: "Work Center deleted successfully" };
         }
         catch (err) {
-            console.warn("DB delete public.work_centers error:", err.message);
+            console.warn("DB deleteWorkCenter error:", err.message);
+            return { id, message: "Work Center deleted" };
         }
-        const idx = inMemoryWorkCenters.findIndex((w) => matchKey(w, id, ["id", "workCenterId", "code", "name"]));
-        if (idx !== -1) {
-            const deleted = inMemoryWorkCenters.splice(idx, 1);
-            return deleted[0];
-        }
-        return { id, message: "Work Center deleted" };
     }
     // ==========================================
     // 6. STANDARD OPERATIONS
@@ -926,9 +784,9 @@ class MasterDataService {
             console.warn("DB listOperations error:", err.message);
         }
         if (department && department !== "ALL") {
-            return inMemoryOperations.filter((o) => o.department === department);
+            return tenantId ? [] : inMemoryOperations.filter((o) => o.department === department);
         }
-        return inMemoryOperations;
+        return tenantId ? [] : inMemoryOperations;
     }
     async createOperation(tenantId, input) {
         const codeVal = (input.operationCode || input.code || `OP-${Date.now().toString().slice(-4)}`).toUpperCase();
@@ -1063,6 +921,7 @@ class MasterDataService {
                 .from(masterData_js_1.routings)
                 .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(masterData_js_1.routings.skuId, masterData_js_1.skus.id))
                 .leftJoin(masterData_js_1.productionLines, (0, drizzle_orm_1.eq)(masterData_js_1.routings.lineId, masterData_js_1.productionLines.id))
+                .where(tenantId ? (0, drizzle_orm_1.eq)(masterData_js_1.routings.tenantId, tenantId) : undefined)
                 .orderBy((0, drizzle_orm_1.desc)(masterData_js_1.routings.createdAt));
             if (dbRoutings && dbRoutings.length > 0) {
                 const allSteps = await database_js_1.db.select().from(masterData_js_1.routingSteps).orderBy((0, drizzle_orm_1.asc)(masterData_js_1.routingSteps.sequence));
@@ -1106,11 +965,12 @@ class MasterDataService {
                 }));
                 return mapped;
             }
+            return [];
         }
         catch (err) {
             console.warn("Could not query DB routings, falling back to memory:", err.message);
+            return inMemoryRoutings;
         }
-        return inMemoryRoutings;
     }
     async getRoutingById(tenantId, id) {
         try {
@@ -1446,9 +1306,17 @@ class MasterDataService {
     }
     async deleteRouting(tenantId, id) {
         try {
-            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            const condition = isUUID ? (0, drizzle_orm_1.eq)(masterData_js_1.routings.id, id) : (0, drizzle_orm_1.eq)(masterData_js_1.routings.routingCode, id);
-            await database_js_1.db.delete(masterData_js_1.routings).where(condition);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.routing_steps
+        WHERE routing_id IN (
+          SELECT id FROM public.routings
+          WHERE id::text = ${id} OR routing_code = ${id} OR lower(routing_code) = lower(${id})
+        )
+      `);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.routings
+        WHERE id::text = ${id} OR routing_code = ${id} OR lower(routing_code) = lower(${id})
+      `);
         }
         catch (err) {
             console.warn("DB deleteRouting error:", err.message);
@@ -1465,11 +1333,19 @@ class MasterDataService {
     // ==========================================
     async listProductFamilies(tenantId) {
         try {
-            const dbFamilies = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, code, name, category, description, plant_id, allergen_risk, standard_margin, status, created_at
-        FROM public.product_families
-        ORDER BY created_at ASC
-      `);
+            const query = tenantId
+                ? (0, drizzle_orm_1.sql) `
+            SELECT id, code, name, category, description, plant_id, allergen_risk, standard_margin, status, created_at
+            FROM public.product_families
+            WHERE tenant_id = ${tenantId} OR tenant_id IS NULL
+            ORDER BY created_at ASC
+          `
+                : (0, drizzle_orm_1.sql) `
+            SELECT id, code, name, category, description, plant_id, allergen_risk, standard_margin, status, created_at
+            FROM public.product_families
+            ORDER BY created_at ASC
+          `;
+            const dbFamilies = await database_js_1.db.execute(query);
             const rows = dbFamilies?.rows || (Array.isArray(dbFamilies) ? dbFamilies : []);
             if (rows.length > 0) {
                 return rows.map((r) => ({
@@ -1490,7 +1366,7 @@ class MasterDataService {
         catch (err) {
             console.warn("DB listProductFamilies error:", err.message);
         }
-        return inMemoryProductFamilies;
+        return [];
     }
     async createProductFamily(tenantId, input) {
         const code = (input.code ? String(input.code).trim().toUpperCase() : `PF-${Date.now()}`);
@@ -1503,9 +1379,14 @@ class MasterDataService {
         const status = input.status || "Active";
         let dbId = null;
         try {
+            let tId = tenantId;
+            if (!tId) {
+                const [firstTenant] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                tId = firstTenant?.id;
+            }
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        INSERT INTO public.product_families (code, name, category, description, plant_id, allergen_risk, standard_margin, status)
-        VALUES (${code}, ${name}, ${category}, ${description}, ${plantId}, ${allergenRisk}, ${standardMargin}, ${status})
+        INSERT INTO public.product_families (tenant_id, code, name, category, description, plant_id, allergen_risk, standard_margin, status)
+        VALUES (${tId || null}, ${code}, ${name}, ${category}, ${description}, ${plantId}, ${allergenRisk}, ${standardMargin}, ${status})
         RETURNING id, code, name, category, description, plant_id, allergen_risk, standard_margin, status
       `);
             const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
@@ -1544,7 +1425,7 @@ class MasterDataService {
           standard_margin = COALESCE(${input.standardMargin || null}, standard_margin),
           status = COALESCE(${input.status || null}, status),
           updated_at = now()
-        WHERE id::text = ${id} OR code = ${id}
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id})
       `);
         }
         catch (err) {
@@ -1570,7 +1451,7 @@ class MasterDataService {
         try {
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         DELETE FROM public.product_families
-        WHERE id::text = ${id} OR code = ${id} OR name = ${id}
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id}) OR name = ${id}
       `);
         }
         catch (err) {
@@ -1614,7 +1495,7 @@ class MasterDataService {
         catch (err) {
             console.warn("DB listUoms error:", err.message);
         }
-        return inMemoryUoms;
+        return [];
     }
     async createUom(tenantId, input) {
         const code = (input.uomCode || input.code || `UOM-${Date.now()}`).toUpperCase().trim();
@@ -1666,7 +1547,7 @@ class MasterDataService {
           conversion_factor = COALESCE(${input.conversionFactor || input.factor || null}, conversion_factor),
           status = COALESCE(${input.status || null}, status),
           updated_at = now()
-        WHERE id::text = ${id} OR code = ${id}
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id}) OR name = ${id}
       `);
         }
         catch (err) {
@@ -1683,7 +1564,7 @@ class MasterDataService {
         try {
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         DELETE FROM public.uoms
-        WHERE id::text = ${id} OR code = ${id} OR name = ${id}
+        WHERE id::text = ${id} OR code = ${id} OR lower(code) = lower(${id}) OR name = ${id}
       `);
         }
         catch (err) {
@@ -1736,11 +1617,12 @@ class MasterDataService {
                     created_at: r.created_at
                 }));
             }
+            return [];
         }
         catch (err) {
             console.warn("DB listPackConfigs error:", err.message);
+            return inMemoryPackConfigs;
         }
-        return inMemoryPackConfigs;
     }
     async createPackConfig(tenantId, input) {
         const packCode = (input.packCode || input.code || `PC-${Date.now()}`).toUpperCase().trim();
@@ -1828,7 +1710,7 @@ class MasterDataService {
           gross_weight_kg = COALESCE(${input.grossWeightKg != null ? Number(input.grossWeightKg) : null}, gross_weight_kg),
           status = COALESCE(${input.status || null}, status),
           updated_at = now()
-        WHERE id::text = ${id} OR pack_code = ${id}
+        WHERE id::text = ${id} OR pack_code = ${id} OR lower(pack_code) = lower(${id}) OR name = ${id}
       `);
         }
         catch (err) {
@@ -1845,7 +1727,7 @@ class MasterDataService {
         try {
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         DELETE FROM public.packaging
-        WHERE id::text = ${id} OR pack_code = ${id}
+        WHERE id::text = ${id} OR pack_code = ${id} OR lower(pack_code) = lower(${id}) OR name = ${id}
       `);
         }
         catch (err) {
@@ -2371,17 +2253,17 @@ class MasterDataService {
     }
     async updateSanitationClass(tenantId, id, input) {
         try {
-            const nameVal = input.sanitationClass || input.name;
-            const descVal = input.description;
+            const nameVal = input.sanitationClass || input.name || null;
+            const descVal = input.description !== undefined ? input.description : null;
             const durVal = input.durationMin !== undefined ? Number(input.durationMin) : (input.washDurationMin !== undefined ? Number(input.washDurationMin) : null);
-            const methodVal = input.cleaningMethod;
-            const levelVal = input.cleaningLevel;
-            const riskVal = input.riskLevel;
-            const prodsVal = input.applicableProducts;
-            const chemVal = input.chemicalAgent;
-            const valMethod = input.validationMethod;
-            const freqVal = input.frequency;
-            const statVal = input.status;
+            const methodVal = input.cleaningMethod !== undefined ? input.cleaningMethod : null;
+            const levelVal = input.cleaningLevel !== undefined ? input.cleaningLevel : null;
+            const riskVal = input.riskLevel !== undefined ? input.riskLevel : null;
+            const prodsVal = input.applicableProducts !== undefined ? input.applicableProducts : null;
+            const chemVal = input.chemicalAgent !== undefined ? input.chemicalAgent : null;
+            const valMethod = input.validationMethod !== undefined ? input.validationMethod : null;
+            const freqVal = input.frequency !== undefined ? input.frequency : null;
+            const statVal = input.status !== undefined ? input.status : null;
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         UPDATE public.sanitation_classes
         SET
@@ -2540,14 +2422,14 @@ class MasterDataService {
     }
     async updateAllergenRule(tenantId, id, input) {
         try {
-            const nameVal = input.allergenName;
-            const skuCodeVal = input.skuCode;
-            const skuIdVal = input.skuId;
-            const riskVal = input.riskLevel;
-            const protocolVal = input.cleaningProtocol || input.protocol;
-            const restrictionVal = input.changeoverRestriction;
-            const testVal = input.verificationTest;
-            const statVal = input.status;
+            const nameVal = input.allergenName !== undefined ? input.allergenName : null;
+            const skuCodeVal = input.skuCode !== undefined ? input.skuCode : null;
+            const skuIdVal = input.skuId !== undefined ? input.skuId : null;
+            const riskVal = input.riskLevel !== undefined ? input.riskLevel : null;
+            const protocolVal = (input.cleaningProtocol || input.protocol) !== undefined ? (input.cleaningProtocol || input.protocol) : null;
+            const restrictionVal = input.changeoverRestriction !== undefined ? input.changeoverRestriction : null;
+            const testVal = input.verificationTest !== undefined ? input.verificationTest : null;
+            const statVal = input.status !== undefined ? input.status : null;
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         UPDATE public.allergen_rules
         SET
@@ -2597,22 +2479,33 @@ class MasterDataService {
     // ==========================================
     async listSkus(tenantId) {
         try {
-            const dbSkus = tenantId
-                ? await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId))
-                : await database_js_1.db.select().from(masterData_js_1.skus);
-            if (dbSkus && dbSkus.length > 0) {
-                return dbSkus.map((s) => ({
-                    ...s,
-                    id: s.id,
-                    skuId: s.id,
-                    code: s.skuCode,
-                    itemType: s.category === "BEVERAGE" || s.category === "Finished Goods" ? "Finished Good" : s.category,
-                    status: s.status || (s.isActive ? "Active" : "Inactive") || "Active",
-                }));
-            }
+            // Fetch ALL SKUs from DB (no tenant filter) so data is always visible.
+            // In a strict multi-tenant setup, filter by tenantId here.
+            const dbSkus = await database_js_1.db.select().from(masterData_js_1.skus);
+            return dbSkus.map((s) => ({
+                ...s,
+                id: s.id,
+                skuId: s.id,
+                skuCode: s.skuCode,
+                code: s.skuCode,
+                name: s.name,
+                category: s.category === "FINISHED_GOODS" ? "Finished Goods" : s.category === "RAW_MATERIAL" ? "Raw Ingredients" : s.category === "PACKAGING" ? "Packaging" : (s.category || "Finished Goods"),
+                itemType: s.category === "FINISHED_GOODS" ? "Finished Good" : s.category === "RAW_MATERIAL" ? "Raw Material" : "Finished Good",
+                uom: s.uom || "Units",
+                plantId: s.plantId,
+                standardCost: s.standardCost,
+                stdCost: s.standardCost,
+                shelfLifeDays: s.shelfLifeDays,
+                status: s.isActive ? "Active" : "Inactive",
+                isActive: s.isActive,
+                createdAt: s.createdAt,
+                updatedAt: s.updatedAt,
+            }));
         }
-        catch (_) { }
-        return inMemorySkus;
+        catch (err) {
+            console.warn("DB listSkus error:", err.message);
+        }
+        return [];
     }
     async createSku(tenantId, input) {
         const newId = `SKU-00${inMemorySkus.length + 1}`;
@@ -2641,16 +2534,26 @@ class MasterDataService {
         };
         inMemorySkus.unshift(newSku);
         try {
-            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            // Use tenantId from request; if missing, fallback to first tenant in DB
+            let tId = tenantId;
+            if (!tId) {
+                const [firstTenant] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                tId = firstTenant?.id;
+            }
+            if (!tId)
+                throw new Error("No tenantId available to persist SKU");
             const cat = (newSku.category.toUpperCase().includes("RAW")) ? "RAW_MATERIAL" : (newSku.category.toUpperCase().includes("PACK") ? "PACKAGING" : "FINISHED_GOODS");
+            const costRaw = String(newSku.stdCost || "0").replace(/[^\d.]/g, "");
             const [insertedSku] = await database_js_1.db.insert(masterData_js_1.skus).values({
                 tenantId: tId,
+                plantId: (newSku.plantId && newSku.plantId.includes("-") && newSku.plantId.length > 20) ? newSku.plantId : null,
                 skuCode: newSku.skuCode,
                 name: newSku.name,
                 category: cat,
                 uom: newSku.uom,
-                standardCost: newSku.stdCost.toString(),
+                standardCost: isNaN(Number(costRaw)) ? "0" : costRaw,
                 shelfLifeDays: newSku.shelfLifeDays,
+                isActive: newSku.status !== "Inactive",
             }).returning();
             if (insertedSku) {
                 newSku.id = insertedSku.id;
@@ -2674,33 +2577,24 @@ class MasterDataService {
                     : input.category.toUpperCase().includes("PACK") ? "PACKAGING"
                         : "FINISHED_GOODS"
                 : undefined;
-            const updates = {};
-            if (input.name)
-                updates.name = input.name;
-            if (input.skuCode || input.code)
-                updates.skuCode = input.skuCode || input.code;
-            if (cat)
-                updates.category = cat;
-            if (input.uom)
-                updates.uom = input.uom;
-            if (input.description !== undefined)
-                updates.description = input.description;
-            if (input.stdCost !== undefined || input.standardCost !== undefined) {
-                const raw = String(input.stdCost || input.standardCost || "0").replace(/[^\d.]/g, "");
-                updates.standardCost = isNaN(Number(raw)) ? "0" : raw;
-            }
-            if (input.status)
-                updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : "INACTIVE";
-            if (Object.keys(updates).length > 0) {
-                // Try matching by UUID first, then by skuCode
-                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-                if (isUuid) {
-                    await database_js_1.db.update(masterData_js_1.skus).set(updates).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, id));
-                }
-                else {
-                    await database_js_1.db.update(masterData_js_1.skus).set(updates).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, id));
-                }
-            }
+            const rawCost = input.stdCost !== undefined || input.standardCost !== undefined
+                ? String(input.stdCost || input.standardCost || "0").replace(/[^\d.]/g, "")
+                : null;
+            const activeVal = input.status !== undefined
+                ? (input.status === "Active" || input.status === "ACTIVE" || input.status === true)
+                : input.isActive !== undefined ? Boolean(input.isActive) : null;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.skus
+        SET
+          name = COALESCE(${input.name || null}, name),
+          sku_code = COALESCE(${input.skuCode || input.code || null}, sku_code),
+          category = COALESCE(${cat || null}, category),
+          uom = COALESCE(${input.uom || null}, uom),
+          standard_cost = COALESCE(${rawCost}, standard_cost),
+          is_active = COALESCE(${activeVal}, is_active),
+          updated_at = now()
+        WHERE id::text = ${id} OR sku_code = ${id} OR lower(sku_code) = lower(${id})
+      `);
         }
         catch (err) {
             console.warn("DB update sku error:", err.message);
@@ -2713,23 +2607,33 @@ class MasterDataService {
         if (idx !== -1) {
             deleted = inMemorySkus.splice(idx, 1)[0];
         }
-        // Persist delete to PostgreSQL
+        // Persist delete to PostgreSQL directly
         try {
-            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-            if (isUuid) {
-                await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, id));
-            }
-            else {
-                await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, id));
-            }
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.skus
+        WHERE id::text = ${id} OR sku_code = ${id} OR lower(sku_code) = lower(${id}) OR name = ${id}
+      `);
         }
         catch (err) {
             console.warn("DB delete sku error:", err.message);
+            try {
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+                if (isUuid) {
+                    await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, id));
+                }
+                else {
+                    await database_js_1.db.delete(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, id));
+                }
+            }
+            catch (e) {
+                console.warn("DB drizzle delete sku error:", e.message);
+            }
         }
         return deleted;
     }
     async listBoms(tenantId) {
         try {
+            // Fetch ALL BOMs from DB (no strict tenant filter) so data is always visible.
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         SELECT 
           b.id,
@@ -2759,7 +2663,8 @@ class MasterDataService {
                     const itemsRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
             SELECT 
               bi.id, bi.bom_id, bi.component_sku_id, bi.quantity, bi.scrap_percentage, bi.uom, bi.sequence, bi.stage,
-              s.sku_code, s.name AS component_name
+              COALESCE(bi.component_name, s.name) AS component_name,
+              COALESCE(bi.sku_code, s.sku_code) AS sku_code
             FROM public.bom_items bi
             LEFT JOIN public.skus s ON bi.component_sku_id = s.id
             ORDER BY bi.sequence ASC
@@ -2774,7 +2679,7 @@ class MasterDataService {
                     const components = bomItems.length > 0
                         ? bomItems.map((bi) => ({
                             id: String(bi.id),
-                            skuId: String(bi.component_sku_id),
+                            skuId: bi.component_sku_id ? String(bi.component_sku_id) : undefined,
                             skuCode: bi.sku_code || "ING-1001",
                             name: bi.component_name || "Component Ingredient",
                             quantity: Number(bi.quantity) || 100,
@@ -2789,10 +2694,10 @@ class MasterDataService {
                     return {
                         id: String(r.id),
                         bomId: String(r.id),
-                        bomNumber: r.bom_number || `BOM-${r.id.substring(0, 4)}`,
+                        bomNumber: r.bom_number || `BOM-${String(r.id).substring(0, 4)}`,
                         finishedSkuId: r.sku_id ? String(r.sku_id) : "SKU-001",
                         finishedSkuCode: r.sku_code || "SKU-5001",
-                        finishedSkuName: r.sku_name || r.name || "Finished Beverage",
+                        finishedSkuName: r.name || r.sku_name || "Finished Beverage",
                         revision: r.version || "R1",
                         batchSize: `${Number(r.batch_size || 10000).toLocaleString()} ${r.batch_uom || 'Liters'}`,
                         yieldTarget: `${Number(r.yield_percent || 99.0).toFixed(1)}%`,
@@ -2823,75 +2728,136 @@ class MasterDataService {
     }
     async createBom(tenantId, input) {
         try {
-            const resolvedTenantId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-            // Find matching SKU in public.skus or fallback to default SKU
+            // 1. Resolve tenantId
+            let resolvedTenantId = tenantId;
+            if (resolvedTenantId) {
+                const [tCheck] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).where((0, drizzle_orm_1.eq)(tenants_js_1.tenants.id, resolvedTenantId)).limit(1);
+                if (!tCheck)
+                    resolvedTenantId = undefined;
+            }
+            if (!resolvedTenantId) {
+                const [firstTenant] = await database_js_1.db.select({ id: tenants_js_1.tenants.id }).from(tenants_js_1.tenants).limit(1);
+                resolvedTenantId = firstTenant?.id;
+            }
+            if (!resolvedTenantId)
+                throw new Error("No tenant available");
+            // 2. Resolve or create finished product SKU
             let skuId = null;
             if (input.finishedSkuId || input.skuId) {
                 const rawSku = input.finishedSkuId || input.skuId;
-                const skuCheck = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-          SELECT id FROM public.skus 
-          WHERE id::text = ${rawSku} OR sku_code = ${rawSku} OR name ILIKE ${rawSku}
-          LIMIT 1
-        `);
-                const skuRow = skuCheck?.rows?.[0] || (Array.isArray(skuCheck) ? skuCheck[0] : null);
-                if (skuRow?.id) {
-                    skuId = String(skuRow.id);
-                }
+                const isUuid = rawSku && rawSku.length === 36 && rawSku.includes("-");
+                const condition = isUuid
+                    ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, rawSku), (0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, rawSku), (0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, rawSku))
+                    : (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, rawSku), (0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, rawSku));
+                const [skuMatch] = await database_js_1.db.select({ id: masterData_js_1.skus.id }).from(masterData_js_1.skus).where(condition).limit(1);
+                if (skuMatch)
+                    skuId = skuMatch.id;
             }
             if (!skuId && input.finishedSkuName) {
-                const nameCheck = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-          SELECT id FROM public.skus WHERE name ILIKE ${input.finishedSkuName} LIMIT 1
-        `);
-                const nameRow = nameCheck?.rows?.[0] || (Array.isArray(nameCheck) ? nameCheck[0] : null);
-                if (nameRow?.id) {
-                    skuId = String(nameRow.id);
-                }
+                const [nameMatch] = await database_js_1.db.select({ id: masterData_js_1.skus.id }).from(masterData_js_1.skus).where((0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, input.finishedSkuName)).limit(1);
+                if (nameMatch)
+                    skuId = nameMatch.id;
             }
             if (!skuId) {
-                // Fallback to first SKU in database
-                const firstSku = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id FROM public.skus LIMIT 1`);
-                const fRow = firstSku?.rows?.[0] || (Array.isArray(firstSku) ? firstSku[0] : null);
-                skuId = fRow ? String(fRow.id) : "ad766a63-81be-4f2a-8b9c-b86435003a00";
+                // Auto-create finished goods SKU
+                const skuCodeVal = input.finishedSkuCode || `SKU-${Date.now().toString().slice(-4)}`;
+                const skuNameVal = input.finishedSkuName || input.name || "Finished Recipe Product";
+                const [newSku] = await database_js_1.db.insert(masterData_js_1.skus).values({
+                    tenantId: resolvedTenantId,
+                    skuCode: skuCodeVal,
+                    name: skuNameVal,
+                    category: "FINISHED_GOODS",
+                    uom: "Units",
+                    standardCost: "15.00",
+                    isActive: true,
+                }).returning({ id: masterData_js_1.skus.id });
+                if (newSku)
+                    skuId = newSku.id;
             }
-            const bomNumber = String(input.bomNumber || `BOM-${Date.now().toString().slice(-6)}`).trim();
+            // 3. Prepare BOM fields
+            const bomNumber = String(input.bomNumber || `BOM-${Math.floor(5000 + Math.random() * 900)}`).trim();
             const name = String(input.finishedSkuName || input.name || bomNumber).trim();
             const version = input.revision || "R1";
             const batchSizeNum = Number(String(input.batchSize || "10000").replace(/[^\d.]/g, "")) || 10000;
             const batchUom = String(input.batchSize || "").toLowerCase().includes("liter") ? "Liters" : "Units";
             const yieldNum = Number(String(input.yieldTarget || input.yieldPercent || "99.0").replace(/[^\d.]/g, "")) || 99.0;
-            const status = (input.status || "Draft").toUpperCase() === "ACTIVE" ? "ACTIVE" : (input.status || "Draft");
-            const approvalStatus = input.approvalStatus || (status === "ACTIVE" ? "Approved" : "Draft");
-            const insertRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        INSERT INTO public.boms (
-          tenant_id, sku_id, bom_number, name, version, batch_size, batch_uom, yield_percent, status, approval_status, created_by
-        )
-        VALUES (
-          ${resolvedTenantId}, ${skuId}, ${bomNumber}, ${name}, ${version}, ${batchSizeNum}, ${batchUom}, ${yieldNum}, ${status}, ${approvalStatus}, 'Alexander Vance'
-        )
-        RETURNING id, bom_number, name, version, batch_size, batch_uom, yield_percent, status, approval_status, created_at
-      `);
-            const inserted = insertRes?.rows?.[0] || (Array.isArray(insertRes) ? insertRes[0] : null);
-            const newBomId = inserted ? String(inserted.id) : `BOM-${Date.now()}`;
-            // Insert components into public.bom_items if provided
-            if (inserted && Array.isArray(input.components) && input.components.length > 0) {
+            const status = input.status || "Draft";
+            const approvalStatus = input.approvalStatus || (status === "Active" ? "Approved" : "Draft");
+            const createdBy = input.createdBy || "Alexander Vance";
+            // 4. Insert into public.boms
+            const [inserted] = await database_js_1.db.insert(masterData_js_1.boms).values({
+                tenantId: resolvedTenantId,
+                skuId: skuId,
+                bomNumber,
+                name,
+                version,
+                batchSize: String(batchSizeNum),
+                batchUom,
+                yieldPercent: String(yieldNum),
+                status,
+                approvalStatus,
+                createdBy,
+                isDefault: true,
+            }).returning();
+            const newBomId = inserted.id;
+            // 5. Insert components
+            const componentsRes = [];
+            if (Array.isArray(input.components) && input.components.length > 0) {
                 for (let i = 0; i < input.components.length; i++) {
                     const comp = input.components[i];
-                    let compSkuId = skuId;
+                    let compSkuId = null;
                     if (comp.skuId || comp.skuCode) {
                         const raw = comp.skuId || comp.skuCode;
-                        const cCheck = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-              SELECT id FROM public.skus WHERE id::text = ${raw} OR sku_code = ${raw} LIMIT 1
-            `);
-                        const cRow = cCheck?.rows?.[0] || (Array.isArray(cCheck) ? cCheck[0] : null);
-                        if (cRow?.id)
-                            compSkuId = String(cRow.id);
+                        const isUuid = raw && raw.length === 36 && raw.includes("-");
+                        const condition = isUuid
+                            ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, raw), (0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, raw), (0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, comp.name || ""))
+                            : (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.skus.skuCode, raw), (0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, comp.name || ""));
+                        const [cMatch] = await database_js_1.db.select({ id: masterData_js_1.skus.id }).from(masterData_js_1.skus).where(condition).limit(1);
+                        if (cMatch)
+                            compSkuId = cMatch.id;
                     }
-                    await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-            INSERT INTO public.bom_items (bom_id, component_sku_id, quantity, scrap_percentage, uom, sequence, stage)
-            VALUES (
-              ${newBomId}, ${compSkuId}, ${Number(comp.quantity) || 100}, 0.50, ${comp.uom || 'Liters'}, ${i + 1}, 'MIXING'
-            )
-          `).catch((e) => console.warn("Insert bom_item error:", e.message));
+                    if (!compSkuId && comp.name) {
+                        const [cMatch] = await database_js_1.db.select({ id: masterData_js_1.skus.id }).from(masterData_js_1.skus).where((0, drizzle_orm_1.ilike)(masterData_js_1.skus.name, comp.name)).limit(1);
+                        if (cMatch)
+                            compSkuId = cMatch.id;
+                    }
+                    if (!compSkuId) {
+                        try {
+                            const [newCompSku] = await database_js_1.db.insert(masterData_js_1.skus).values({
+                                tenantId: resolvedTenantId,
+                                skuCode: comp.skuCode || `ING-${Date.now().toString().slice(-4)}-${i}`,
+                                name: comp.name || "Recipe Component",
+                                category: "RAW_MATERIAL",
+                                uom: comp.uom || "Kg",
+                                standardCost: "5.00",
+                                isActive: true,
+                            }).returning({ id: masterData_js_1.skus.id });
+                            if (newCompSku)
+                                compSkuId = newCompSku.id;
+                        }
+                        catch { }
+                    }
+                    const [insItem] = await database_js_1.db.insert(masterData_js_1.bomItems).values({
+                        bomId: newBomId,
+                        componentSkuId: compSkuId || skuId,
+                        componentName: comp.name || "Component Ingredient",
+                        skuCode: comp.skuCode || "ING-1001",
+                        quantity: String(Number(comp.quantity) || 100),
+                        scrapPercentage: String(Number(String(comp.scrapFactor || "0.5").replace(/[^\d.]/g, "")) || 0.5),
+                        uom: comp.uom || "Kg",
+                        sequence: i + 1,
+                        stage: comp.type || "MIXING",
+                    }).returning();
+                    componentsRes.push({
+                        id: insItem?.id || `cmp-${i}`,
+                        skuId: compSkuId || skuId,
+                        skuCode: comp.skuCode || "ING-1001",
+                        name: comp.name || "Component Ingredient",
+                        quantity: Number(comp.quantity) || 100,
+                        uom: comp.uom || "Kg",
+                        scrapFactor: `${comp.scrapFactor || "0.5%"}`,
+                        type: comp.type || "MIXING"
+                    });
                 }
             }
             return {
@@ -2900,54 +2866,77 @@ class MasterDataService {
                 bomNumber,
                 finishedSkuId: skuId,
                 finishedSkuName: name,
+                finishedSkuCode: input.finishedSkuCode || "SKU-5001",
                 revision: version,
                 batchSize: `${batchSizeNum.toLocaleString()} ${batchUom}`,
                 yieldTarget: `${yieldNum.toFixed(1)}%`,
                 status: status === "ACTIVE" ? "Active" : status,
                 approvalStatus,
-                components: input.components || [],
-                createdBy: "Alexander Vance",
-                lastUpdated: new Date().toISOString().substring(0, 10)
+                components: componentsRes.length > 0 ? componentsRes : (input.components || []),
+                createdBy,
+                lastUpdated: new Date().toISOString().substring(0, 10),
+                revisionHistory: [
+                    { revision: version, status: approvalStatus, createdBy, date: new Date().toISOString().substring(0, 10), changes: "Initial BOM Draft Formulation registered in DB.", approvedBy: approvalStatus === "Approved" ? "Sarah Jenkins" : "-" }
+                ]
             };
         }
         catch (err) {
             console.warn("DB createBom error:", err.message);
-            return { id: `BOM-${Date.now()}`, ...input, status: input.status || "Draft", approvalStatus: input.approvalStatus || "Draft" };
+            throw err;
         }
     }
     async updateBom(tenantId, id, input) {
         try {
-            const updates = {};
+            const updates = { updatedAt: new Date() };
             if (input.bomNumber)
-                updates.bom_number = input.bomNumber;
+                updates.bomNumber = input.bomNumber;
             if (input.finishedSkuName || input.name)
                 updates.name = input.finishedSkuName || input.name;
-            if (input.batchSize) {
-                updates.batch_size = Number(String(input.batchSize).replace(/[^\d.]/g, "")) || 10000;
-            }
-            if (input.yieldTarget || input.yieldPercent) {
-                updates.yield_percent = Number(String(input.yieldTarget || input.yieldPercent).replace(/[^\d.]/g, "")) || 99.0;
-            }
-            if (input.status) {
-                updates.status = input.status.toUpperCase() === "ACTIVE" ? "ACTIVE" : input.status;
-            }
+            if (input.batchSize)
+                updates.batchSize = String(Number(String(input.batchSize).replace(/[^\d.]/g, "")) || 10000);
+            if (input.yieldTarget || input.yieldPercent)
+                updates.yieldPercent = String(Number(String(input.yieldTarget || input.yieldPercent).replace(/[^\d.]/g, "")) || 99.0);
+            if (input.status)
+                updates.status = input.status;
             if (input.approvalStatus)
-                updates.approval_status = input.approvalStatus;
+                updates.approvalStatus = input.approvalStatus;
             if (input.revision)
                 updates.version = input.revision;
-            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
         UPDATE public.boms
         SET 
-          bom_number = COALESCE(${updates.bom_number || null}, bom_number),
+          bom_number = COALESCE(${updates.bomNumber || null}, bom_number),
           name = COALESCE(${updates.name || null}, name),
-          batch_size = COALESCE(${updates.batch_size != null ? updates.batch_size : null}, batch_size),
-          yield_percent = COALESCE(${updates.yield_percent != null ? updates.yield_percent : null}, yield_percent),
+          batch_size = COALESCE(${updates.batchSize != null ? updates.batchSize : null}, batch_size),
+          yield_percent = COALESCE(${updates.yieldPercent != null ? updates.yieldPercent : null}, yield_percent),
           status = COALESCE(${updates.status || null}, status),
-          approval_status = COALESCE(${updates.approval_status || null}, approval_status),
+          approval_status = COALESCE(${updates.approvalStatus || null}, approval_status),
           version = COALESCE(${updates.version || null}, version),
           updated_at = now()
-        WHERE id::text = ${id} OR bom_number = ${id} OR name = ${id}
+        WHERE id::text = ${id} OR bom_number = ${id} OR lower(bom_number) = lower(${id}) OR name = ${id}
+        RETURNING id
       `);
+            const row = res?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+            const actualBomId = row?.id || id;
+            if (Array.isArray(input.components) && input.components.length > 0) {
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.bom_items WHERE bom_id::text = ${actualBomId}::text`);
+                for (let i = 0; i < input.components.length; i++) {
+                    const comp = input.components[i];
+                    await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+            INSERT INTO public.bom_items (bom_id, component_name, sku_code, quantity, scrap_percentage, uom, sequence, stage)
+            VALUES (
+              ${actualBomId},
+              ${comp.name || "Component Ingredient"},
+              ${comp.skuCode || "ING-1001"},
+              ${Number(comp.quantity) || 100},
+              ${Number(String(comp.scrapFactor || "0.5").replace(/[^\d.]/g, "")) || 0.5},
+              ${comp.uom || "Kg"},
+              ${i + 1},
+              ${comp.type || "MIXING"}
+            )
+          `);
+                }
+            }
             return { id, ...input, message: "BOM updated in public.boms" };
         }
         catch (err) {
@@ -2958,8 +2947,15 @@ class MasterDataService {
     async deleteBom(tenantId, id) {
         try {
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        DELETE FROM public.boms
-        WHERE id::text = ${id} OR bom_number = ${id} OR name = ${id}
+        DELETE FROM public.bom_items 
+        WHERE bom_id IN (
+          SELECT id FROM public.boms 
+          WHERE id::text = ${id} OR bom_number = ${id} OR lower(bom_number) = lower(${id}) OR name = ${id}
+        )
+      `);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.boms 
+        WHERE id::text = ${id} OR bom_number = ${id} OR lower(bom_number) = lower(${id}) OR name = ${id}
       `);
             return { id, message: "BOM deleted from public.boms" };
         }
@@ -2968,79 +2964,515 @@ class MasterDataService {
             return { id, message: "BOM deleted" };
         }
     }
+    // ==========================================
+    // 13. ASSETS & MACHINE CAPABILITY (STRICTLY public.assets)
+    // ==========================================
     async listAssets(tenantId, plantId) {
         try {
-            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-            const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
-            if (isUuid) {
-                return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.assets.plantId, plantId)));
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          asset_id AS "assetId",
+          asset_code AS "assetCode",
+          name,
+          type,
+          line_id AS "lineId",
+          line_name AS "lineName",
+          plant_id AS "plantId",
+          plant_name AS "plantName",
+          criticality,
+          critical_level AS "criticalLevel",
+          manufacturer,
+          model_number AS "modelNumber",
+          status,
+          health_score AS "healthScore",
+          health_percent AS "healthPercent",
+          rated_speed AS "ratedSpeed",
+          mtbf_hours AS "mtbfHours",
+          mttr_hours AS "mttrHours",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.assets
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    assetId: r.assetId || r.assetCode || `AST-${String(r.id).slice(0, 8)}`,
+                    assetCode: r.assetCode || r.assetId || `AST-${String(r.id).slice(0, 8)}`,
+                    name: r.name,
+                    type: r.type || "Packaging / Filling",
+                    lineId: r.lineId || "LIN-01",
+                    lineName: r.lineName || "High-Speed Bottling Line 1",
+                    plantId: r.plantId || "PLT-01",
+                    plantName: r.plantName || "Indore Plant",
+                    criticality: r.criticality || "Critical (Class A)",
+                    criticalLevel: r.criticalLevel || "CRITICAL_P1",
+                    manufacturer: r.manufacturer || "Krones AG",
+                    modelNumber: r.modelNumber || "",
+                    status: r.status || "Operational",
+                    healthScore: r.healthScore !== null && r.healthScore !== undefined ? Number(r.healthScore) : (r.healthPercent || 95),
+                    healthPercent: r.healthPercent !== null && r.healthPercent !== undefined ? Number(r.healthPercent) : 92,
+                    ratedSpeed: r.ratedSpeed || "40,000 BPH",
+                    mtbfHours: r.mtbfHours || "412.50",
+                    mttrHours: r.mttrHours || "1.80",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
             }
-            return await database_js_1.db.select().from(masterData_js_1.assets).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tId));
         }
-        catch {
-            return [];
+        catch (err) {
+            console.warn("DB listAssets error:", err.message);
         }
+        return [];
+    }
+    async createAsset(tenantId, input) {
+        const rawId = input.assetId || input.id || input.assetCode || `AST-0${Date.now().toString().slice(-4)}`;
+        const codeVal = input.assetCode || rawId;
+        const nameVal = input.name || "Machine Asset";
+        const typeVal = input.type || "Packaging / Filling";
+        const lineIdVal = input.lineId || "LIN-01";
+        const lineNameVal = input.lineName || "High-Speed Bottling Line 1";
+        const plantIdVal = input.plantId || "PLT-01";
+        const plantNameVal = input.plantName || "Indore Plant";
+        const critVal = input.criticality || "Critical (Class A)";
+        const critLevel = input.criticalLevel || (critVal.includes("Class A") ? "CRITICAL_P1" : "IMPORTANT_P2");
+        const mfgVal = input.manufacturer || "Krones AG";
+        const modelVal = input.modelNumber || input.serialNumber || "";
+        const statVal = input.status || "Operational";
+        const healthVal = Number(input.healthScore) || 95;
+        const speedVal = input.ratedSpeed || "40,000 BPH";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.assets (
+          asset_id, asset_code, name, type, line_id, line_name, plant_id, plant_name,
+          criticality, critical_level, manufacturer, model_number, status, health_score,
+          health_percent, rated_speed, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${codeVal}, ${nameVal}, ${typeVal}, ${lineIdVal}, ${lineNameVal}, ${plantIdVal}, ${plantNameVal},
+          ${critVal}, ${critLevel}, ${mfgVal}, ${modelVal}, ${statVal}, ${healthVal},
+          ${healthVal}, ${speedVal}, NOW(), NOW()
+        )
+        RETURNING id, asset_id, asset_code
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createAsset error:", err.message);
+        }
+        return {
+            id: dbId || rawId,
+            assetId: rawId,
+            assetCode: codeVal,
+            name: nameVal,
+            type: typeVal,
+            lineId: lineIdVal,
+            lineName: lineNameVal,
+            plantId: plantIdVal,
+            plantName: plantNameVal,
+            criticality: critVal,
+            criticalLevel: critLevel,
+            manufacturer: mfgVal,
+            modelNumber: modelVal,
+            status: statVal,
+            healthScore: healthVal,
+            healthPercent: healthVal,
+            ratedSpeed: speedVal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
+    async updateAsset(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.assets
+        SET
+          name = COALESCE(${input.name || null}, name),
+          type = COALESCE(${input.type || null}, type),
+          line_id = COALESCE(${input.lineId || null}, line_id),
+          line_name = COALESCE(${input.lineName || null}, line_name),
+          plant_id = COALESCE(${input.plantId || null}, plant_id),
+          plant_name = COALESCE(${input.plantName || null}, plant_name),
+          criticality = COALESCE(${input.criticality || null}, criticality),
+          critical_level = COALESCE(${input.criticalLevel || null}, critical_level),
+          manufacturer = COALESCE(${input.manufacturer || null}, manufacturer),
+          model_number = COALESCE(${input.modelNumber || input.serialNumber || null}, model_number),
+          status = COALESCE(${input.status || null}, status),
+          health_score = COALESCE(${input.healthScore !== undefined ? Number(input.healthScore) : null}, health_score),
+          health_percent = COALESCE(${input.healthPercent !== undefined ? Number(input.healthPercent) : null}, health_percent),
+          rated_speed = COALESCE(${input.ratedSpeed || null}, rated_speed),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR asset_id = ${id} OR asset_code = ${id} OR lower(asset_id) = lower(${id}) OR lower(asset_code) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateAsset error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteAsset(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.assets
+        WHERE id::text = ${id} OR asset_id = ${id} OR asset_code = ${id} OR lower(asset_id) = lower(${id}) OR lower(asset_code) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteAsset error:", err.message);
+        }
+        return { id, message: "Asset record deleted from database" };
     }
     async listStaff(tenantId, plantId) {
-        try {
-            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-            const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
-            if (isUuid) {
-                return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tId), (0, drizzle_orm_1.eq)(masterData_js_1.staff.plantId, plantId)));
+        if (tenantId) {
+            try {
+                const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+                if (isUuid) {
+                    return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tenantId), (0, drizzle_orm_1.eq)(masterData_js_1.staff.plantId, plantId)));
+                }
+                return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tenantId));
             }
-            return await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.eq)(masterData_js_1.staff.tenantId, tId));
+            catch {
+                return [];
+            }
         }
-        catch {
-            return [];
-        }
+        return [];
     }
+    // ==========================================
+    // 14. QUALITY SPECS (STRICTLY public.quality_specs)
+    // ==========================================
     async listQualitySpecs(tenantId) {
         try {
-            const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-            return await database_js_1.db.select().from(masterData_js_1.qualitySpecs).where((0, drizzle_orm_1.eq)(masterData_js_1.qualitySpecs.tenantId, tId));
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          spec_id AS "specId",
+          specification_title AS "specificationTitle",
+          sku_id AS "skuId",
+          sku_code AS "skuCode",
+          sku_name AS "skuName",
+          parameter,
+          parameter_name AS "parameterName",
+          target,
+          target_value AS "targetValue",
+          min,
+          min_tolerance AS "minTolerance",
+          max,
+          max_tolerance AS "maxTolerance",
+          uom,
+          criticality,
+          is_ccp AS "isCCP",
+          critical_limit AS "criticalLimit",
+          test_method AS "testMethod",
+          approval_status AS "approvalStatus",
+          revision,
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.quality_specs
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    specId: r.specId || `SPEC-${String(r.id).slice(0, 8)}`,
+                    specificationTitle: r.specificationTitle || r.parameter || r.parameterName || "Quality Specification",
+                    skuId: r.skuId || "SKU-001",
+                    skuCode: r.skuCode || "SKU-5001",
+                    skuName: r.skuName || "500ml Sparkling Citrus Soda",
+                    parameter: r.parameter || r.parameterName || "Quality Parameter",
+                    parameterName: r.parameterName || r.parameter || "Quality Parameter",
+                    target: r.target || String(r.targetValue || "10.0"),
+                    targetValue: r.targetValue ? Number(r.targetValue) : (Number(r.target) || 10.0),
+                    min: r.min || String(r.minTolerance || "9.5"),
+                    minTolerance: r.minTolerance ? Number(r.minTolerance) : (Number(r.min) || 9.5),
+                    max: r.max || String(r.maxTolerance || "10.5"),
+                    maxTolerance: r.maxTolerance ? Number(r.maxTolerance) : (Number(r.max) || 10.5),
+                    uom: r.uom || "°Bx",
+                    criticality: r.criticality || (r.isCCP ? "Critical CCP (HACCP-1)" : "Quality Spec"),
+                    isCCP: !!r.isCCP,
+                    criticalLimit: r.criticalLimit || "Standard QA Boundary",
+                    testMethod: r.testMethod || "Standard QA Digital Gauge",
+                    approvalStatus: r.approvalStatus || "Approved",
+                    revision: r.revision || "Rev 1.0",
+                    status: r.status || "Active",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
         }
-        catch {
-            return [];
+        catch (err) {
+            console.warn("DB listQualitySpecs error:", err.message);
         }
+        return [];
+    }
+    async createQualitySpec(tenantId, input) {
+        const rawId = input.specId || input.id || `SPEC-0${Date.now().toString().slice(-4)}`;
+        const titleVal = input.specificationTitle || input.parameter || "Quality Parameter Spec Standard";
+        const skuIdVal = input.skuId || "SKU-001";
+        const skuCodeVal = input.skuCode || "SKU-5001";
+        const skuNameVal = input.skuName || "500ml Sparkling Citrus Soda";
+        const paramVal = input.parameter || input.parameterName || "Quality Parameter";
+        const targetVal = String(input.target || input.targetValue || "10.0");
+        const minVal = String(input.min || input.minTolerance || "9.5");
+        const maxVal = String(input.max || input.maxTolerance || "10.5");
+        const uomVal = input.uom || "°Bx";
+        const critVal = input.criticality || "Quality Spec";
+        const isCCPVal = input.isCCP !== undefined ? !!input.isCCP : critVal.toLowerCase().includes("ccp");
+        const critLimitVal = input.criticalLimit || "Standard QA tolerance band";
+        const testMethodVal = input.testMethod || "Digital Refractometer";
+        const appStatusVal = input.approvalStatus || "Approved";
+        const revVal = input.revision || "Rev 1.0";
+        const statVal = input.status || "Active";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.quality_specs (
+          spec_id, specification_title, sku_id, sku_code, sku_name,
+          parameter, parameter_name, target, target_value, min, min_tolerance,
+          max, max_tolerance, uom, criticality, is_ccp, critical_limit,
+          test_method, approval_status, revision, status, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${titleVal}, ${skuIdVal}, ${skuCodeVal}, ${skuNameVal},
+          ${paramVal}, ${paramVal}, ${targetVal}, ${Number(targetVal) || 0}, ${minVal}, ${Number(minVal) || 0},
+          ${maxVal}, ${Number(maxVal) || 0}, ${uomVal}, ${critVal}, ${isCCPVal}, ${critLimitVal},
+          ${testMethodVal}, ${appStatusVal}, ${revVal}, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (spec_id) DO UPDATE SET
+          specification_title = EXCLUDED.specification_title,
+          sku_code = EXCLUDED.sku_code,
+          sku_name = EXCLUDED.sku_name,
+          parameter = EXCLUDED.parameter,
+          parameter_name = EXCLUDED.parameter_name,
+          target = EXCLUDED.target,
+          target_value = EXCLUDED.target_value,
+          min = EXCLUDED.min,
+          min_tolerance = EXCLUDED.min_tolerance,
+          max = EXCLUDED.max,
+          max_tolerance = EXCLUDED.max_tolerance,
+          uom = EXCLUDED.uom,
+          criticality = EXCLUDED.criticality,
+          is_ccp = EXCLUDED.is_ccp,
+          critical_limit = EXCLUDED.critical_limit,
+          test_method = EXCLUDED.test_method,
+          approval_status = EXCLUDED.approval_status,
+          revision = EXCLUDED.revision,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, spec_id
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createQualitySpec error:", err.message);
+        }
+        return {
+            id: dbId || rawId,
+            specId: rawId,
+            specificationTitle: titleVal,
+            skuId: skuIdVal,
+            skuCode: skuCodeVal,
+            skuName: skuNameVal,
+            parameter: paramVal,
+            parameterName: paramVal,
+            target: targetVal,
+            targetValue: Number(targetVal) || 0,
+            min: minVal,
+            minTolerance: Number(minVal) || 0,
+            max: maxVal,
+            maxTolerance: Number(maxVal) || 0,
+            uom: uomVal,
+            criticality: critVal,
+            isCCP: isCCPVal,
+            criticalLimit: critLimitVal,
+            testMethod: testMethodVal,
+            approvalStatus: appStatusVal,
+            revision: revVal,
+            status: statVal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
+    async updateQualitySpec(tenantId, id, input) {
+        try {
+            const targetVal = input.target !== undefined ? String(input.target) : (input.targetValue !== undefined ? String(input.targetValue) : null);
+            const minVal = input.min !== undefined ? String(input.min) : (input.minTolerance !== undefined ? String(input.minTolerance) : null);
+            const maxVal = input.max !== undefined ? String(input.max) : (input.maxTolerance !== undefined ? String(input.maxTolerance) : null);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.quality_specs
+        SET
+          specification_title = COALESCE(${input.specificationTitle || null}, specification_title),
+          sku_code = COALESCE(${input.skuCode || null}, sku_code),
+          sku_name = COALESCE(${input.skuName || null}, sku_name),
+          parameter = COALESCE(${input.parameter || input.parameterName || null}, parameter),
+          parameter_name = COALESCE(${input.parameter || input.parameterName || null}, parameter_name),
+          target = COALESCE(${targetVal}, target),
+          target_value = COALESCE(${targetVal ? Number(targetVal) : null}, target_value),
+          min = COALESCE(${minVal}, min),
+          min_tolerance = COALESCE(${minVal ? Number(minVal) : null}, min_tolerance),
+          max = COALESCE(${maxVal}, max),
+          max_tolerance = COALESCE(${maxVal ? Number(maxVal) : null}, max_tolerance),
+          uom = COALESCE(${input.uom || null}, uom),
+          criticality = COALESCE(${input.criticality || null}, criticality),
+          is_ccp = COALESCE(${input.isCCP !== undefined ? !!input.isCCP : null}, is_ccp),
+          critical_limit = COALESCE(${input.criticalLimit || null}, critical_limit),
+          test_method = COALESCE(${input.testMethod || null}, test_method),
+          approval_status = COALESCE(${input.approvalStatus || null}, approval_status),
+          revision = COALESCE(${input.revision || null}, revision),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR spec_id = ${id} OR lower(spec_id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateQualitySpec error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteQualitySpec(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.quality_specs
+        WHERE id::text = ${id} OR spec_id = ${id} OR lower(spec_id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteQualitySpec error:", err.message);
+        }
+        return { id, message: "Quality specification deleted from database" };
     }
     // ==========================================
     // 15. LABOUR STANDARDS & CREW MANNING
     // ==========================================
     async listLabourStandards(tenantId) {
-        return inMemoryLabourStandards;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          standard_id AS "standardId",
+          line_id AS "lineId",
+          line_name AS "lineName",
+          standard_crew AS "standardCrew",
+          std_labor_hours_per_1k_units AS "stdLaborHoursPer1kUnits",
+          direct_cost_per_hour AS "directCostPerHour",
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.labour_standards
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    standardId: r.standardId || r.id,
+                    lineId: r.lineId || "LIN-01",
+                    lineName: r.lineName || "Production Line",
+                    standardCrew: Number(r.standardCrew) || 8,
+                    stdLaborHoursPer1kUnits: Number(r.stdLaborHoursPer1kUnits) || 2.0,
+                    directCostPerHour: r.directCostPerHour || "$25.00",
+                    status: r.status || "Active",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB listLabourStandards error:", err.message);
+        }
+        return [];
     }
     async createLabourStandard(tenantId, input) {
-        const newId = `LBR-0${inMemoryLabourStandards.length + 1}`;
+        const stdId = input.standardId || input.id || `LBR-0${Date.now().toString().slice(-4)}`;
         const rawCost = input.directCostPerHour !== undefined ? input.directCostPerHour.toString().trim() : "$25.00";
         const costStr = rawCost.startsWith("$") ? rawCost : `$${rawCost}`;
+        const lineIdVal = input.lineId || "LIN-01";
+        const lineNameVal = input.lineName || "Production Line";
+        const crewVal = Number(input.standardCrew) || 8;
+        const hrsVal = Number(input.stdLaborHoursPer1kUnits) || 2.0;
+        const statVal = input.status || "Active";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.labour_standards (
+          standard_id, line_id, line_name, standard_crew, std_labor_hours_per_1k_units,
+          direct_cost_per_hour, status, created_at, updated_at
+        ) VALUES (
+          ${stdId}, ${lineIdVal}, ${lineNameVal}, ${crewVal}, ${hrsVal},
+          ${costStr}, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (standard_id) DO UPDATE SET
+          line_id = EXCLUDED.line_id,
+          line_name = EXCLUDED.line_name,
+          standard_crew = EXCLUDED.standard_crew,
+          std_labor_hours_per_1k_units = EXCLUDED.std_labor_hours_per_1k_units,
+          direct_cost_per_hour = EXCLUDED.direct_cost_per_hour,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, standard_id
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createLabourStandard error:", err.message);
+        }
         const newStandard = {
-            id: input.id || newId,
-            lineId: input.lineId || "LIN-01",
-            lineName: input.lineName || "Production Line",
-            standardCrew: Number(input.standardCrew) || 8,
-            stdLaborHoursPer1kUnits: Number(input.stdLaborHoursPer1kUnits) || 2.0,
+            id: dbId || stdId,
+            standardId: stdId,
+            lineId: lineIdVal,
+            lineName: lineNameVal,
+            standardCrew: crewVal,
+            stdLaborHoursPer1kUnits: hrsVal,
             directCostPerHour: costStr,
-            status: input.status || "Active",
+            status: statVal,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
-        inMemoryLabourStandards.unshift(newStandard);
+        const existingIdx = inMemoryLabourStandards.findIndex((s) => s.id === (dbId || stdId) || s.standardId === stdId);
+        if (existingIdx !== -1) {
+            inMemoryLabourStandards[existingIdx] = newStandard;
+        }
+        else {
+            inMemoryLabourStandards.unshift(newStandard);
+        }
         return newStandard;
     }
     async updateLabourStandard(tenantId, id, input) {
-        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id);
+        let costStr = undefined;
+        if (input.directCostPerHour !== undefined) {
+            const raw = input.directCostPerHour.toString().trim();
+            costStr = raw.startsWith("$") ? raw : `$${raw}`;
+        }
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.labour_standards
+        SET
+          line_id = COALESCE(${input.lineId || null}, line_id),
+          line_name = COALESCE(${input.lineName || null}, line_name),
+          standard_crew = COALESCE(${input.standardCrew !== undefined ? Number(input.standardCrew) : null}, standard_crew),
+          std_labor_hours_per_1k_units = COALESCE(${input.stdLaborHoursPer1kUnits !== undefined ? Number(input.stdLaborHoursPer1kUnits) : null}, std_labor_hours_per_1k_units),
+          direct_cost_per_hour = COALESCE(${costStr || null}, direct_cost_per_hour),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR standard_id = ${id} OR lower(standard_id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateLabourStandard error:", err.message);
+        }
+        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id || s.standardId === id);
         if (idx !== -1) {
-            let costStr = inMemoryLabourStandards[idx].directCostPerHour;
-            if (input.directCostPerHour !== undefined) {
-                const raw = input.directCostPerHour.toString().trim();
-                costStr = raw.startsWith("$") ? raw : `$${raw}`;
-            }
             inMemoryLabourStandards[idx] = {
                 ...inMemoryLabourStandards[idx],
                 ...input,
                 standardCrew: input.standardCrew !== undefined ? Number(input.standardCrew) : inMemoryLabourStandards[idx].standardCrew,
                 stdLaborHoursPer1kUnits: input.stdLaborHoursPer1kUnits !== undefined ? Number(input.stdLaborHoursPer1kUnits) : inMemoryLabourStandards[idx].stdLaborHoursPer1kUnits,
-                directCostPerHour: costStr,
+                directCostPerHour: costStr || inMemoryLabourStandards[idx].directCostPerHour,
                 updatedAt: new Date().toISOString()
             };
             return inMemoryLabourStandards[idx];
@@ -3048,12 +3480,474 @@ class MasterDataService {
         return { id, ...input };
     }
     async deleteLabourStandard(tenantId, id) {
-        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id);
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.labour_standards WHERE id::text = ${id} OR standard_id = ${id} OR lower(standard_id) = lower(${id})`);
+        }
+        catch (err) {
+            console.warn("DB deleteLabourStandard error:", err.message);
+        }
+        const idx = inMemoryLabourStandards.findIndex((s) => s.id === id || s.standardId === id);
         if (idx !== -1) {
             const deleted = inMemoryLabourStandards.splice(idx, 1);
             return deleted[0];
         }
         return { id, message: "Labour standard deleted" };
+    }
+    // ==========================================
+    // 17. EMPLOYEE SKILLS & QUALIFICATIONS MATRIX
+    // ==========================================
+    async listEmployeeSkills(tenantId, plantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          employee_id AS "employeeId",
+          name,
+          email,
+          department,
+          department_id AS "departmentId",
+          role,
+          plant_id AS "plantId",
+          plant_name AS "plantName",
+          skill_level AS "skillLevel",
+          skills,
+          certifications,
+          assigned_line_ids AS "assignedLineIds",
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.employee_skills
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    employeeId: r.employeeId || r.id,
+                    name: r.name,
+                    email: r.email || "",
+                    department: r.department || "Production Operations",
+                    departmentId: r.departmentId || "DEP-01",
+                    role: r.role || "Line Operator",
+                    plantId: r.plantId || "PLT-01",
+                    plantName: r.plantName || "Indore Plant",
+                    skillLevel: r.skillLevel || "Level 2 (Certified Operator)",
+                    skills: Array.isArray(r.skills) ? r.skills : [],
+                    certifications: Array.isArray(r.certifications) ? r.certifications : [],
+                    assignedLineIds: Array.isArray(r.assignedLineIds) ? r.assignedLineIds : [],
+                    status: r.status || "Active",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB listEmployeeSkills error:", err.message);
+        }
+        return [];
+    }
+    async createEmployeeSkill(tenantId, input) {
+        const empId = input.employeeId || input.id || `EMP-00${Date.now().toString().slice(-3)}`;
+        const nameVal = input.name || "Employee";
+        const emailVal = input.email || `${nameVal.toLowerCase().replace(/\s+/g, ".")}@flowstate.io`;
+        const deptVal = input.department || "Production Operations";
+        const deptIdVal = input.departmentId || "DEP-01";
+        const roleVal = input.role || "Line Operator";
+        const plantIdVal = input.plantId || "PLT-01";
+        const plantNameVal = input.plantName || "Indore Plant";
+        const levelVal = input.skillLevel || "Level 2 (Certified Operator)";
+        const skillsJson = JSON.stringify(Array.isArray(input.skills) ? input.skills : ["Standard Operating Procedures"]);
+        const certsJson = JSON.stringify(Array.isArray(input.certifications) ? input.certifications : ["Plant Safety GMP"]);
+        const linesJson = JSON.stringify(Array.isArray(input.assignedLineIds) ? input.assignedLineIds : ["LIN-01"]);
+        const statVal = input.status || "Active";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.employee_skills (
+          employee_id, name, email, department, department_id, role,
+          plant_id, plant_name, skill_level, skills, certifications,
+          assigned_line_ids, status, created_at, updated_at
+        ) VALUES (
+          ${empId}, ${nameVal}, ${emailVal}, ${deptVal}, ${deptIdVal}, ${roleVal},
+          ${plantIdVal}, ${plantNameVal}, ${levelVal}, ${skillsJson}::jsonb, ${certsJson}::jsonb,
+          ${linesJson}::jsonb, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (employee_id) DO UPDATE SET
+          name = EXCLUDED.name,
+          email = EXCLUDED.email,
+          department = EXCLUDED.department,
+          department_id = EXCLUDED.department_id,
+          role = EXCLUDED.role,
+          plant_id = EXCLUDED.plant_id,
+          plant_name = EXCLUDED.plant_name,
+          skill_level = EXCLUDED.skill_level,
+          skills = EXCLUDED.skills,
+          certifications = EXCLUDED.certifications,
+          assigned_line_ids = EXCLUDED.assigned_line_ids,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, employee_id
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createEmployeeSkill error:", err.message);
+        }
+        const createdRecord = {
+            id: dbId || empId,
+            employeeId: empId,
+            name: nameVal,
+            email: emailVal,
+            department: deptVal,
+            departmentId: deptIdVal,
+            role: roleVal,
+            plantId: plantIdVal,
+            plantName: plantNameVal,
+            skillLevel: levelVal,
+            skills: Array.isArray(input.skills) ? input.skills : ["Standard Operating Procedures"],
+            certifications: Array.isArray(input.certifications) ? input.certifications : ["Plant Safety GMP"],
+            assignedLineIds: Array.isArray(input.assignedLineIds) ? input.assignedLineIds : ["LIN-01"],
+            status: statVal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        inMemoryEmployeeSkills.unshift(createdRecord);
+        return createdRecord;
+    }
+    async updateEmployeeSkill(tenantId, id, input) {
+        const skillsJson = input.skills !== undefined ? JSON.stringify(Array.isArray(input.skills) ? input.skills : []) : null;
+        const certsJson = input.certifications !== undefined ? JSON.stringify(Array.isArray(input.certifications) ? input.certifications : []) : null;
+        const linesJson = input.assignedLineIds !== undefined ? JSON.stringify(Array.isArray(input.assignedLineIds) ? input.assignedLineIds : []) : null;
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.employee_skills
+        SET
+          name = COALESCE(${input.name || null}, name),
+          email = COALESCE(${input.email || null}, email),
+          department = COALESCE(${input.department || null}, department),
+          department_id = COALESCE(${input.departmentId || null}, department_id),
+          role = COALESCE(${input.role || null}, role),
+          plant_id = COALESCE(${input.plantId || null}, plant_id),
+          plant_name = COALESCE(${input.plantName || null}, plant_name),
+          skill_level = COALESCE(${input.skillLevel || null}, skill_level),
+          skills = CASE WHEN ${skillsJson}::text IS NOT NULL THEN ${skillsJson}::jsonb ELSE skills END,
+          certifications = CASE WHEN ${certsJson}::text IS NOT NULL THEN ${certsJson}::jsonb ELSE certifications END,
+          assigned_line_ids = CASE WHEN ${linesJson}::text IS NOT NULL THEN ${linesJson}::jsonb ELSE assigned_line_ids END,
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR employee_id = ${id} OR lower(employee_id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateEmployeeSkill error:", err.message);
+        }
+        const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+        if (idx !== -1) {
+            inMemoryEmployeeSkills[idx] = { ...inMemoryEmployeeSkills[idx], ...input, updatedAt: new Date().toISOString() };
+            return inMemoryEmployeeSkills[idx];
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteEmployeeSkill(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.employee_skills WHERE id::text = ${id} OR employee_id = ${id} OR lower(employee_id) = lower(${id})`);
+        }
+        catch (err) {
+            console.warn("DB deleteEmployeeSkill error:", err.message);
+        }
+        const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+        if (idx !== -1) {
+            const deleted = inMemoryEmployeeSkills.splice(idx, 1);
+            return deleted[0];
+        }
+        return { id, message: "Employee record deleted" };
+    }
+    // ==========================================
+    // 18. HACCP CRITICAL CONTROL POINT (CCP) LIMITS (STRICTLY public.ccp_limits)
+    // ==========================================
+    async listCCPLimits(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          ccp_number AS "ccpNumber",
+          process_step AS "processStep",
+          hazard,
+          critical_limit AS "criticalLimit",
+          auto_divert_action AS "autoDivertAction",
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.ccp_limits
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    ccpNumber: r.ccpNumber || `CCP-${String(r.id).slice(0, 8)}`,
+                    processStep: r.processStep || "Thermal Pasteurization Hold",
+                    hazard: r.hazard || "Microbial Contamination",
+                    criticalLimit: r.criticalLimit || "Standard Critical Limit",
+                    autoDivertAction: r.autoDivertAction || "Automated Flow Divert",
+                    status: r.status || "Critical Mandatory",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB listCCPLimits error:", err.message);
+        }
+        return [];
+    }
+    async createCCPLimit(tenantId, input) {
+        const rawNum = input.ccpNumber || input.id || `CCP-${Date.now().toString().slice(-4)}`;
+        const stepVal = input.processStep || "Thermal Pasteurization Hold";
+        const hazardVal = input.hazard || "Microbial Contamination Risk";
+        const limitVal = input.criticalLimit || "Standard Critical Limit Specification";
+        const divertVal = input.autoDivertAction || "Automated Flow Divert Valve";
+        const statVal = input.status || "Critical Mandatory";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.ccp_limits (
+          ccp_number, process_step, hazard, critical_limit, auto_divert_action,
+          status, created_at, updated_at
+        ) VALUES (
+          ${rawNum}, ${stepVal}, ${hazardVal}, ${limitVal}, ${divertVal},
+          ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (ccp_number) DO UPDATE SET
+          process_step = EXCLUDED.process_step,
+          hazard = EXCLUDED.hazard,
+          critical_limit = EXCLUDED.critical_limit,
+          auto_divert_action = EXCLUDED.auto_divert_action,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, ccp_number
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createCCPLimit error:", err.message);
+        }
+        return {
+            id: dbId || rawNum,
+            ccpNumber: rawNum,
+            processStep: stepVal,
+            hazard: hazardVal,
+            criticalLimit: limitVal,
+            autoDivertAction: divertVal,
+            status: statVal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
+    async updateCCPLimit(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.ccp_limits
+        SET
+          process_step = COALESCE(${input.processStep || null}, process_step),
+          hazard = COALESCE(${input.hazard || null}, hazard),
+          critical_limit = COALESCE(${input.criticalLimit || null}, critical_limit),
+          auto_divert_action = COALESCE(${input.autoDivertAction || null}, auto_divert_action),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR ccp_number = ${id} OR lower(ccp_number) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateCCPLimit error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteCCPLimit(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.ccp_limits
+        WHERE id::text = ${id} OR ccp_number = ${id} OR lower(ccp_number) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteCCPLimit error:", err.message);
+        }
+        return { id, message: "CCP Limit record deleted from database" };
+    }
+    // ==========================================
+    // 19. STORAGE RESOURCES & WAREHOUSE (STRICTLY public.storage_resources)
+    // ==========================================
+    async listStorageResources(tenantId, plantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id,
+          resource_id AS "resourceId",
+          resource_code AS "resourceCode",
+          name,
+          resource_type AS "resourceType",
+          plant_id AS "plantId",
+          plant_name AS "plantName",
+          zone,
+          capacity_unit AS "capacityUnit",
+          total_capacity AS "totalCapacity",
+          capacity,
+          current_occupancy AS "currentOccupancy",
+          temperature_zone AS "temperatureZone",
+          status,
+          effective_from AS "effectiveFrom",
+          effective_to AS "effectiveTo",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.storage_resources
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows)) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    resourceId: r.resourceId || r.resourceCode || `STR-${String(r.id).slice(0, 8)}`,
+                    resourceCode: r.resourceCode || r.resourceId || `STR-${String(r.id).slice(0, 8)}`,
+                    name: r.name,
+                    resourceType: r.resourceType || "Selective Pallet Rack",
+                    type: r.resourceType || "Selective Pallet Rack",
+                    plantId: r.plantId || "PLT-01",
+                    plantName: r.plantName || "Indore Plant",
+                    zone: r.zone || "General Staging",
+                    capacityUnit: r.capacityUnit || "Pallet Positions",
+                    totalCapacity: r.totalCapacity !== null && r.totalCapacity !== undefined ? Number(r.totalCapacity) : 500,
+                    capacity: r.capacity || `${r.totalCapacity || 500} ${r.capacityUnit || "Pallet Positions"}`,
+                    currentOccupancy: r.currentOccupancy || "0 Pallets (0%)",
+                    temperatureZone: r.temperatureZone || "Ambient (18°C - 24°C)",
+                    tempControl: r.temperatureZone || "Ambient (18°C - 24°C)",
+                    status: r.status || "Active",
+                    effectiveFrom: r.effectiveFrom || "2025-01-01",
+                    effectiveTo: r.effectiveTo || "2030-12-31",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB listStorageResources error:", err.message);
+        }
+        return [];
+    }
+    async createStorageResource(tenantId, input) {
+        const rawId = input.resourceId || input.id || input.resourceCode || `STR-0${Date.now().toString().slice(-4)}`;
+        const codeVal = input.resourceCode || input.code || rawId;
+        const nameVal = input.name || "Storage Resource Bay";
+        const typeVal = input.resourceType || input.type || "Selective Pallet Rack";
+        const plantIdVal = input.plantId || "PLT-01";
+        const plantNameVal = input.plantName || "Indore Plant";
+        const zoneVal = input.zone || "General Staging";
+        const unitVal = input.capacityUnit || "Pallet Positions";
+        const totalCap = Number(input.totalCapacity) || 500;
+        const capStr = input.capacity || `${totalCap} ${unitVal}`;
+        const occStr = input.currentOccupancy || "0 Pallets (0%)";
+        const tempVal = input.temperatureZone || input.temperatureRange || "Ambient (18°C - 24°C)";
+        const statVal = input.status || "Active";
+        const effFrom = input.effectiveFrom || new Date().toISOString().substring(0, 10);
+        const effTo = input.effectiveTo || "2030-12-31";
+        let dbId;
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.storage_resources (
+          resource_id, resource_code, name, resource_type, plant_id, plant_name,
+          zone, capacity_unit, total_capacity, capacity, current_occupancy,
+          temperature_zone, status, effective_from, effective_to, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${codeVal}, ${nameVal}, ${typeVal}, ${plantIdVal}, ${plantNameVal},
+          ${zoneVal}, ${unitVal}, ${totalCap}, ${capStr}, ${occStr},
+          ${tempVal}, ${statVal}, ${effFrom}, ${effTo}, NOW(), NOW()
+        )
+        ON CONFLICT (resource_code) DO UPDATE SET
+          name = EXCLUDED.name,
+          resource_type = EXCLUDED.resource_type,
+          plant_id = EXCLUDED.plant_id,
+          plant_name = EXCLUDED.plant_name,
+          zone = EXCLUDED.zone,
+          capacity_unit = EXCLUDED.capacity_unit,
+          total_capacity = EXCLUDED.total_capacity,
+          capacity = EXCLUDED.capacity,
+          current_occupancy = EXCLUDED.current_occupancy,
+          temperature_zone = EXCLUDED.temperature_zone,
+          status = EXCLUDED.status,
+          effective_from = EXCLUDED.effective_from,
+          effective_to = EXCLUDED.effective_to,
+          updated_at = NOW()
+        RETURNING id, resource_id, resource_code
+      `);
+            if (res.rows && res.rows.length > 0) {
+                dbId = res.rows[0].id;
+            }
+        }
+        catch (err) {
+            console.warn("DB createStorageResource error:", err.message);
+        }
+        return {
+            id: dbId || rawId,
+            resourceId: rawId,
+            resourceCode: codeVal,
+            name: nameVal,
+            resourceType: typeVal,
+            type: typeVal,
+            plantId: plantIdVal,
+            plantName: plantNameVal,
+            zone: zoneVal,
+            capacityUnit: unitVal,
+            totalCapacity: totalCap,
+            capacity: capStr,
+            currentOccupancy: occStr,
+            temperatureZone: tempVal,
+            tempControl: tempVal,
+            status: statVal,
+            effectiveFrom: effFrom,
+            effectiveTo: effTo,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
+    async updateStorageResource(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.storage_resources
+        SET
+          name = COALESCE(${input.name || null}, name),
+          resource_type = COALESCE(${input.resourceType || input.type || null}, resource_type),
+          plant_id = COALESCE(${input.plantId || null}, plant_id),
+          plant_name = COALESCE(${input.plantName || null}, plant_name),
+          zone = COALESCE(${input.zone || null}, zone),
+          capacity_unit = COALESCE(${input.capacityUnit || null}, capacity_unit),
+          total_capacity = COALESCE(${input.totalCapacity !== undefined ? Number(input.totalCapacity) : null}, total_capacity),
+          capacity = COALESCE(${input.capacity || null}, capacity),
+          current_occupancy = COALESCE(${input.currentOccupancy || null}, current_occupancy),
+          temperature_zone = COALESCE(${input.temperatureZone || input.temperatureRange || null}, temperature_zone),
+          status = COALESCE(${input.status || null}, status),
+          effective_from = COALESCE(${input.effectiveFrom || null}, effective_from),
+          effective_to = COALESCE(${input.effectiveTo || null}, effective_to),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR resource_id = ${id} OR resource_code = ${id} OR lower(resource_code) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateStorageResource error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteStorageResource(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.storage_resources
+        WHERE id::text = ${id} OR resource_id = ${id} OR resource_code = ${id} OR lower(resource_code) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteStorageResource error:", err.message);
+        }
+        return { id, message: "Storage resource deleted from database" };
     }
 }
 exports.MasterDataService = MasterDataService;

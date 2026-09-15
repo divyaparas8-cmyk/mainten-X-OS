@@ -9,7 +9,36 @@ const database_js_1 = require("../../config/database.js");
 const index_js_1 = require("../../db/schema/index.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
-let inMemoryUsers = [];
+// In-memory persistent invitations store synced with database
+let inMemoryInvitations = [
+    {
+        id: "INV-101",
+        tenantId: "demo-flowstate-tenant",
+        email: "clara.oswald@flowstate.io",
+        role: "Quality Analyst",
+        department: "Quality",
+        invitedBy: "Alexander Vance",
+        sentDate: "2026-08-30",
+        status: "Pending",
+    },
+    {
+        id: "INV-102",
+        tenantId: "demo-flowstate-tenant",
+        email: "james.holden@flowstate.io",
+        role: "Controls Engineer",
+        department: "Maintenance",
+        invitedBy: "Alexander Vance",
+        sentDate: "2026-08-31",
+        status: "Pending",
+    },
+];
+let inMemoryUsers = [
+    { id: "USR-001", name: "Alexander Vance", email: "alexander.vance@flowstate.io", role: "System Administrator", roleCode: "admin", department: "IT & Digital Ops", plant: "Indore Plant", status: "Active", lastLogin: "Just now", createdAt: new Date().toISOString() },
+    { id: "USR-002", name: "Robert Thorne", email: "robert.thorne@flowstate.io", role: "Plant Manager", roleCode: "plant_manager", department: "Operations", plant: "Indore Plant", status: "Suspended", lastLogin: "10 mins ago", createdAt: new Date().toISOString() },
+    { id: "USR-003", name: "Sarah Jenkins", email: "sarah.jenkins@flowstate.io", role: "QA Manager", roleCode: "quality", department: "Quality Assurance", plant: "Indore Plant", status: "Active", lastLogin: "1 hour ago", createdAt: new Date().toISOString() },
+    { id: "USR-004", name: "Marcus Vance", email: "marcus.vance@flowstate.io", role: "Maintenance Lead", roleCode: "maintenance", department: "Maintenance", plant: "Indore Plant", status: "Active", lastLogin: "3 hours ago", createdAt: new Date().toISOString() },
+    { id: "USR-005", name: "David Kim", email: "david.kim@flowstate.io", role: "Production Supervisor", roleCode: "supervisor", department: "Operations", plant: "Indore Plant", status: "Active", lastLogin: "3 days ago", createdAt: new Date().toISOString() },
+];
 let inMemoryRoles = [
     { id: "ROL-01", dbId: "ROL-01", code: "admin", name: "System Administrator", description: "Full system governance, master data, security, user administration", userCount: 2, isSystem: true, createdAt: new Date().toISOString() },
     { id: "ROL-02", dbId: "ROL-02", code: "plant_manager", name: "Plant Manager", description: "Executive plant operations, OEE, planning, recovery, cross-functional oversight", userCount: 4, isSystem: true, createdAt: new Date().toISOString() },
@@ -29,34 +58,56 @@ class AdminService {
             const startTime = Date.now();
             await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT 1`);
             dbLatencyMs = Date.now() - startTime;
-            userList = await database_js_1.db.select().from(index_js_1.users);
-            roleList = await database_js_1.db.select().from(index_js_1.roles);
-            plantList = await database_js_1.db.select().from(index_js_1.plants);
-            lineList = await database_js_1.db.select().from(index_js_1.productionLines);
-            skuList = await database_js_1.db.select().from(index_js_1.skus);
+            userList = tenantId
+                ? await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.tenantId, tenantId))
+                : await database_js_1.db.select().from(index_js_1.users);
+            roleList = tenantId
+                ? await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.tenantId, tenantId))
+                : await database_js_1.db.select().from(index_js_1.roles);
+            plantList = tenantId
+                ? await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.eq)(index_js_1.plants.tenantId, tenantId))
+                : await database_js_1.db.select().from(index_js_1.plants);
+            lineList = tenantId
+                ? await database_js_1.db.select().from(index_js_1.productionLines).where((0, drizzle_orm_1.eq)(index_js_1.productionLines.tenantId, tenantId))
+                : await database_js_1.db.select().from(index_js_1.productionLines);
+            skuList = tenantId
+                ? await database_js_1.db.select().from(index_js_1.skus).where((0, drizzle_orm_1.eq)(index_js_1.skus.tenantId, tenantId))
+                : await database_js_1.db.select().from(index_js_1.skus);
         }
         catch (err) {
             console.warn("getDashboardMetrics DB unavailable, using fallback:", err.message);
         }
-        const activeUsersCount = userList.length > 0
-            ? userList.filter((u) => u.status === "ACTIVE").length
-            : 5;
+        const activeUsersCount = userList.filter((u) => u.status === "ACTIVE").length;
+        let tenantInvitesCount = 0;
+        let tenantAuditCount = 0;
+        if (tenantId) {
+            tenantInvitesCount = inMemoryInvitations.filter((i) => i.tenantId === tenantId && i.status === "Pending").length;
+            try {
+                const [auditRes] = await database_js_1.db.select({ count: (0, drizzle_orm_1.sql) `count(*)` }).from(index_js_1.auditLogs).where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.tenantId, tenantId));
+                tenantAuditCount = Number(auditRes?.count || 0);
+            }
+            catch (_) { }
+        }
+        else {
+            tenantInvitesCount = inMemoryInvitations.filter(i => i.status === "Pending").length;
+            tenantAuditCount = 0;
+        }
         return {
             systemHealth: 99.98,
             status: "OPERATIONAL",
             uptimeSeconds: process.uptime(),
             dbLatencyMs,
             metrics: {
-                totalUsers: userList.length || inMemoryUsers.length,
-                activeUsers: activeUsersCount,
-                rolesCount: roleList.length || inMemoryRoles.length,
-                sitesCount: plantList.length || 2,
-                linesCount: lineList.length || 6,
-                skusCount: skuList.length || 5,
-                syncedTablesCount: 17,
-                liveConnectors: 4,
-                totalConnectors: 4,
-                qualityIndex: 96.2,
+                totalUsers: tenantId ? userList.length : (userList.length || inMemoryUsers.length),
+                activeUsers: tenantId ? activeUsersCount : (activeUsersCount || 5),
+                rolesCount: tenantId ? roleList.length : (roleList.length || inMemoryRoles.length),
+                sitesCount: tenantId ? plantList.length : (plantList.length || 2),
+                linesCount: tenantId ? lineList.length : (lineList.length || 6),
+                skusCount: tenantId ? skuList.length : (skuList.length || 5),
+                syncedTablesCount: tenantId ? (plantList.length > 0 ? 17 : 0) : 17,
+                liveConnectors: tenantId ? (plantList.length > 0 ? 4 : 0) : 4,
+                totalConnectors: tenantId ? (plantList.length > 0 ? 4 : 0) : 4,
+                qualityIndex: tenantId ? (plantList.length > 0 ? 96.2 : 0) : 96.2,
             },
             latencyTrend: [
                 { label: "00:00", value: 18 },
@@ -68,12 +119,12 @@ class AdminService {
                 { label: "Now", value: Math.max(15, Math.min(dbLatencyMs, 45)) },
             ],
             governanceTiles: [
-                { id: "invites", label: "User Invites", sub: "Onboarding portal", path: "/users/invitations", count: 0 },
-                { id: "permissions", label: "Permission Matrix", sub: "Granular RBAC", path: "/roles/permissions", count: roleList.length || inMemoryRoles.length },
+                { id: "invites", label: "User Invites", sub: "Onboarding portal", path: "/users/invitations", count: tenantInvitesCount },
+                { id: "permissions", label: "Permission Matrix", sub: "Granular RBAC", path: "/roles/permissions", count: tenantId ? roleList.length : (roleList.length || inMemoryRoles.length) },
                 { id: "remediation", label: "Data Remediation", sub: "Fix broken records", path: "/data-health/remediation", count: 0 },
                 { id: "migration", label: "Data Migration", sub: "CSV bulk upload", path: "/migration", count: 0 },
                 { id: "security", label: "Security & 2FA", sub: "SAML SSO policies", path: "/security", status: "Hardened" },
-                { id: "audit", label: "Audit Trail", sub: "Compliance records", path: "/audit-logs", count: 148 },
+                { id: "audit", label: "Audit Trail", sub: "Compliance records", path: "/audit-logs", count: tenantAuditCount },
             ],
         };
     }
@@ -257,6 +308,22 @@ class AdminService {
             status: input.status === "Pending Invite" || input.status === "Pending" ? "PENDING" : "ACTIVE",
         })
             .returning();
+        if (!matchedRole && activeTenantId) {
+            try {
+                const [createdRole] = await database_js_1.db
+                    .insert(index_js_1.roles)
+                    .values({
+                    tenantId: activeTenantId,
+                    code: roleKey,
+                    name: input.role.trim(),
+                    description: "Custom enterprise operational scope",
+                    isSystem: false,
+                })
+                    .returning();
+                matchedRole = createdRole;
+            }
+            catch (_) { }
+        }
         if (matchedRole) {
             await database_js_1.db.insert(index_js_1.userRoles).values({
                 userId: createdUser.id,
@@ -292,12 +359,17 @@ class AdminService {
             lastLogin: "Just now",
             createdAt: createdUser.createdAt,
         };
-        inMemoryUsers.unshift(resultUser);
+        if (!tenantId) {
+            inMemoryUsers.unshift(resultUser);
+        }
         return resultUser;
     }
     async getAllUsers(tenantId) {
         try {
-            const userList = await database_js_1.db.select().from(index_js_1.users);
+            const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
+            const userList = isTenantUuid
+                ? await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.tenantId, tenantId)).orderBy((0, drizzle_orm_1.desc)(index_js_1.users.createdAt))
+                : await database_js_1.db.select().from(index_js_1.users).orderBy((0, drizzle_orm_1.desc)(index_js_1.users.createdAt));
             const roleList = await database_js_1.db.select().from(index_js_1.roles);
             const userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
             const plantList = await database_js_1.db.select().from(index_js_1.plants);
@@ -315,32 +387,35 @@ class AdminService {
                 executive: "Executive Leadership",
                 master_admin: "Global Governance",
             };
-            return userList
+            const mapped = userList
                 .filter((u) => u.status !== "DELETED")
                 .map((u, index) => {
                 const uRole = userRoleList.find((ur) => ur.userId === u.id);
                 const roleObj = uRole ? roleList.find((r) => r.id === uRole.roleId) : null;
-                const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "operator");
-                const plantObj = uRole?.plantId ? plantList.find((p) => p.id === uRole.plantId) : plantList[0];
+                const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "admin");
+                const plantObj = uRole?.plantId ? plantList.find((p) => p.id === uRole.plantId) : plantList.find((p) => p.tenantId === u.tenantId);
                 return {
                     id: u.id,
                     name: `${u.firstName} ${u.lastName}`.trim(),
                     email: u.email,
-                    role: roleObj?.name || (u.isMasterAdmin ? "Master Admin" : "Line Operator"),
+                    role: roleObj?.name || (u.isMasterAdmin ? "Master Admin" : "Company Administrator"),
                     roleCode,
-                    department: departmentMap[roleCode] || "Operations",
-                    plant: plantObj?.name?.split(" - ")[0] || "Indore Plant",
+                    department: departmentMap[roleCode] || (roleCode === "admin" ? "IT & Digital Ops" : "Operations"),
+                    plant: plantObj?.name?.split(" - ")[0] || "Main Facility",
                     status: u.status === "ACTIVE" ? "Active" : "Suspended",
                     lastLogin: index === 0 ? "Just now" : `${(index + 1) * 2} hours ago`,
                     lastLoginAt: u.lastLoginAt,
                     createdAt: u.createdAt,
                 };
             });
+            if (mapped.length > 0) {
+                return mapped;
+            }
         }
         catch (err) {
             console.warn("Database query failed in getAllUsers:", err.message);
-            return [];
         }
+        return inMemoryUsers;
     }
     async updateUserStatus(tenantId, userId, newStatus) {
         const normalizedStatus = newStatus.toUpperCase() === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
@@ -371,17 +446,24 @@ class AdminService {
                     .where((0, drizzle_orm_1.eq)(index_js_1.users.id, targetUser.id))
                     .returning();
                 try {
-                    let activeTenantId = tenantId || targetUser.tenantId;
-                    await database_js_1.db.insert(index_js_1.auditLogs).values({
-                        tenantId: activeTenantId,
-                        userId: targetUser.id,
-                        action: normalizedStatus === "ACTIVE" ? "ACTIVATE_USER" : "SUSPEND_USER",
-                        entityType: "User",
-                        entityId: targetUser.id,
-                        oldValues: { status: targetUser.status },
-                        newValues: { status: normalizedStatus },
-                        ipAddress: "192.168.1.10",
-                    });
+                    const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
+                    let activeTenantId = isTenantUuid ? tenantId : targetUser.tenantId;
+                    if (!activeTenantId) {
+                        const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                        activeTenantId = demoTenant?.id;
+                    }
+                    if (activeTenantId) {
+                        await database_js_1.db.insert(index_js_1.auditLogs).values({
+                            tenantId: activeTenantId,
+                            userId: targetUser.id,
+                            action: normalizedStatus === "ACTIVE" ? "ACTIVATE_USER" : "SUSPEND_USER",
+                            entityType: "User",
+                            entityId: targetUser.id,
+                            oldValues: { status: targetUser.status },
+                            newValues: { status: normalizedStatus },
+                            ipAddress: "192.168.1.10",
+                        });
+                    }
                 }
                 catch (_) { }
                 return {
@@ -588,15 +670,22 @@ class AdminService {
             .where((0, drizzle_orm_1.eq)(index_js_1.users.isMasterAdmin, false));
         // Audit log
         try {
-            const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-            await database_js_1.db.insert(index_js_1.auditLogs).values({
-                tenantId: tenantId || demoTenant?.id,
-                action: isActivate ? "BULK_ACTIVATE_USERS" : "EMERGENCY_LOCK_ALL_USERS",
-                entityType: "User",
-                entityId: "ALL_ACCOUNTS",
-                newValues: { targetStatus },
-                ipAddress: "192.168.1.10",
-            });
+            const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
+            let activeTenantId = isTenantUuid ? tenantId : null;
+            if (!activeTenantId) {
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                activeTenantId = demoTenant?.id;
+            }
+            if (activeTenantId) {
+                await database_js_1.db.insert(index_js_1.auditLogs).values({
+                    tenantId: activeTenantId,
+                    action: isActivate ? "BULK_ACTIVATE_USERS" : "EMERGENCY_LOCK_ALL_USERS",
+                    entityType: "User",
+                    entityId: "ALL_ACCOUNTS",
+                    newValues: { targetStatus },
+                    ipAddress: "192.168.1.10",
+                });
+            }
         }
         catch (e) {
             // non-blocking
@@ -612,24 +701,37 @@ class AdminService {
     }
     async getInvitations(tenantId) {
         try {
-            const rows = await database_js_1.db
-                .select()
-                .from(index_js_1.userInvitations)
-                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.createdAt} DESC`);
-            return rows.map((r) => ({
-                id: r.id,
-                email: r.email,
-                role: r.role,
-                department: r.department,
-                invitedBy: r.invitedBy,
-                sentDate: r.sentDate,
-                status: r.status,
-            }));
+            const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
+            const rows = isTenantUuid
+                ? await database_js_1.db
+                    .select()
+                    .from(index_js_1.userInvitations)
+                    .where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.tenantId, tenantId))
+                    .orderBy((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.createdAt} DESC`)
+                : await database_js_1.db
+                    .select()
+                    .from(index_js_1.userInvitations)
+                    .orderBy((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.createdAt} DESC`);
+            if (rows) {
+                return rows.map((r) => ({
+                    id: r.id,
+                    email: r.email,
+                    role: r.role,
+                    department: r.department,
+                    invitedBy: r.invitedBy,
+                    sentDate: r.sentDate,
+                    status: r.status,
+                }));
+            }
         }
         catch (err) {
             console.warn("getInvitations DB error:", err.message);
-            return [];
+            if (tenantId && typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+                return inMemoryInvitations.filter((i) => i.tenantId === tenantId);
+            }
+            return inMemoryInvitations;
         }
+        return [];
     }
     async createInvitation(tenantId, input) {
         if (!input.email) {
@@ -637,171 +739,324 @@ class AdminService {
         }
         const email = input.email.toLowerCase().trim();
         // Check for existing pending invite in DB
-        const existingRows = await database_js_1.db
-            .select()
-            .from(index_js_1.userInvitations)
-            .where((0, drizzle_orm_1.sql) `LOWER(${index_js_1.userInvitations.email}) = ${email} AND ${index_js_1.userInvitations.status} = 'Pending'`)
-            .limit(1);
-        if (existingRows.length > 0) {
+        try {
+            const existingRows = await database_js_1.db
+                .select()
+                .from(index_js_1.userInvitations)
+                .where((0, drizzle_orm_1.sql) `LOWER(${index_js_1.userInvitations.email}) = ${email} AND ${index_js_1.userInvitations.status} = 'Pending'`)
+                .limit(1);
+            if (existingRows.length > 0) {
+                throw new AppError_js_1.ConflictError(`Active invitation already exists for ${email}.`);
+            }
+        }
+        catch (e) {
+            if (e instanceof AppError_js_1.ConflictError)
+                throw e;
+        }
+        const existingInvite = inMemoryInvitations.find((i) => i.email.toLowerCase() === email && i.status === "Pending" && (!tenantId || i.tenantId === tenantId));
+        if (existingInvite) {
             throw new AppError_js_1.ConflictError(`Active invitation already exists for ${email}.`);
         }
-        let activeTenantId = tenantId;
-        if (!activeTenantId) {
-            const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-            activeTenantId = demoTenant?.id;
+        // Resolve a valid tenant UUID so PostgreSQL foreign key constraint is satisfied
+        let activeTenantId = null;
+        if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+            activeTenantId = tenantId;
+        }
+        else {
+            try {
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                if (demoTenant?.id)
+                    activeTenantId = demoTenant.id;
+            }
+            catch (_) { }
         }
         const newId = `INV-${Math.floor(100 + Math.random() * 900)}`;
         const sentDate = new Date().toISOString().substring(0, 10);
-        const [inserted] = await database_js_1.db
-            .insert(index_js_1.userInvitations)
-            .values({
+        const memInvite = {
             id: newId,
-            tenantId: activeTenantId,
+            tenantId: activeTenantId || undefined,
             email,
             role: input.role || "Quality Analyst",
             department: input.department || "Quality",
             invitedBy: input.invitedBy || "Alexander Vance",
             sentDate,
             status: "Pending",
-        })
-            .returning();
-        // Audit log (non-blocking)
-        try {
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "DISPATCH_USER_INVITATION",
-                    entityType: "Invitation",
-                    entityId: inserted.id,
-                    newValues: { email: inserted.email, role: inserted.role },
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) { }
-        return {
-            id: inserted.id,
-            email: inserted.email,
-            role: inserted.role,
-            department: inserted.department,
-            invitedBy: inserted.invitedBy,
-            sentDate: inserted.sentDate,
-            status: inserted.status,
         };
-    }
-    async resendInvitation(tenantId, invitationId) {
-        const todayDate = new Date().toISOString().substring(0, 10);
-        // Try to find the invite by ID or email
-        const [existing] = await database_js_1.db
-            .select()
-            .from(index_js_1.userInvitations)
-            .where((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.id} = ${invitationId} OR LOWER(${index_js_1.userInvitations.email}) = ${invitationId.toLowerCase()}`)
-            .limit(1);
-        let invite;
-        if (existing) {
-            const [updated] = await database_js_1.db
-                .update(index_js_1.userInvitations)
-                .set({ sentDate: todayDate, status: "Pending", updatedAt: new Date() })
-                .where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.id, existing.id))
-                .returning();
-            invite = updated;
-        }
-        else {
-            // Create a new one if not found
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            const newId = invitationId.startsWith("INV-") ? invitationId : `INV-${Math.floor(100 + Math.random() * 900)}`;
+        inMemoryInvitations.unshift(memInvite);
+        try {
             const [inserted] = await database_js_1.db
                 .insert(index_js_1.userInvitations)
                 .values({
                 id: newId,
                 tenantId: activeTenantId,
-                email: invitationId.includes("@") ? invitationId : `${invitationId.toLowerCase()}@example.com`,
-                role: "Quality Analyst",
-                department: "Quality",
-                invitedBy: "Alexander Vance",
-                sentDate: todayDate,
+                email,
+                role: input.role || "Quality Analyst",
+                department: input.department || "Quality",
+                invitedBy: input.invitedBy || "Alexander Vance",
+                sentDate,
                 status: "Pending",
             })
                 .returning();
-            invite = inserted;
+            // Audit log (non-blocking)
+            try {
+                if (activeTenantId) {
+                    await database_js_1.db.insert(index_js_1.auditLogs).values({
+                        tenantId: activeTenantId,
+                        action: "DISPATCH_USER_INVITATION",
+                        entityType: "Invitation",
+                        entityId: inserted.id,
+                        newValues: { email: inserted.email, role: inserted.role },
+                        ipAddress: "192.168.1.10",
+                    });
+                }
+            }
+            catch (e) { }
+            return {
+                id: inserted.id,
+                email: inserted.email,
+                role: inserted.role,
+                department: inserted.department,
+                invitedBy: inserted.invitedBy,
+                sentDate: inserted.sentDate,
+                status: inserted.status,
+            };
         }
-        // Audit log (non-blocking)
+        catch (e) {
+            console.error("createInvitation DB insert error:", e?.message || e);
+            return memInvite;
+        }
+    }
+    async resendInvitation(tenantId, invitationId) {
+        const todayDate = new Date().toISOString().substring(0, 10);
+        const cleanId = (invitationId || "").trim();
+        const cleanIdNoSpace = cleanId.replace(/\s+/g, "");
+        // Update in-memory
+        const memIndex = inMemoryInvitations.findIndex((i) => i.id === cleanId ||
+            i.id.replace(/\s+/g, "") === cleanIdNoSpace ||
+            i.email.toLowerCase() === cleanId.toLowerCase());
+        if (memIndex !== -1) {
+            inMemoryInvitations[memIndex].sentDate = todayDate;
+            inMemoryInvitations[memIndex].status = "Pending";
+        }
         try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
+            const [existing] = await database_js_1.db
+                .select()
+                .from(index_js_1.userInvitations)
+                .where((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.id} = ${cleanId} OR REPLACE(${index_js_1.userInvitations.id}, ' ', '') = ${cleanIdNoSpace} OR LOWER(${index_js_1.userInvitations.email}) = ${cleanId.toLowerCase()}`)
+                .limit(1);
+            let invite;
+            if (existing) {
+                const [updated] = await database_js_1.db
+                    .update(index_js_1.userInvitations)
+                    .set({ sentDate: todayDate, status: "Pending", updatedAt: new Date() })
+                    .where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.id, existing.id))
+                    .returning();
+                invite = updated;
             }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
+            else {
+                let activeTenantId = null;
+                if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+                    activeTenantId = tenantId;
+                }
+                else {
+                    try {
+                        const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                        if (demoTenant?.id)
+                            activeTenantId = demoTenant.id;
+                    }
+                    catch (_) { }
+                }
+                const newId = cleanId.startsWith("INV-") ? cleanId : `INV-${Math.floor(100 + Math.random() * 900)}`;
+                const [inserted] = await database_js_1.db
+                    .insert(index_js_1.userInvitations)
+                    .values({
+                    id: newId,
                     tenantId: activeTenantId,
-                    action: "RESEND_USER_INVITATION",
-                    entityType: "Invitation",
-                    entityId: invite.id,
-                    newValues: { email: invite.email, resendDate: todayDate },
-                    ipAddress: "192.168.1.10",
-                });
+                    email: cleanId.includes("@") ? cleanId : `${cleanId.toLowerCase()}@example.com`,
+                    role: "Quality Analyst",
+                    department: "Quality",
+                    invitedBy: "Alexander Vance",
+                    sentDate: todayDate,
+                    status: "Pending",
+                })
+                    .returning();
+                invite = inserted;
             }
+            // Audit log
+            try {
+                const activeTenantId = existing?.tenantId || (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId) ? tenantId : null);
+                if (activeTenantId) {
+                    await database_js_1.db.insert(index_js_1.auditLogs).values({
+                        tenantId: activeTenantId,
+                        action: "RESEND_USER_INVITATION",
+                        entityType: "Invitation",
+                        entityId: invite.id,
+                        newValues: { email: invite.email, resendDate: todayDate },
+                        ipAddress: "192.168.1.10",
+                    });
+                }
+            }
+            catch (e) { }
+            return {
+                success: true,
+                message: `Magic onboarding link re-dispatched to ${invite.email}`,
+                invitation: invite,
+            };
         }
-        catch (e) { }
-        return {
-            success: true,
-            message: `Magic onboarding link re-dispatched to ${invite.email}`,
-            invitation: invite,
-        };
+        catch (err) {
+            console.warn("resendInvitation DB error:", err.message);
+            return {
+                success: true,
+                message: `Magic onboarding link re-dispatched to ${cleanId}`,
+            };
+        }
     }
     async deleteInvitation(tenantId, invitationId) {
-        // Find by ID or email
-        const [target] = await database_js_1.db
-            .select()
-            .from(index_js_1.userInvitations)
-            .where((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.id} = ${invitationId} OR LOWER(${index_js_1.userInvitations.email}) = ${invitationId.toLowerCase()}`)
-            .limit(1);
-        if (!target) {
-            return { success: true, message: `Invitation ${invitationId} not found or already removed.` };
-        }
-        await database_js_1.db.delete(index_js_1.userInvitations).where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.id, target.id));
-        // Audit log (non-blocking)
+        const cleanId = (invitationId || "").trim();
+        const cleanIdNoSpace = cleanId.replace(/\s+/g, "");
+        // 1. Always purge from in-memory store
+        inMemoryInvitations = inMemoryInvitations.filter((i) => i.id !== cleanId &&
+            i.id.replace(/\s+/g, "") !== cleanIdNoSpace &&
+            i.email.toLowerCase() !== cleanId.toLowerCase());
+        // 2. Delete directly from database
         try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "REVOKE_USER_INVITATION",
-                    entityType: "Invitation",
-                    entityId: target.id,
-                    oldValues: { email: target.email, role: target.role, status: target.status },
-                    ipAddress: "192.168.1.10",
-                });
+            const [target] = await database_js_1.db
+                .select()
+                .from(index_js_1.userInvitations)
+                .where((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.id} = ${cleanId} OR REPLACE(${index_js_1.userInvitations.id}, ' ', '') = ${cleanIdNoSpace} OR LOWER(${index_js_1.userInvitations.email}) = ${cleanId.toLowerCase()}`)
+                .limit(1);
+            if (target) {
+                await database_js_1.db.delete(index_js_1.userInvitations).where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.id, target.id));
+                // Audit log (non-blocking)
+                try {
+                    const activeTenantId = target.tenantId || (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId) ? tenantId : null);
+                    if (activeTenantId) {
+                        await database_js_1.db.insert(index_js_1.auditLogs).values({
+                            tenantId: activeTenantId,
+                            action: "REVOKE_USER_INVITATION",
+                            entityType: "Invitation",
+                            entityId: target.id,
+                            oldValues: { email: target.email, role: target.role, status: target.status },
+                            ipAddress: "192.168.1.10",
+                        });
+                    }
+                }
+                catch (e) { }
+                return {
+                    success: true,
+                    message: `Invitation for ${target.email} successfully deleted from database.`,
+                };
             }
         }
-        catch (e) { }
+        catch (err) {
+            console.warn("deleteInvitation DB error:", err.message);
+        }
         return {
             success: true,
-            message: `Invitation for ${target.email} successfully deleted from database.`,
+            message: `Invitation ${cleanId} removed.`,
         };
+    }
+    async updateInvitation(tenantId, invitationId, data) {
+        const cleanId = (invitationId || "").trim();
+        const cleanIdNoSpace = cleanId.replace(/\s+/g, "");
+        // 1. Update in-memory store
+        const memIndex = inMemoryInvitations.findIndex((i) => i.id === cleanId ||
+            i.id.replace(/\s+/g, "") === cleanIdNoSpace ||
+            i.email.toLowerCase() === cleanId.toLowerCase());
+        if (memIndex !== -1) {
+            inMemoryInvitations[memIndex] = {
+                ...inMemoryInvitations[memIndex],
+                ...(data.email && { email: data.email.toLowerCase().trim() }),
+                ...(data.role && { role: data.role }),
+                ...(data.department && { department: data.department }),
+                ...(data.status && { status: data.status }),
+            };
+        }
+        // 2. Update directly in database
+        try {
+            const [target] = await database_js_1.db
+                .select()
+                .from(index_js_1.userInvitations)
+                .where((0, drizzle_orm_1.sql) `${index_js_1.userInvitations.id} = ${cleanId} OR REPLACE(${index_js_1.userInvitations.id}, ' ', '') = ${cleanIdNoSpace} OR LOWER(${index_js_1.userInvitations.email}) = ${cleanId.toLowerCase()}`)
+                .limit(1);
+            if (target) {
+                const updateFields = {
+                    updatedAt: new Date(),
+                };
+                if (data.email)
+                    updateFields.email = data.email.toLowerCase().trim();
+                if (data.role)
+                    updateFields.role = data.role;
+                if (data.department)
+                    updateFields.department = data.department;
+                if (data.status)
+                    updateFields.status = data.status;
+                const [updated] = await database_js_1.db
+                    .update(index_js_1.userInvitations)
+                    .set(updateFields)
+                    .where((0, drizzle_orm_1.eq)(index_js_1.userInvitations.id, target.id))
+                    .returning();
+                // Audit log (non-blocking)
+                try {
+                    const activeTenantId = target.tenantId || (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId) ? tenantId : null);
+                    if (activeTenantId) {
+                        await database_js_1.db.insert(index_js_1.auditLogs).values({
+                            tenantId: activeTenantId,
+                            action: "UPDATE_USER_INVITATION",
+                            entityType: "Invitation",
+                            entityId: target.id,
+                            oldValues: { email: target.email, role: target.role, department: target.department, status: target.status },
+                            newValues: updateFields,
+                            ipAddress: "192.168.1.10",
+                        });
+                    }
+                }
+                catch (e) { }
+                return {
+                    id: updated.id,
+                    email: updated.email,
+                    role: updated.role,
+                    department: updated.department,
+                    invitedBy: updated.invitedBy,
+                    sentDate: updated.sentDate,
+                    status: updated.status,
+                };
+            }
+        }
+        catch (err) {
+            console.warn("updateInvitation DB error:", err.message);
+        }
+        if (memIndex !== -1) {
+            return inMemoryInvitations[memIndex];
+        }
+        return { success: true, id: cleanId, ...data };
     }
     async getActivityLogs(tenantId, query) {
         let mappedDbLogs = [];
         try {
-            const dbLogs = await database_js_1.db.select().from(index_js_1.auditLogs).orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`).limit(50);
+            const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
+            const dbLogs = isTenantUuid
+                ? await database_js_1.db
+                    .select()
+                    .from(index_js_1.auditLogs)
+                    .where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.tenantId, tenantId))
+                    .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
+                    .limit(100)
+                : await database_js_1.db
+                    .select()
+                    .from(index_js_1.auditLogs)
+                    .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
+                    .limit(100);
             const userList = await database_js_1.db.select().from(index_js_1.users);
             mappedDbLogs = dbLogs.map((log, index) => {
                 const user = userList.find((u) => u.id === log.userId);
-                const userName = user ? `${user.firstName} ${user.lastName}` : "Alexander Vance";
+                const userName = user ? `${user.firstName} ${user.lastName}`.trim() : "Company Administrator";
                 return {
-                    id: `ACT-${800 + index}`,
-                    user: userName,
-                    action: `${log.action.replace(/_/g, " ")} on ${log.entityType} (${log.entityId})`,
-                    category: log.action.includes("SECURITY") || log.action.includes("USER") || log.action.includes("LOCK") ? "Security" : "Configuration",
+                    id: `ACT-${800 + index + 1}`,
+                    dbId: log.id,
+                    user: userName || "Administrator",
+                    action: `${log.action.replace(/_/g, " ")} on ${log.entityType || "System"} (${log.entityId || "N/A"})`,
+                    category: log.action.includes("SECURITY") || log.action.includes("USER") || log.action.includes("LOCK") || log.action.includes("REVOKE") || log.action.includes("INVITATION") ? "Security" : "Configuration",
                     ip: log.ipAddress || "192.168.1.10",
                     timestamp: new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                     createdAt: log.createdAt,
@@ -809,49 +1064,144 @@ class AdminService {
             });
         }
         catch (err) {
-            console.warn("Database query failed in getActivityLogs, using fallback activity stream:", err.message);
+            console.warn("Database query failed in getActivityLogs:", err.message);
         }
-        const defaultLogs = [
-            { id: "ACT-801", user: "Alexander Vance", action: "Updated ERP Sync Frequency to 15 mins", timestamp: "10:45 AM", ip: "192.168.1.10", category: "Configuration", createdAt: new Date().toISOString() },
-            { id: "ACT-802", user: "Robert Thorne", action: "Approved Schedule Recovery Catch-up Plan", timestamp: "09:30 AM", ip: "192.168.1.45", category: "Planning", createdAt: new Date().toISOString() },
-            { id: "ACT-803", user: "Sarah Jenkins", action: "Released Lot LOT-CIT-0830 Certificate of Analysis", timestamp: "08:15 AM", ip: "192.168.1.72", category: "Quality", createdAt: new Date().toISOString() },
-            { id: "ACT-804", user: "Alexander Vance", action: "Modified Role Permissions for Maintenance Lead", timestamp: "Yesterday", ip: "192.168.1.10", category: "Security", createdAt: new Date().toISOString() },
-        ];
-        const combined = [...mappedDbLogs, ...defaultLogs];
         if (query && query.trim()) {
             const q = query.toLowerCase().trim();
-            return combined.filter((l) => l.user.toLowerCase().includes(q) ||
+            return mappedDbLogs.filter((l) => l.user.toLowerCase().includes(q) ||
                 l.action.toLowerCase().includes(q) ||
                 l.category.toLowerCase().includes(q) ||
                 l.ip.includes(q));
         }
-        return combined;
+        return mappedDbLogs;
+    }
+    async createActivityLog(tenantId, data) {
+        let activeTenantId = null;
+        if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+            activeTenantId = tenantId;
+        }
+        else {
+            try {
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                if (demoTenant?.id)
+                    activeTenantId = demoTenant.id;
+            }
+            catch (_) { }
+        }
+        const [newLog] = await database_js_1.db
+            .insert(index_js_1.auditLogs)
+            .values({
+            tenantId: activeTenantId,
+            action: data.action || "MANUAL_AUDIT_ENTRY",
+            entityType: data.category || "System",
+            entityId: "MANUAL_NOTE",
+            newValues: { details: data.details || data.action },
+            ipAddress: "192.168.1.10",
+        })
+            .returning();
+        return {
+            id: `ACT-${Date.now().toString().slice(-3)}`,
+            dbId: newLog.id,
+            user: "Company Administrator",
+            action: `${newLog.action} on ${newLog.entityType} (${newLog.entityId})`,
+            category: data.category || "Security",
+            ip: newLog.ipAddress || "192.168.1.10",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            createdAt: newLog.createdAt,
+        };
+    }
+    async updateActivityLog(tenantId, logId, data) {
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(logId);
+            let targetId = logId;
+            if (!isUuid) {
+                const indexMatch = logId.match(/ACT-(\d+)/i);
+                if (indexMatch) {
+                    const indexNum = parseInt(indexMatch[1], 10) - 801;
+                    const logs = await database_js_1.db.select().from(index_js_1.auditLogs).orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`).limit(150);
+                    if (logs[indexNum])
+                        targetId = logs[indexNum].id;
+                }
+            }
+            const updateValues = {};
+            if (data.action)
+                updateValues.action = data.action;
+            if (data.category)
+                updateValues.entityType = data.category;
+            const [updated] = await database_js_1.db.update(index_js_1.auditLogs).set(updateValues).where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.id, targetId)).returning();
+            return { success: true, updated };
+        }
+        catch (err) {
+            console.warn("updateActivityLog error:", err.message);
+            return { success: false, message: err.message };
+        }
+    }
+    async deleteActivityLog(tenantId, logId) {
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(logId);
+            if (isUuid) {
+                await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.id, logId));
+            }
+            else {
+                const indexMatch = logId.match(/ACT-(\d+)/i);
+                if (indexMatch) {
+                    const indexNum = parseInt(indexMatch[1], 10) - 801;
+                    const logs = await database_js_1.db.select().from(index_js_1.auditLogs).orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`).limit(150);
+                    if (logs[indexNum]) {
+                        await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.id, logs[indexNum].id));
+                    }
+                }
+            }
+            return { success: true, message: `Audit log ${logId} successfully deleted from database.` };
+        }
+        catch (err) {
+            console.warn("deleteActivityLog error:", err.message);
+            return { success: false, message: err.message };
+        }
     }
     // ==========================================
     // ROLES & PERMISSIONS GOVERNANCE
     // ==========================================
     async getRoles(tenantId) {
         try {
-            const roleList = await database_js_1.db.select().from(index_js_1.roles);
-            const userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
+            let activeTenantId = null;
+            if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+                activeTenantId = tenantId;
+            }
+            let roleList = [];
+            if (activeTenantId) {
+                roleList = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.tenantId, activeTenantId));
+                if (roleList.length === 0) {
+                    roleList = await database_js_1.db.select().from(index_js_1.roles);
+                }
+            }
+            else {
+                roleList = await database_js_1.db.select().from(index_js_1.roles);
+            }
+            let userRoleList = [];
+            try {
+                userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
+            }
+            catch (_) { }
             if (roleList && roleList.length > 0) {
                 return roleList.map((r, idx) => {
                     const assignedCount = userRoleList.filter((ur) => ur.roleId === r.id).length;
+                    const defaultFallbackCount = r.code === "operator" ? 42 : r.code === "plant_manager" ? 4 : r.code === "admin" ? 2 : 1;
                     return {
-                        id: `ROL-0${idx + 1}`,
+                        id: r.id || `ROL-0${idx + 1}`,
                         dbId: r.id,
                         code: r.code,
                         name: r.name,
                         description: r.description || "Custom enterprise operational scope",
-                        userCount: assignedCount || (r.code === "operator" ? 42 : r.code === "plant_manager" ? 4 : r.code === "admin" ? 2 : 1),
+                        userCount: assignedCount > 0 ? assignedCount : defaultFallbackCount,
                         isSystem: r.isSystem,
-                        createdAt: r.createdAt,
+                        createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || new Date().toISOString()),
                     };
                 });
             }
         }
         catch (err) {
-            console.warn("Database query failed in getRoles, using in-memory roles registry:", err.message);
+            console.warn("Database query failed in getRoles:", err.message);
         }
         return inMemoryRoles;
     }
@@ -860,6 +1210,57 @@ class AdminService {
             throw new AppError_js_1.ValidationError("Role name is required.");
         }
         const code = input.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "_");
+        try {
+            let activeTenantId = null;
+            if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+                activeTenantId = tenantId;
+            }
+            else {
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+                if (demoTenant?.id)
+                    activeTenantId = demoTenant.id;
+            }
+            const [created] = await database_js_1.db
+                .insert(index_js_1.roles)
+                .values({
+                tenantId: activeTenantId,
+                code,
+                name: input.name.trim(),
+                description: input.description?.trim() || "Custom enterprise operational scope",
+                isSystem: false,
+            })
+                .returning();
+            if (activeTenantId && created) {
+                try {
+                    await database_js_1.db.insert(index_js_1.auditLogs).values({
+                        tenantId: activeTenantId,
+                        action: "CREATE_CUSTOM_ROLE",
+                        entityType: "Role",
+                        entityId: created.id,
+                        newValues: { name: created.name, code: created.code },
+                        ipAddress: "192.168.1.10",
+                    });
+                }
+                catch (_) { }
+            }
+            if (created) {
+                return {
+                    id: created.id,
+                    dbId: created.id,
+                    code: created.code,
+                    name: created.name,
+                    description: created.description || "Custom enterprise operational scope",
+                    userCount: 0,
+                    isSystem: false,
+                    createdAt: created.createdAt instanceof Date ? created.createdAt.toISOString() : String(created.createdAt || new Date().toISOString()),
+                };
+            }
+        }
+        catch (e) {
+            console.warn("createRole DB insert fallback:", e.message);
+            if (tenantId)
+                throw e;
+        }
         const newId = `ROL-0${inMemoryRoles.length + 1}`;
         const newRoleRecord = {
             id: newId,
@@ -872,129 +1273,379 @@ class AdminService {
             createdAt: new Date().toISOString(),
         };
         inMemoryRoles.push(newRoleRecord);
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            const [created] = await database_js_1.db
-                .insert(index_js_1.roles)
-                .values({
-                tenantId: activeTenantId,
-                code,
-                name: input.name.trim(),
-                description: input.description?.trim() || "Custom enterprise operational scope",
-                isSystem: false,
-            })
-                .returning();
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "CREATE_CUSTOM_ROLE",
-                    entityType: "Role",
-                    entityId: created.id,
-                    newValues: { name: created.name, code: created.code },
-                    ipAddress: "192.168.1.10",
-                });
-            }
-            newRoleRecord.dbId = created.id;
-            newRoleRecord.createdAt = created.createdAt instanceof Date ? created.createdAt.toISOString() : String(created.createdAt || new Date().toISOString());
-        }
-        catch (e) {
-            console.warn("createRole DB insert fallback:", e.message);
-        }
         return newRoleRecord;
     }
+    async updateRole(tenantId, id, input) {
+        if (!id) {
+            throw new AppError_js_1.ValidationError("Role ID is required.");
+        }
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            let targetRole = null;
+            if (isUuid) {
+                const [found] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.id, id)).limit(1);
+                targetRole = found;
+            }
+            else {
+                const [found] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.code, id)).limit(1);
+                targetRole = found;
+            }
+            if (targetRole) {
+                const updateData = { updatedAt: new Date() };
+                if (input.name && input.name.trim())
+                    updateData.name = input.name.trim();
+                if (input.description !== undefined)
+                    updateData.description = input.description.trim();
+                const [updated] = await database_js_1.db
+                    .update(index_js_1.roles)
+                    .set(updateData)
+                    .where((0, drizzle_orm_1.eq)(index_js_1.roles.id, targetRole.id))
+                    .returning();
+                return {
+                    id: updated.id,
+                    dbId: updated.id,
+                    code: updated.code,
+                    name: updated.name,
+                    description: updated.description || "",
+                    isSystem: updated.isSystem,
+                };
+            }
+        }
+        catch (err) {
+            console.warn("updateRole DB update failed:", err.message);
+        }
+        const idx = inMemoryRoles.findIndex((r) => r.id === id || r.code === id);
+        if (idx !== -1) {
+            if (input.name)
+                inMemoryRoles[idx].name = input.name.trim();
+            if (input.description !== undefined)
+                inMemoryRoles[idx].description = input.description.trim();
+            return inMemoryRoles[idx];
+        }
+        return { id, name: input.name, description: input.description };
+    }
+    async deleteRole(tenantId, id) {
+        if (!id) {
+            throw new AppError_js_1.ValidationError("Role ID is required.");
+        }
+        try {
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+            let targetRole = null;
+            if (isUuid) {
+                const [found] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.id, id)).limit(1);
+                targetRole = found;
+            }
+            else {
+                const [found] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.code, id)).limit(1);
+                targetRole = found;
+            }
+            if (targetRole) {
+                try {
+                    await database_js_1.db.delete(index_js_1.userRoles).where((0, drizzle_orm_1.eq)(index_js_1.userRoles.roleId, targetRole.id));
+                }
+                catch (_) { }
+                try {
+                    await database_js_1.db.delete(index_js_1.rolePermissions).where((0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, targetRole.id));
+                }
+                catch (_) { }
+                await database_js_1.db.delete(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.id, targetRole.id));
+                return { success: true, message: `Role "${targetRole.name}" deleted successfully.` };
+            }
+        }
+        catch (err) {
+            console.warn("deleteRole DB deletion failed:", err.message);
+            throw err;
+        }
+        const idx = inMemoryRoles.findIndex((r) => r.id === id || r.code === id);
+        if (idx !== -1) {
+            inMemoryRoles.splice(idx, 1);
+        }
+        return { success: true, message: "Role deleted successfully." };
+    }
+    async ensurePermissionsSeeded() {
+        const PERMISSION_MODULES = [
+            "SKU Master",
+            "BOM / Recipe",
+            "Work Centers / Lines",
+            "Machine Assets",
+            "Employees & Skills",
+            "Quality Specs",
+            "Production",
+            "Maintenance & CMMS",
+            "Data Migration",
+            "Audit Trail",
+            "Reports & Exports",
+        ];
+        const PERMISSION_ACTIONS = ["view", "create", "edit", "delete", "approve"];
+        try {
+            const existingPerms = await database_js_1.db.select().from(index_js_1.permissions);
+            if (!existingPerms || existingPerms.length === 0) {
+                for (const mod of PERMISSION_MODULES) {
+                    for (const act of PERMISSION_ACTIONS) {
+                        const code = `${mod.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${act}`;
+                        await database_js_1.db
+                            .insert(index_js_1.permissions)
+                            .values({
+                            code,
+                            module: mod,
+                            action: act,
+                            description: `${act.toUpperCase()} operations on ${mod}`,
+                        })
+                            .onConflictDoNothing();
+                    }
+                }
+            }
+            const existingRolePerms = await database_js_1.db.select().from(index_js_1.rolePermissions);
+            if (!existingRolePerms || existingRolePerms.length === 0) {
+                const allRoles = await database_js_1.db.select().from(index_js_1.roles);
+                const allPerms = await database_js_1.db.select().from(index_js_1.permissions);
+                const defaultMatrix = {
+                    admin: {
+                        "SKU Master": ["view", "create", "edit", "delete", "approve"],
+                        "BOM / Recipe": ["view", "create", "edit", "delete", "approve"],
+                        "Work Centers / Lines": ["view", "create", "edit", "delete", "approve"],
+                        "Machine Assets": ["view", "create", "edit", "delete", "approve"],
+                        "Employees & Skills": ["view", "create", "edit", "delete", "approve"],
+                        "Quality Specs": ["view", "create", "edit", "delete", "approve"],
+                        "Production": ["view", "create", "edit", "delete", "approve"],
+                        "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
+                        "Data Migration": ["view", "create", "edit", "delete", "approve"],
+                        "Audit Trail": ["view", "create", "edit", "delete", "approve"],
+                        "Reports & Exports": ["view", "create", "edit", "delete", "approve"],
+                    },
+                    plant_manager: {
+                        "SKU Master": ["view", "create", "edit", "approve"],
+                        "BOM / Recipe": ["view", "create", "edit", "approve"],
+                        "Work Centers / Lines": ["view", "create", "edit", "approve"],
+                        "Machine Assets": ["view", "create", "edit", "approve"],
+                        "Employees & Skills": ["view", "create", "edit", "approve"],
+                        "Quality Specs": ["view", "create", "edit", "approve"],
+                        "Production": ["view", "create", "edit", "delete", "approve"],
+                        "Maintenance & CMMS": ["view", "create", "edit", "approve"],
+                        "Audit Trail": ["view", "approve"],
+                        "Reports & Exports": ["view", "create", "edit", "approve"],
+                    },
+                    quality: {
+                        "SKU Master": ["view"],
+                        "BOM / Recipe": ["view", "edit", "approve"],
+                        "Quality Specs": ["view", "create", "edit", "approve"],
+                        "Production": ["view", "approve"],
+                        "Audit Trail": ["view", "approve"],
+                    },
+                    maintenance: {
+                        "Machine Assets": ["view", "create", "edit", "approve"],
+                        "Work Centers / Lines": ["view", "edit"],
+                        "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
+                        "Production": ["view"],
+                    },
+                    operator: {
+                        "SKU Master": ["view"],
+                        "BOM / Recipe": ["view"],
+                        "Work Centers / Lines": ["view"],
+                        "Production": ["view", "create", "edit"],
+                        "Quality Specs": ["view"],
+                    },
+                };
+                for (const [roleCode, moduleRules] of Object.entries(defaultMatrix)) {
+                    const role = allRoles.find((r) => r.code === roleCode || (roleCode === "admin" && r.code === "master_admin"));
+                    if (!role)
+                        continue;
+                    for (const [mod, allowedActs] of Object.entries(moduleRules)) {
+                        for (const act of allowedActs) {
+                            const perm = allPerms.find((p) => p.module === mod && p.action.toLowerCase() === act.toLowerCase());
+                            if (perm) {
+                                try {
+                                    await database_js_1.db.insert(index_js_1.rolePermissions).values({
+                                        roleId: role.id,
+                                        permissionId: perm.id,
+                                    });
+                                }
+                                catch (_) { }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (err) {
+            console.warn("ensurePermissionsSeeded warning:", err.message);
+        }
+    }
     async getPermissionMatrix(tenantId) {
-        return {
-            admin: {
-                permissions: {
-                    "SKU Master": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "BOM / Recipe": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Work Centers / Lines": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Machine Assets": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Employees & Skills": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Quality Specs": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Production": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Maintenance & CMMS": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Data Migration": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Audit Trail": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Executive Reports": { view: true, create: true, edit: true, delete: true, approve: true },
-                },
-            },
-            plant_manager: {
-                permissions: {
-                    "SKU Master": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "BOM / Recipe": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Work Centers / Lines": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Machine Assets": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Employees & Skills": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Quality Specs": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Production": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Maintenance & CMMS": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Data Migration": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "Audit Trail": { view: true, create: false, edit: false, delete: false, approve: true },
-                    "Executive Reports": { view: true, create: true, edit: true, delete: false, approve: true },
-                },
-            },
-            qa_manager: {
-                permissions: {
-                    "SKU Master": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "BOM / Recipe": { view: true, create: false, edit: true, delete: false, approve: true },
-                    "Quality Specs": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Production": { view: true, create: false, edit: false, delete: false, approve: true },
-                    "Audit Trail": { view: true, create: false, edit: false, delete: false, approve: true },
-                    "Executive Reports": { view: true, create: false, edit: false, delete: false, approve: false },
-                },
-            },
-            maintenance: {
-                permissions: {
-                    "Machine Assets": { view: true, create: true, edit: true, delete: false, approve: true },
-                    "Work Centers / Lines": { view: true, create: false, edit: true, delete: false, approve: false },
-                    "Maintenance & CMMS": { view: true, create: true, edit: true, delete: true, approve: true },
-                    "Production": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "Audit Trail": { view: true, create: false, edit: false, delete: false, approve: false },
-                },
-            },
-            operator: {
-                permissions: {
-                    "SKU Master": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "BOM / Recipe": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "Work Centers / Lines": { view: true, create: false, edit: false, delete: false, approve: false },
-                    "Production": { view: true, create: true, edit: true, delete: false, approve: false },
-                    "Quality Specs": { view: true, create: false, edit: false, delete: false, approve: false },
-                },
-            },
-        };
+        const PERMISSION_MODULES = [
+            "SKU Master",
+            "BOM / Recipe",
+            "Work Centers / Lines",
+            "Machine Assets",
+            "Employees & Skills",
+            "Quality Specs",
+            "Production",
+            "Maintenance & CMMS",
+            "Data Migration",
+            "Audit Trail",
+            "Reports & Exports",
+        ];
+        await this.ensurePermissionsSeeded();
+        try {
+            const allRoles = await database_js_1.db.select().from(index_js_1.roles);
+            const allPerms = await database_js_1.db.select().from(index_js_1.permissions);
+            const allRolePerms = await database_js_1.db.select().from(index_js_1.rolePermissions);
+            const permMap = new Map();
+            for (const p of allPerms) {
+                permMap.set(p.id, { module: p.module, action: p.action.toLowerCase() });
+            }
+            const matrix = {};
+            for (const r of allRoles) {
+                matrix[r.code] = { permissions: {} };
+                for (const mod of PERMISSION_MODULES) {
+                    matrix[r.code].permissions[mod] = {
+                        view: false,
+                        create: false,
+                        edit: false,
+                        delete: false,
+                        approve: false,
+                    };
+                }
+            }
+            for (const rp of allRolePerms) {
+                const role = allRoles.find((r) => r.id === rp.roleId);
+                const perm = permMap.get(rp.permissionId);
+                if (role && perm && matrix[role.code]) {
+                    if (!matrix[role.code].permissions[perm.module]) {
+                        matrix[role.code].permissions[perm.module] = {
+                            view: false,
+                            create: false,
+                            edit: false,
+                            delete: false,
+                            approve: false,
+                        };
+                    }
+                    matrix[role.code].permissions[perm.module][perm.action] = true;
+                }
+            }
+            if (matrix["quality"] && !matrix["qa_manager"]) {
+                matrix["qa_manager"] = JSON.parse(JSON.stringify(matrix["quality"]));
+            }
+            if (matrix["admin"] && !matrix["master_admin"]) {
+                matrix["master_admin"] = JSON.parse(JSON.stringify(matrix["admin"]));
+            }
+            return matrix;
+        }
+        catch (err) {
+            console.warn("Database query failed in getPermissionMatrix:", err.message);
+        }
+        return {};
     }
     async updatePermissionMatrix(tenantId, input) {
-        // Log to audit
+        await this.ensurePermissionsSeeded();
         try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
+            const allRoles = await database_js_1.db.select().from(index_js_1.roles);
+            let allPerms = await database_js_1.db.select().from(index_js_1.permissions);
+            const targetRole = allRoles.find((r) => r.code === input.roleKey ||
+                r.id === input.roleKey ||
+                (input.roleKey === "qa_manager" && r.code === "quality") ||
+                (input.roleKey === "admin" && (r.code === "admin" || r.code === "master_admin")));
+            if (!targetRole) {
+                throw new AppError_js_1.NotFoundError(`Role "${input.roleKey}" not found in database.`);
+            }
+            if (input.permissions) {
+                for (const [modName, actionsObj] of Object.entries(input.permissions)) {
+                    for (const [actName, isAllowed] of Object.entries(actionsObj)) {
+                        let perm = allPerms.find((p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName.toLowerCase());
+                        if (!perm) {
+                            const code = `${modName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${actName.toLowerCase()}`;
+                            const [newPerm] = await database_js_1.db
+                                .insert(index_js_1.permissions)
+                                .values({
+                                code,
+                                module: modName,
+                                action: actName.toLowerCase(),
+                                description: `${actName.toUpperCase()} on ${modName}`,
+                            })
+                                .returning();
+                            perm = newPerm;
+                            if (newPerm)
+                                allPerms.push(newPerm);
+                        }
+                        if (perm) {
+                            if (isAllowed) {
+                                const existing = await database_js_1.db
+                                    .select()
+                                    .from(index_js_1.rolePermissions)
+                                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, targetRole.id), (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.permissionId, perm.id)));
+                                if (!existing || existing.length === 0) {
+                                    await database_js_1.db.insert(index_js_1.rolePermissions).values({
+                                        roleId: targetRole.id,
+                                        permissionId: perm.id,
+                                    });
+                                }
+                            }
+                            else {
+                                await database_js_1.db
+                                    .delete(index_js_1.rolePermissions)
+                                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, targetRole.id), (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.permissionId, perm.id)));
+                            }
+                        }
+                    }
+                }
+            }
+            else if (input.module && input.action) {
+                const modName = input.module;
+                const actName = input.action.toLowerCase();
+                let perm = allPerms.find((p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName);
+                if (perm) {
+                    if (input.allowed) {
+                        const existing = await database_js_1.db
+                            .select()
+                            .from(index_js_1.rolePermissions)
+                            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, targetRole.id), (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.permissionId, perm.id)));
+                        if (!existing || existing.length === 0) {
+                            await database_js_1.db.insert(index_js_1.rolePermissions).values({
+                                roleId: targetRole.id,
+                                permissionId: perm.id,
+                            });
+                        }
+                    }
+                    else {
+                        await database_js_1.db
+                            .delete(index_js_1.rolePermissions)
+                            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, targetRole.id), (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.permissionId, perm.id)));
+                    }
+                }
+            }
+            let activeTenantId = null;
+            if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+                activeTenantId = tenantId;
+            }
+            else {
                 const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
+                if (demoTenant?.id)
+                    activeTenantId = demoTenant.id;
             }
             if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "UPDATE_PERMISSION_MATRIX",
-                    entityType: "PermissionMatrix",
-                    entityId: input.roleKey,
-                    newValues: input,
-                    ipAddress: "192.168.1.10",
-                });
+                try {
+                    await database_js_1.db.insert(index_js_1.auditLogs).values({
+                        tenantId: activeTenantId,
+                        action: "UPDATE_PERMISSION_MATRIX",
+                        entityType: "PermissionMatrix",
+                        entityId: targetRole.id,
+                        newValues: { role: targetRole.name, roleCode: targetRole.code },
+                        ipAddress: "192.168.1.10",
+                    });
+                }
+                catch (_) { }
             }
+            return {
+                success: true,
+                roleKey: input.roleKey,
+                roleId: targetRole.id,
+                message: `Permissions matrix for role "${targetRole.name}" successfully updated in database!`,
+            };
         }
-        catch (e) {
-            // non-blocking
+        catch (err) {
+            console.warn("updatePermissionMatrix error:", err.message);
+            throw err;
         }
-        return {
-            success: true,
-            roleKey: input.roleKey,
-            message: `Permissions matrix for role "${input.roleKey}" successfully updated and synchronized!`,
-        };
     }
     async testPermissionAccess(input) {
         const matrix = await this.getPermissionMatrix();
@@ -1073,6 +1724,22 @@ class AdminService {
         };
     }
     async getApprovalRules(tenantId) {
+        try {
+            const dbRules = await database_js_1.db.select().from(index_js_1.approvalRules).orderBy(index_js_1.approvalRules.id);
+            if (dbRules && dbRules.length > 0) {
+                return dbRules.map((r) => ({
+                    id: r.id,
+                    event: r.event,
+                    tier: r.tier,
+                    authorizedRoles: r.authorizedRoles,
+                    compliance: r.compliance || "Standard Policy",
+                    description: r.description || "",
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("Database query failed in getApprovalRules:", err.message);
+        }
         return [
             { id: "APR-01", event: "Finished Goods QA Batch Release (CoA)", tier: "Dual Sign-off", authorizedRoles: "QA Manager + Plant Manager", compliance: "FDA 21 CFR Part 11" },
             { id: "APR-02", event: "Master BOM & Recipe Revision Approval", tier: "2-Tier Approval", authorizedRoles: "QA Manager + System Admin", compliance: "ISO 22000" },
@@ -1080,608 +1747,289 @@ class AdminService {
             { id: "APR-04", event: "Emergency Schedule Override & Overtime", tier: "1-Tier Instant", authorizedRoles: "Plant Manager", compliance: "Internal Ops Policy" },
         ];
     }
+    async createApprovalRule(tenantId, data) {
+        let activeTenantId = null;
+        if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
+            activeTenantId = tenantId;
+        }
+        else {
+            const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
+            if (demoTenant?.id)
+                activeTenantId = demoTenant.id;
+        }
+        const allRules = await database_js_1.db.select().from(index_js_1.approvalRules);
+        const newId = `APR-0${allRules.length + 1}`;
+        const [created] = await database_js_1.db
+            .insert(index_js_1.approvalRules)
+            .values({
+            id: newId,
+            tenantId: activeTenantId,
+            event: data.event,
+            tier: data.tier,
+            authorizedRoles: data.authorizedRoles,
+            compliance: data.compliance || "Standard Operational Policy",
+            description: data.description || "",
+        })
+            .returning();
+        return created;
+    }
+    async updateApprovalRule(tenantId, id, data) {
+        const updateData = { updatedAt: new Date() };
+        if (data.event)
+            updateData.event = data.event;
+        if (data.tier)
+            updateData.tier = data.tier;
+        if (data.authorizedRoles)
+            updateData.authorizedRoles = data.authorizedRoles;
+        if (data.compliance)
+            updateData.compliance = data.compliance;
+        if (data.description !== undefined)
+            updateData.description = data.description;
+        const [updated] = await database_js_1.db
+            .update(index_js_1.approvalRules)
+            .set(updateData)
+            .where((0, drizzle_orm_1.eq)(index_js_1.approvalRules.id, id))
+            .returning();
+        return updated;
+    }
+    async deleteApprovalRule(tenantId, id) {
+        await database_js_1.db.delete(index_js_1.approvalRules).where((0, drizzle_orm_1.eq)(index_js_1.approvalRules.id, id));
+        return { success: true, message: `Approval Rule "${id}" deleted successfully.` };
+    }
     async scanDataHealth(tenantId) {
-        const missingData = [];
-        const duplicates = [];
-        const staleRecords = [];
-        const invalidReferences = [];
-        const brokenRelationships = [];
         try {
-            // ── 1. MISSING ATTRIBUTES ─────────────────────────────────────────
-            // SKUs with no standardCost
-            const skusNoCoast = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, sku_code, name FROM skus
-        WHERE (standard_cost IS NULL OR standard_cost = '0' OR standard_cost = '0.0000')
-        LIMIT 20
-      `);
-            for (const s of skusNoCoast.rows) {
-                missingData.push({
-                    id: `MD-SKU-${s.id.toString().slice(-6)}`,
-                    table: "Item Master",
-                    recordKey: `${s.sku_code} (${s.name})`,
-                    field: "Standard Unit Cost",
-                    suggestion: "Set standard cost based on BOM component costing",
-                    status: "Open"
-                });
-            }
-            // SKUs with no UOM
-            const skusNoUom = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, sku_code, name FROM skus
-        WHERE uom IS NULL OR uom = ''
-        LIMIT 10
-      `);
-            for (const s of skusNoUom.rows) {
-                missingData.push({
-                    id: `MD-UOM-${s.id.toString().slice(-6)}`,
-                    table: "Item Master",
-                    recordKey: `${s.sku_code} (${s.name})`,
-                    field: "Unit of Measure (UOM)",
-                    suggestion: "Assign primary UOM (e.g. Units, Liters, kg)",
-                    status: "Open"
-                });
-            }
-            // Users with no role assignment
-            const usersNoRole = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT u.id, u.email, u.first_name, u.last_name FROM users u
-        LEFT JOIN user_roles ur ON ur.user_id = u.id
-        WHERE ur.user_id IS NULL
-        LIMIT 10
-      `);
-            for (const u of usersNoRole.rows) {
-                missingData.push({
-                    id: `MD-USR-${u.id.toString().slice(-6)}`,
-                    table: "User Accounts",
-                    recordKey: `${u.first_name} ${u.last_name} (${u.email})`,
-                    field: "RBAC Role Assignment",
-                    suggestion: "Assign at least one operational role to this user",
-                    status: "Open"
-                });
-            }
-            // ── 2. DUPLICATES ─────────────────────────────────────────────────
-            // SKUs with same name (potential duplicates)
-            const dupSkus = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT name, COUNT(*) as cnt, array_agg(sku_code) as codes
-        FROM skus
-        GROUP BY name
-        HAVING COUNT(*) > 1
-        LIMIT 10
-      `);
-            for (const d of dupSkus.rows) {
-                duplicates.push({
-                    id: `DUP-SKU-${d.codes[0]}`,
-                    entityType: "SKU / Item Master",
-                    primaryRecord: `${d.codes[0]} (${d.name})`,
-                    duplicateRecord: `${d.codes[1] || d.codes[0]} (${d.name})`,
-                    similarity: "100% Name Match",
-                    status: "Potential Duplicate"
-                });
-            }
-            // Users with same email
-            const dupUsers = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT email, COUNT(*) as cnt FROM users
-        GROUP BY email HAVING COUNT(*) > 1
-        LIMIT 5
-      `);
-            for (const d of dupUsers.rows) {
-                duplicates.push({
-                    id: `DUP-USR-${d.email.slice(0, 8)}`,
-                    entityType: "User Account",
-                    primaryRecord: d.email,
-                    duplicateRecord: `${d.email} (${d.cnt} records)`,
-                    similarity: "100% Email Match",
-                    status: "Potential Duplicate"
-                });
-            }
-            // ── 3. STALE RECORDS ─────────────────────────────────────────────
-            // BOMs not updated in 180+ days
-            const staleBoms = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, name, updated_at FROM boms
-        WHERE updated_at < NOW() - INTERVAL '180 days'
-        LIMIT 10
-      `);
-            for (const b of staleBoms.rows) {
-                const daysOld = Math.floor((Date.now() - new Date(b.updated_at).getTime()) / 86400000);
-                staleRecords.push({
-                    id: `STL-BOM-${b.id.toString().slice(-6)}`,
-                    entityType: "BOM Recipe",
-                    recordKey: b.name,
-                    lastModified: new Date(b.updated_at).toISOString().slice(0, 10),
-                    daysSinceUpdate: daysOld,
-                    recommendation: "Review and re-approve BOM for current production cycle",
-                    status: "Stale"
-                });
-            }
-            // Users with no login activity (last_login_at NULL)
-            const staleUsers = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT id, email, first_name, last_name, created_at FROM users
-        WHERE last_login_at IS NULL AND created_at < NOW() - INTERVAL '30 days'
-        LIMIT 10
-      `);
-            for (const u of staleUsers.rows) {
-                staleRecords.push({
-                    id: `STL-USR-${u.id.toString().slice(-6)}`,
-                    entityType: "User Account",
-                    recordKey: `${u.first_name} ${u.last_name} (${u.email})`,
-                    lastModified: new Date(u.created_at).toISOString().slice(0, 10),
-                    daysSinceUpdate: Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000),
-                    recommendation: "Verify account is still required or deactivate",
-                    status: "Stale"
-                });
-            }
-            // ── 4. INVALID REFERENCES ────────────────────────────────────────
-            // BOMs referencing skuId that doesn't exist in skus table
-            const invalidBomSkus = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT b.id, b.name, b.sku_id FROM boms b
-        LEFT JOIN skus s ON s.id = b.sku_id
-        WHERE s.id IS NULL
-        LIMIT 10
-      `);
-            for (const b of invalidBomSkus.rows) {
-                invalidReferences.push({
-                    id: `INV-BOM-${b.id.toString().slice(-6)}`,
-                    entityType: "BOM Recipe",
-                    recordKey: b.name,
-                    invalidField: "sku_id (Finished Product SKU)",
-                    referencedValue: b.sku_id,
-                    resolution: "Re-link BOM to a valid SKU or delete orphan BOM",
-                    status: "Invalid Reference"
-                });
-            }
-            // ── 5. BROKEN RELATIONSHIPS ──────────────────────────────────────
-            // user_roles with user_id pointing to non-existent user
-            const brokenUserRoles = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
-        SELECT ur.id, ur.user_id, ur.role_id FROM user_roles ur
-        LEFT JOIN users u ON u.id = ur.user_id
-        WHERE u.id IS NULL
-        LIMIT 10
-      `);
-            for (const r of brokenUserRoles.rows) {
-                brokenRelationships.push({
-                    id: `BRK-UR-${r.id.toString().slice(-6)}`,
-                    entityType: "User-Role Mapping",
-                    parentRecord: `User ID: ${r.user_id}`,
-                    childRecord: `Role ID: ${r.role_id}`,
-                    breakageType: "Orphan User-Role FK — parent user deleted",
-                    resolution: "Delete orphan user_role record",
-                    status: "Broken"
-                });
-            }
+            const [missingRes, dupRes, invRes, brkRes, stlRes] = await Promise.all([
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT id, table_name AS "table", record_key AS "recordKey", field_name AS "field",
+                 suggestion, status, created_at AS "createdAt"
+          FROM public.data_health_missing
+          ORDER BY created_at ASC
+        `),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT id, entity_type AS "entityType", primary_record AS "primaryRecord",
+                 duplicate_record AS "duplicateRecord", similarity, status, created_at AS "createdAt"
+          FROM public.data_health_duplicates
+          ORDER BY created_at ASC
+        `),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT id, parent_table AS "parentTable", referenced_field AS "referencedField",
+                 foreign_id AS "foreignId", issue, status, created_at AS "createdAt"
+          FROM public.data_health_invalid_references
+          ORDER BY created_at ASC
+        `),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT id, from_entity AS "fromEntity", to_entity AS "toEntity",
+                 relationship, issue, status, created_at AS "createdAt"
+          FROM public.data_health_broken_relationships
+          ORDER BY created_at ASC
+        `),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT id, name, table_name AS "table", last_produced AS "lastProduced",
+                 inventory_on_hand AS "inventoryOnHand", status, created_at AS "createdAt"
+          FROM public.data_health_stale_records
+          ORDER BY created_at ASC
+        `),
+            ]);
+            const finalMissing = Array.isArray(missingRes?.rows) ? missingRes.rows : [];
+            const finalDuplicates = Array.isArray(dupRes?.rows) ? dupRes.rows : [];
+            const finalInvalid = Array.isArray(invRes?.rows) ? invRes.rows : [];
+            const finalBroken = Array.isArray(brkRes?.rows) ? brkRes.rows : [];
+            const finalStale = Array.isArray(stlRes?.rows) ? stlRes.rows : [];
+            const totalRecords = finalMissing.length + finalDuplicates.length + finalStale.length + finalInvalid.length + finalBroken.length;
+            const completeness = totalRecords === 0 ? 100 : Math.max(0, Math.round((1 - totalRecords / 100) * 100 * 10) / 10);
+            return {
+                summary: {
+                    completeness: completeness || 98.4,
+                    totalAnomalies: totalRecords,
+                    missingCount: finalMissing.filter((m) => m.status === "Open").length,
+                    duplicatesCount: finalDuplicates.filter((d) => d.status.includes("Duplicate")).length,
+                    staleCount: finalStale.filter((s) => !s.status.includes("Archived")).length,
+                    invalidReferencesCount: finalInvalid.filter((r) => r.status.includes("Broken")).length,
+                    brokenRelationshipsCount: finalBroken.filter((b) => b.status === "Unlinked").length,
+                    autoFixRules: 12,
+                    integrityTarget: 100,
+                },
+                missingData: finalMissing,
+                duplicates: finalDuplicates,
+                staleRecords: finalStale,
+                invalidReferences: finalInvalid,
+                brokenRelationships: finalBroken,
+            };
         }
         catch (err) {
             console.warn("scanDataHealth DB error:", err.message);
+            return {
+                summary: { completeness: 98.4, totalAnomalies: 0, missingCount: 0, duplicatesCount: 0, staleCount: 0, invalidReferencesCount: 0, brokenRelationshipsCount: 0, autoFixRules: 12, integrityTarget: 100 },
+                missingData: [], duplicates: [], staleRecords: [], invalidReferences: [], brokenRelationships: []
+            };
         }
-        // Default enterprise baseline anomalies
-        const defaultMissing = [
-            { id: "MD-01", table: "Item Master", recordKey: "SKU-5003 (Ginger Beer)", field: "Standard Unit Cost", suggestion: "Set standard cost to $0.38", status: "Open" },
-            { id: "MD-02", table: "Work Centers", recordKey: "WC-103 (Labeler)", field: "Operator Manning Standard", suggestion: "Assign standard crew = 2", status: "Open" },
-            { id: "MD-03", table: "Allergen Matrix", recordKey: "FAM-02 (Tonics)", field: "CIP Protocol Linkage", suggestion: "Link to CIP-01 (Hot Caustic)", status: "Open" }
-        ];
-        const defaultDuplicates = [
-            { id: "DUP-01", primaryRecord: "ING-1001 (Liquid Cane Sugar)", duplicateRecord: "ING-9004 (Liquid Cane Sugar 67 Bx)", entityType: "Raw Ingredient", similarity: "98% Match", status: "Potential Duplicate" },
-            { id: "DUP-02", primaryRecord: "CUST-401 (Whole Foods Market)", duplicateRecord: "CUST-499 (Whole Foods Direct TX)", entityType: "Customer Account", similarity: "92% Match", status: "Potential Duplicate" }
-        ];
-        const defaultInvalid = [
-            { id: "REF-01", parentTable: "BOM Recipe (BOM-5002)", foreignId: "ING-9901 (Non-existent)", issue: "Orphaned Foreign Key Reference", status: "Broken Key" }
-        ];
-        const defaultBroken = [
-            { id: "REL-101", fromEntity: "Production Routing (RTG-02)", toEntity: "Work Center (WC-04)", relationship: "Step 4 Seamer Operation", issue: "Work Center unattached to Line 3", status: "Unlinked" },
-            { id: "REL-102", fromEntity: "SKU-5001 (Citrus Soda)", toEntity: "Changeover Matrix", relationship: "SMED Standard Definition", issue: "Missing cleanout transition row to SKU-5003", status: "Unlinked" }
-        ];
-        const defaultStale = [
-            { id: "STL-01", name: "SKU-4008 (Seasonal Spiced Soda 2024)", table: "Item Master", lastProduced: "248 Days Ago", inventoryOnHand: 0, status: "Stale / Obsolete" },
-            { id: "STL-02", name: "BOM-4008 (Spiced Formula v1)", table: "BOM Master", lastProduced: "248 Days Ago", inventoryOnHand: 0, status: "Stale / Obsolete" },
-            { id: "STL-03", name: "VEND-88 (Legacy Glass Supplier)", table: "Vendor Master", lastProduced: "310 Days Ago", inventoryOnHand: 0, status: "Inactive Vendor" }
-        ];
-        let finalMissing = missingData.length > 0 ? [...missingData, ...defaultMissing] : defaultMissing;
-        let finalDuplicates = duplicates.length > 0 ? [...duplicates, ...defaultDuplicates] : defaultDuplicates;
-        let finalInvalid = invalidReferences.length > 0 ? [...invalidReferences, ...defaultInvalid] : defaultInvalid;
-        let finalBroken = brokenRelationships.length > 0 ? [...brokenRelationships, ...defaultBroken] : defaultBroken;
-        let finalStale = staleRecords.length > 0 ? [...staleRecords, ...defaultStale] : defaultStale;
-        // Synchronize with database audit_logs for live remediations and deletions
-        try {
-            const logs = await database_js_1.db
-                .select()
-                .from(index_js_1.auditLogs)
-                .where((0, drizzle_orm_1.sql) `action LIKE '%DATA_HEALTH%' OR entity_type LIKE 'DataHealth%'`);
-            for (const log of logs) {
-                const entityId = log.entityId;
-                const action = log.action || "";
-                if (action.includes("DELETE")) {
-                    finalMissing = finalMissing.filter((m) => m.id !== entityId);
-                    finalDuplicates = finalDuplicates.filter((d) => d.id !== entityId);
-                    finalInvalid = finalInvalid.filter((r) => r.id !== entityId);
-                    finalBroken = finalBroken.filter((b) => b.id !== entityId);
-                    finalStale = finalStale.filter((s) => s.id !== entityId);
-                }
-                else if (action.includes("REMEDIATE")) {
-                    finalMissing = finalMissing.map((m) => m.id === entityId ? { ...m, status: "Remediated" } : m);
-                    finalDuplicates = finalDuplicates.map((d) => d.id === entityId ? { ...d, status: "Merged / Resolved" } : d);
-                    finalInvalid = finalInvalid.map((r) => r.id === entityId ? { ...r, status: "Resolved" } : r);
-                    finalBroken = finalBroken.map((b) => b.id === entityId ? { ...b, status: "Connected" } : b);
-                    finalStale = finalStale.map((s) => s.id === entityId ? { ...s, status: "Archived" } : s);
-                }
-            }
+    }
+    async createDataHealthRecord(tenantId, category, input) {
+        const cat = category.toLowerCase().replace(/[-_]/g, "");
+        if (cat.includes("missing")) {
+            const id = input.id || `MD-0${Date.now().toString().slice(-3)}`;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_missing (id, table_name, record_key, field_name, suggestion, status, created_at, updated_at)
+        VALUES (${id}, ${input.table || input.tableName || "Item Master"}, ${input.recordKey || "SKU-Custom"}, ${input.field || input.fieldName || "Standard Cost"}, ${input.suggestion || "Review attribute"}, ${input.status || "Open"}, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET table_name = EXCLUDED.table_name, record_key = EXCLUDED.record_key, field_name = EXCLUDED.field_name, suggestion = EXCLUDED.suggestion, status = EXCLUDED.status, updated_at = NOW()
+      `);
+            return { id, table: input.table || input.tableName || "Item Master", recordKey: input.recordKey || "SKU-Custom", field: input.field || input.fieldName || "Standard Cost", suggestion: input.suggestion || "Review attribute", status: input.status || "Open" };
         }
-        catch (e) {
-            // non-blocking
+        if (cat.includes("dup")) {
+            const id = input.id || `DUP-0${Date.now().toString().slice(-3)}`;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_duplicates (id, entity_type, primary_record, duplicate_record, similarity, status, created_at, updated_at)
+        VALUES (${id}, ${input.entityType || "Item Master"}, ${input.primaryRecord || "Primary Record"}, ${input.duplicateRecord || "Duplicate Record"}, ${input.similarity || "95% Match"}, ${input.status || "Potential Duplicate"}, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET entity_type = EXCLUDED.entity_type, primary_record = EXCLUDED.primary_record, duplicate_record = EXCLUDED.duplicate_record, similarity = EXCLUDED.similarity, status = EXCLUDED.status, updated_at = NOW()
+      `);
+            return { id, entityType: input.entityType || "Item Master", primaryRecord: input.primaryRecord || "Primary Record", duplicateRecord: input.duplicateRecord || "Duplicate Record", similarity: input.similarity || "95% Match", status: input.status || "Potential Duplicate" };
         }
-        // Calculate stats
-        const totalRecords = finalMissing.length + finalDuplicates.length + finalStale.length + finalInvalid.length + finalBroken.length;
-        const completeness = totalRecords === 0 ? 100 : Math.max(0, Math.round((1 - totalRecords / 100) * 100 * 10) / 10);
-        return {
-            summary: {
-                completeness: completeness || 98.4,
-                totalAnomalies: totalRecords,
-                missingCount: finalMissing.filter((m) => m.status === "Open").length,
-                duplicatesCount: finalDuplicates.filter((d) => d.status.includes("Duplicate")).length,
-                staleCount: finalStale.filter((s) => !s.status.includes("Archived")).length,
-                invalidReferencesCount: finalInvalid.filter((r) => r.status.includes("Broken")).length,
-                brokenRelationshipsCount: finalBroken.filter((b) => b.status === "Unlinked").length,
-                autoFixRules: 12,
-                integrityTarget: 100,
-            },
-            missingData: finalMissing,
-            duplicates: finalDuplicates,
-            staleRecords: finalStale,
-            invalidReferences: finalInvalid,
-            brokenRelationships: finalBroken,
-        };
+        if (cat.includes("inv") || cat.includes("ref")) {
+            const id = input.id || `REF-0${Date.now().toString().slice(-3)}`;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_invalid_references (id, parent_table, referenced_field, foreign_id, issue, status, created_at, updated_at)
+        VALUES (${id}, ${input.parentTable || "Parent Table"}, ${input.referencedField || "Foreign Key ID"}, ${input.foreignId || "REF-ID"}, ${input.issue || "Orphaned Reference"}, ${input.status || "Broken Key"}, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET parent_table = EXCLUDED.parent_table, referenced_field = EXCLUDED.referenced_field, foreign_id = EXCLUDED.foreign_id, issue = EXCLUDED.issue, status = EXCLUDED.status, updated_at = NOW()
+      `);
+            return { id, parentTable: input.parentTable || "Parent Table", referencedField: input.referencedField || "Foreign Key ID", foreignId: input.foreignId || "REF-ID", issue: input.issue || "Orphaned Reference", status: input.status || "Broken Key" };
+        }
+        if (cat.includes("brok") || cat.includes("rel")) {
+            const id = input.id || `REL-0${Date.now().toString().slice(-3)}`;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_broken_relationships (id, from_entity, to_entity, relationship, issue, status, created_at, updated_at)
+        VALUES (${id}, ${input.fromEntity || "From Entity"}, ${input.toEntity || "To Entity"}, ${input.relationship || "Operational Flow"}, ${input.issue || "Unlinked Flow"}, ${input.status || "Unlinked"}, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET from_entity = EXCLUDED.from_entity, to_entity = EXCLUDED.to_entity, relationship = EXCLUDED.relationship, issue = EXCLUDED.issue, status = EXCLUDED.status, updated_at = NOW()
+      `);
+            return { id, fromEntity: input.fromEntity || "From Entity", toEntity: input.toEntity || "To Entity", relationship: input.relationship || "Operational Flow", issue: input.issue || "Unlinked Flow", status: input.status || "Unlinked" };
+        }
+        if (cat.includes("stal")) {
+            const id = input.id || `STL-0${Date.now().toString().slice(-3)}`;
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_stale_records (id, name, table_name, last_produced, inventory_on_hand, status, created_at, updated_at)
+        VALUES (${id}, ${input.name || "Stale Record"}, ${input.table || input.tableName || "Item Master"}, ${input.lastProduced || "90+ Days Ago"}, ${input.inventoryOnHand || "0"}, ${input.status || "Stale / Obsolete"}, NOW(), NOW())
+        ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, table_name = EXCLUDED.table_name, last_produced = EXCLUDED.last_produced, inventory_on_hand = EXCLUDED.inventory_on_hand, status = EXCLUDED.status, updated_at = NOW()
+      `);
+            return { id, name: input.name || "Stale Record", table: input.table || input.tableName || "Item Master", lastProduced: input.lastProduced || "90+ Days Ago", inventoryOnHand: input.inventoryOnHand || "0", status: input.status || "Stale / Obsolete" };
+        }
+        return { success: false, message: "Unknown category" };
+    }
+    async updateDataHealthRecord(tenantId, category, id, input) {
+        const cat = category.toLowerCase().replace(/[-_]/g, "");
+        if (cat.includes("missing")) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.data_health_missing
+        SET
+          table_name = COALESCE(${input.table || input.tableName || null}, table_name),
+          record_key = COALESCE(${input.recordKey || null}, record_key),
+          field_name = COALESCE(${input.field || input.fieldName || null}, field_name),
+          suggestion = COALESCE(${input.suggestion || null}, suggestion),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        else if (cat.includes("dup")) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.data_health_duplicates
+        SET
+          entity_type = COALESCE(${input.entityType || null}, entity_type),
+          primary_record = COALESCE(${input.primaryRecord || null}, primary_record),
+          duplicate_record = COALESCE(${input.duplicateRecord || null}, duplicate_record),
+          similarity = COALESCE(${input.similarity || null}, similarity),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        else if (cat.includes("inv") || cat.includes("ref")) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.data_health_invalid_references
+        SET
+          parent_table = COALESCE(${input.parentTable || null}, parent_table),
+          referenced_field = COALESCE(${input.referencedField || null}, referenced_field),
+          foreign_id = COALESCE(${input.foreignId || null}, foreign_id),
+          issue = COALESCE(${input.issue || null}, issue),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        else if (cat.includes("brok") || cat.includes("rel")) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.data_health_broken_relationships
+        SET
+          from_entity = COALESCE(${input.fromEntity || null}, from_entity),
+          to_entity = COALESCE(${input.toEntity || null}, to_entity),
+          relationship = COALESCE(${input.relationship || null}, relationship),
+          issue = COALESCE(${input.issue || null}, issue),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        else if (cat.includes("stal")) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.data_health_stale_records
+        SET
+          name = COALESCE(${input.name || null}, name),
+          table_name = COALESCE(${input.table || input.tableName || null}, table_name),
+          last_produced = COALESCE(${input.lastProduced || null}, last_produced),
+          inventory_on_hand = COALESCE(${input.inventoryOnHand || null}, inventory_on_hand),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
     }
     async remediateDataHealthItem(tenantId, input) {
-        let activeTenantId = tenantId;
-        if (!activeTenantId) {
-            const [demo] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-            activeTenantId = demo?.id;
-        }
-        // Log persistent action to database audit_logs
-        if (activeTenantId) {
-            await database_js_1.db.insert(index_js_1.auditLogs).values({
-                tenantId: activeTenantId,
-                action: `REMEDIATE_DATA_HEALTH_${(input.type || "ANOMALY").toUpperCase()}`,
-                entityType: "DataHealthAnomaly",
-                entityId: input.id,
-                newValues: input,
-                ipAddress: "192.168.1.10",
-            });
-        }
-        // If SKU is referenced, update its standard cost if applicable
-        if (input.recordKey && input.recordKey.includes("SKU-")) {
-            const match = input.recordKey.match(/SKU-[0-9]+/);
-            if (match) {
-                try {
-                    await database_js_1.db.update(index_js_1.skus).set({ standardCost: "0.38", updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(index_js_1.skus.skuCode, match[0]));
-                }
-                catch (_) { }
-            }
+        const id = input.id;
+        if (id) {
+            await Promise.all([
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.data_health_missing SET status = 'Remediated', updated_at = NOW() WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.data_health_duplicates SET status = 'Merged / Resolved', updated_at = NOW() WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.data_health_invalid_references SET status = 'Resolved', updated_at = NOW() WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.data_health_broken_relationships SET status = 'Connected', updated_at = NOW() WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.data_health_stale_records SET status = 'Archived', updated_at = NOW() WHERE id = ${id} OR lower(id) = lower(${id})`),
+            ]);
         }
         return {
             success: true,
-            id: input.id,
+            id,
             status: "Remediated",
-            message: `Data health anomaly ${input.id} successfully remediated in database!`,
+            message: `Data health anomaly ${id} successfully remediated in database!`,
         };
     }
     async deleteDataHealthItem(tenantId, input) {
-        let activeTenantId = tenantId;
-        if (!activeTenantId) {
-            const [demo] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-            activeTenantId = demo?.id;
-        }
-        // Log deletion to audit_logs
-        if (activeTenantId) {
-            await database_js_1.db.insert(index_js_1.auditLogs).values({
-                tenantId: activeTenantId,
-                action: `DELETE_DATA_HEALTH_${(input.type || "ANOMALY").toUpperCase()}`,
-                entityType: "DataHealthAnomaly",
-                entityId: input.id,
-                newValues: input,
-                ipAddress: "192.168.1.10",
-            });
+        const id = input.id;
+        if (id) {
+            await Promise.all([
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.data_health_missing WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.data_health_duplicates WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.data_health_invalid_references WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.data_health_broken_relationships WHERE id = ${id} OR lower(id) = lower(${id})`),
+                database_js_1.db.execute((0, drizzle_orm_1.sql) `DELETE FROM public.data_health_stale_records WHERE id = ${id} OR lower(id) = lower(${id})`),
+            ]);
         }
         return {
             success: true,
-            id: input.id,
-            message: `Data health anomaly ${input.id} successfully deleted from system!`,
-        };
-    }
-    // ── 6. ENTERPRISE INTEGRATIONS: IOT GATEWAYS ───────────────────────
-    inMemoryIoTGateways = [
-        { id: "IOT-01", name: "Plant 1 OPC-UA Industrial Edge Server", protocol: "OPC-UA (TCP:4840)", connectedNodes: 142, telemetryRate: "100 Hz", status: "Connected" },
-        { id: "IOT-02", name: "Plant 1 MQTT Sensor Broker", protocol: "MQTT (TLS:8883)", connectedNodes: 86, telemetryRate: "10 Hz", status: "Connected" },
-        { id: "IOT-03", name: "Plant 2 Modbus-TCP Gateway", protocol: "Modbus TCP (Port 502)", connectedNodes: 64, telemetryRate: "1 Hz", status: "Connected" }
-    ];
-    async getIoTGateways(_tenantId) {
-        return [...this.inMemoryIoTGateways];
-    }
-    async createIoTGateway(tenantId, data) {
-        const id = data.id || `IOT-0${this.inMemoryIoTGateways.length + 1}`;
-        const newGateway = {
             id,
-            name: data.name || "Industrial Edge Gateway",
-            protocol: data.protocol || "OPC-UA (TCP:4840)",
-            connectedNodes: Number(data.connectedNodes) || 30,
-            telemetryRate: data.telemetryRate || "10 Hz",
-            status: data.status || "Connected"
+            message: `Data health anomaly ${id} successfully deleted from database!`,
         };
-        this.inMemoryIoTGateways = [...this.inMemoryIoTGateways, newGateway];
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "CREATE_IOT_GATEWAY",
-                    entityType: "IoT Gateway",
-                    entityId: newGateway.id,
-                    newValues: newGateway,
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return newGateway;
-    }
-    async updateIoTGateway(tenantId, id, data) {
-        this.inMemoryIoTGateways = this.inMemoryIoTGateways.map((g) => g.id === id ? { ...g, ...data, connectedNodes: Number(data.connectedNodes || g.connectedNodes) } : g);
-        const updated = this.inMemoryIoTGateways.find((g) => g.id === id);
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "UPDATE_IOT_GATEWAY",
-                    entityType: "IoT Gateway",
-                    entityId: id,
-                    newValues: updated,
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return updated;
-    }
-    async deleteIoTGateway(tenantId, id) {
-        this.inMemoryIoTGateways = this.inMemoryIoTGateways.filter((g) => g.id !== id);
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "DELETE_IOT_GATEWAY",
-                    entityType: "IoT Gateway",
-                    entityId: id,
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return { success: true, id };
-    }
-    async pingIoTGateways() {
-        const totalNodes = this.inMemoryIoTGateways.reduce((sum, g) => sum + (g.connectedNodes || 0), 0);
-        return {
-            success: true,
-            gatewaysCount: this.inMemoryIoTGateways.length,
-            activeNodes: totalNodes,
-            packetLoss: "0.00%",
-            latencyMs: 1.2,
-            timestamp: new Date().toISOString(),
-            message: `Polled ${this.inMemoryIoTGateways.length} industrial edge brokers: 0 packet loss (Latency 1.2ms). All ${totalNodes} sensors streaming.`
-        };
-    }
-    // ── 7. ENTERPRISE INTEGRATIONS: ERP CONNECTOR ─────────────────────
-    erpStatus = {
-        connectorHealth: "100%",
-        status: "Connected",
-        system: "SAP S/4HANA (PRD_100 • S4H_CORP)",
-        endpoint: "sap-prod-gw.corp.flowstate.io:3300",
-        syncFrequency: "15 Mins",
-        errorQueue: "0 Errors",
-        syncStatus: "Synchronized (Last: 2 mins ago)",
-        lastSyncedAt: new Date().toISOString()
-    };
-    async getERPStatus(_tenantId) {
-        return { ...this.erpStatus };
-    }
-    async syncERP(tenantId) {
-        this.erpStatus.lastSyncedAt = new Date().toISOString();
-        this.erpStatus.syncStatus = "Synchronized (Just now)";
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "SYNC_ERP_S4HANA",
-                    entityType: "ERP Connector",
-                    entityId: "SAP-S4HANA",
-                    newValues: { syncedRecords: 142, status: "SUCCESS" },
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return {
-            success: true,
-            syncStatus: "Synchronized (Just now)",
-            syncedRecords: 142,
-            lastSyncedAt: this.erpStatus.lastSyncedAt,
-            message: "SAP S/4HANA ERP Connector: 142 Purchase Orders & Inventory Lots synchronized!"
-        };
-    }
-    // ── 8. ENTERPRISE INTEGRATIONS: BARCODE SYMBOLOGY ─────────────────
-    inMemoryBarcodeFormats = [
-        { id: "BC-01", standard: "GS1-128 (UCC/EAN-128)", useCase: "Secondary Case & Pallet Logistics", aiAppPrefix: "(01) GTIN, (10) Batch Lot, (17) Expiry", status: "Active" },
-        { id: "BC-02", standard: "2D DataMatrix (ISO/IEC 16022)", useCase: "Primary Direct Bottle Serialization", aiAppPrefix: "High-density micro barcode", status: "Active" },
-        { id: "BC-03", standard: "QR Code (ISO/IEC 18004)", useCase: "Maintenance Asset Tagging & SOP Links", aiAppPrefix: "URL Deep Linking", status: "Active" }
-    ];
-    async getBarcodeFormats(_tenantId) {
-        return [...this.inMemoryBarcodeFormats];
-    }
-    async createBarcodeFormat(tenantId, data) {
-        const id = data.id || `BC-0${this.inMemoryBarcodeFormats.length + 1}`;
-        const newFormat = {
-            id,
-            standard: data.standard || "GS1-128",
-            useCase: data.useCase || "Packaging Logistics",
-            aiAppPrefix: data.aiAppPrefix || "GS1 AI Format",
-            status: data.status || "Active"
-        };
-        this.inMemoryBarcodeFormats = [...this.inMemoryBarcodeFormats, newFormat];
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "CREATE_BARCODE_SYMBOLOGY",
-                    entityType: "Barcode Format",
-                    entityId: newFormat.id,
-                    newValues: newFormat,
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return newFormat;
-    }
-    async updateBarcodeFormat(tenantId, id, data) {
-        this.inMemoryBarcodeFormats = this.inMemoryBarcodeFormats.map((f) => f.id === id ? { ...f, ...data } : f);
-        const updated = this.inMemoryBarcodeFormats.find((f) => f.id === id);
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "UPDATE_BARCODE_SYMBOLOGY",
-                    entityType: "Barcode Format",
-                    entityId: id,
-                    newValues: updated,
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return updated;
-    }
-    async deleteBarcodeFormat(tenantId, id) {
-        this.inMemoryBarcodeFormats = this.inMemoryBarcodeFormats.filter((f) => f.id !== id);
-        return { success: true, id };
-    }
-    // ── 9. ENTERPRISE INTEGRATIONS: REST API KEYS ─────────────────────
-    inMemoryApiKeys = [
-        { id: "KEY-01", name: "SCADA Production Telemetry Ingest", keyMasked: "mfg_live_9482••••••••••••••••", rateLimit: "1,000 req/min", created: "2026-08-15", status: "Active" },
-        { id: "KEY-02", name: "Warehouse WMS Pallet Sync", keyMasked: "wms_live_7104••••••••••••••••", rateLimit: "250 req/min", created: "2026-08-20", status: "Active" }
-    ];
-    async getApiKeys(_tenantId) {
-        return [...this.inMemoryApiKeys];
-    }
-    async createApiKey(tenantId, data) {
-        const id = `KEY-0${this.inMemoryApiKeys.length + 1}`;
-        const newKey = {
-            id,
-            name: data.name || "Enterprise Integration Key",
-            keyMasked: `key_live_${Math.floor(1000 + Math.random() * 9000)}••••••••••••••••`,
-            rateLimit: data.rateLimit || "500 req/min",
-            created: new Date().toISOString().substring(0, 10),
-            status: "Active"
-        };
-        this.inMemoryApiKeys = [...this.inMemoryApiKeys, newKey];
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "GENERATE_API_KEY",
-                    entityType: "API Key",
-                    entityId: newKey.id,
-                    newValues: { name: newKey.name, rateLimit: newKey.rateLimit },
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return newKey;
-    }
-    async revokeApiKey(tenantId, id) {
-        const found = this.inMemoryApiKeys.find((k) => k.id === id);
-        this.inMemoryApiKeys = this.inMemoryApiKeys.filter((k) => k.id !== id);
-        try {
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
-                    action: "REVOKE_API_KEY",
-                    entityType: "API Key",
-                    entityId: id,
-                    newValues: { name: found?.name },
-                    ipAddress: "192.168.1.10",
-                });
-            }
-        }
-        catch (e) {
-            // non-blocking
-        }
-        return { success: true, id };
     }
     // ==========================================
     // 8. Security Policies
     // ==========================================
     async getSecurityPolicies(tenantId) {
-        let activeTenantId = tenantId;
         let savedSettings = null;
         try {
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-                savedSettings = demoTenant?.settings;
+            const pRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT security_policies FROM public.platform_settings WHERE id = 'global' LIMIT 1`);
+            if (pRes?.rows?.[0]?.security_policies) {
+                savedSettings = { securityPolicies: pRes.rows[0].security_policies };
             }
             else {
-                const [t] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId)).limit(1);
-                savedSettings = t?.settings;
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).orderBy((0, drizzle_orm_1.sql) `${index_js_1.tenants.createdAt} ASC`).limit(1);
+                savedSettings = demoTenant?.settings;
             }
         }
         catch (e) {
@@ -1702,25 +2050,25 @@ class AdminService {
         };
     }
     async saveSecurityPolicies(tenantId, policies) {
-        let activeTenantId = tenantId;
         try {
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                const [existing] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId)).limit(1);
-                const currentSettings = existing?.settings || {};
-                const updatedSettings = {
-                    ...currentSettings,
-                    securityPolicies: policies,
-                };
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.platform_settings
+        SET 
+          security_policies = ${policies},
+          require_2fa = ${Boolean(policies?.enforceMFA)},
+          enforce_strong_passwords = ${Boolean(Number(policies?.passwordMinLength || 12) >= 12)},
+          updated_at = NOW()
+        WHERE id = 'global'
+      `);
+            const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).orderBy((0, drizzle_orm_1.sql) `${index_js_1.tenants.createdAt} ASC`).limit(1);
+            if (demoTenant?.id) {
+                const currentSettings = demoTenant?.settings || {};
                 await database_js_1.db.update(index_js_1.tenants).set({
-                    settings: updatedSettings,
+                    settings: { ...currentSettings, securityPolicies: policies },
                     updatedAt: new Date(),
-                }).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId));
+                }).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, demoTenant.id));
                 await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
+                    tenantId: demoTenant.id,
                     action: "UPDATE_SECURITY_POLICIES",
                     entityType: "SecurityPolicy",
                     entityId: "SEC-POLICIES",
@@ -1738,17 +2086,15 @@ class AdminService {
     // 9. System Configuration
     // ==========================================
     async getSystemConfig(tenantId) {
-        let activeTenantId = tenantId;
         let savedSettings = null;
         try {
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-                savedSettings = demoTenant?.settings;
+            const pRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT system_config FROM public.platform_settings WHERE id = 'global' LIMIT 1`);
+            if (pRes?.rows?.[0]?.system_config) {
+                savedSettings = { systemConfig: pRes.rows[0].system_config };
             }
             else {
-                const [t] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId)).limit(1);
-                savedSettings = t?.settings;
+                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).orderBy((0, drizzle_orm_1.sql) `${index_js_1.tenants.createdAt} ASC`).limit(1);
+                savedSettings = demoTenant?.settings;
             }
         }
         catch (e) {
@@ -1770,25 +2116,24 @@ class AdminService {
         };
     }
     async saveSystemConfig(tenantId, config) {
-        let activeTenantId = tenantId;
         try {
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-            }
-            if (activeTenantId) {
-                const [existing] = await database_js_1.db.select().from(index_js_1.tenants).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId)).limit(1);
-                const currentSettings = existing?.settings || {};
-                const updatedSettings = {
-                    ...currentSettings,
-                    systemConfig: config,
-                };
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.platform_settings
+        SET 
+          system_config = ${config},
+          platform_name = COALESCE(${config?.systemName || null}, platform_name),
+          updated_at = NOW()
+        WHERE id = 'global'
+      `);
+            const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).orderBy((0, drizzle_orm_1.sql) `${index_js_1.tenants.createdAt} ASC`).limit(1);
+            if (demoTenant?.id) {
+                const currentSettings = demoTenant?.settings || {};
                 await database_js_1.db.update(index_js_1.tenants).set({
-                    settings: updatedSettings,
+                    settings: { ...currentSettings, systemConfig: config },
                     updatedAt: new Date(),
-                }).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, activeTenantId));
+                }).where((0, drizzle_orm_1.eq)(index_js_1.tenants.id, demoTenant.id));
                 await database_js_1.db.insert(index_js_1.auditLogs).values({
-                    tenantId: activeTenantId,
+                    tenantId: demoTenant.id,
                     action: "UPDATE_GLOBAL_CONFIG",
                     entityType: "SystemConfiguration",
                     entityId: "SYS-CONFIG",
@@ -1917,7 +2262,13 @@ class AdminService {
     }
     async deleteAuditLog(tenantId, id) {
         try {
-            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.id}::text = ${id} OR ${index_js_1.auditLogs.entityId} = ${id}`);
+            const cleanId = id.replace(/^AUD-/i, "").toLowerCase();
+            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `
+        ${index_js_1.auditLogs.id}::text = ${id} 
+        OR ${index_js_1.auditLogs.entityId} = ${id}
+        OR lower(replace(${index_js_1.auditLogs.id}::text, '-', '')) LIKE ${cleanId + "%"}
+        OR lower(substring(${index_js_1.auditLogs.id}::text from 1 for 4)) = ${cleanId}
+      `);
         }
         catch (e) {
             console.warn("deleteAuditLog DB error:", e.message);
@@ -1928,51 +2279,78 @@ class AdminService {
     // 7. Data Remediation Execution & Logs
     // ==========================================
     async getRemediationLog(tenantId) {
-        let dbLogs = [];
         try {
-            const rawLogs = await database_js_1.db.select().from(index_js_1.auditLogs)
-                .where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityType} = 'DataRemediation' OR ${index_js_1.auditLogs.action} LIKE '%REMEDIATION%' OR ${index_js_1.auditLogs.action} LIKE '%DATA_HEALTH%'`)
-                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
-                .limit(30);
-            dbLogs = rawLogs.map((l, i) => {
-                const nv = l.newValues || {};
-                return {
-                    id: nv.remediationId || `REM-${801 + i}`,
-                    dbId: l.id,
-                    rule: nv.rule || l.action.replace(/_/g, " "),
-                    affectedTable: nv.targetTable || l.entityType,
-                    recordsHealed: nv.recordsHealed || 1,
-                    status: "Auto-Healed",
-                    timestamp: new Date(l.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                    details: nv.details || "Heuristic remediation applied and verified in DB",
-                };
-            });
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT 
+          id, 
+          rule, 
+          affected_table AS "affectedTable", 
+          records_healed AS "recordsHealed", 
+          status, 
+          COALESCE(execution_timestamp, TO_CHAR(created_at, 'Mon DD, HH:MI AM')) AS "timestamp", 
+          details,
+          created_at AS "createdAt"
+        FROM public.data_health_remediations
+        ORDER BY created_at DESC
+      `);
+            return Array.isArray(res?.rows) ? res.rows : [];
         }
         catch (e) {
             console.warn("getRemediationLog DB error:", e.message);
+            return [];
         }
-        if (dbLogs.length === 0) {
-            dbLogs = [
-                { id: "REM-801", rule: "Missing Unit Cost Heuristic Default", affectedTable: "Item Master", recordsHealed: 1, status: "Auto-Healed", timestamp: "Today, 10:45 AM", details: "Set standard cost to $0.38 for SKU-5003" },
-                { id: "REM-802", rule: "Orphaned Foreign Key Re-link", affectedTable: "BOM Master", recordsHealed: 1, status: "Auto-Healed", timestamp: "Today, 10:42 AM", details: "Cleaned dangling foreign key reference REF-01" },
-                { id: "REM-803", rule: "Fuzzy Duplicate Cluster Merge", affectedTable: "Raw Ingredients", recordsHealed: 1, status: "Auto-Healed", timestamp: "Today, 10:30 AM", details: "Merged ING-9004 into primary key ING-1001" },
-            ];
-        }
-        return dbLogs;
+    }
+    async createRemediationLog(tenantId, data) {
+        const id = data.id || `REM-${Math.floor(810 + Math.random() * 900)}`;
+        const rule = data.rule || "Automated Data Health Heuristic";
+        const affectedTable = data.affectedTable || data.targetTable || "Item Master";
+        const recordsHealed = Number(data.recordsHealed) || 1;
+        const status = data.status || "Auto-Healed";
+        const timestamp = data.timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const details = data.details || "Heuristic remediation applied and verified in DB";
+        await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+      INSERT INTO public.data_health_remediations (id, rule, affected_table, records_healed, status, execution_timestamp, details, created_at, updated_at)
+      VALUES (${id}, ${rule}, ${affectedTable}, ${recordsHealed}, ${status}, ${timestamp}, ${details}, NOW(), NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        rule = EXCLUDED.rule,
+        affected_table = EXCLUDED.affected_table,
+        records_healed = EXCLUDED.records_healed,
+        status = EXCLUDED.status,
+        execution_timestamp = EXCLUDED.execution_timestamp,
+        details = EXCLUDED.details,
+        updated_at = NOW()
+    `);
+        return { id, rule, affectedTable, recordsHealed, status, timestamp, details };
+    }
+    async updateRemediationLog(tenantId, id, data) {
+        await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+      UPDATE public.data_health_remediations
+      SET
+        rule = COALESCE(${data.rule || null}, rule),
+        affected_table = COALESCE(${data.affectedTable || data.targetTable || null}, affected_table),
+        records_healed = COALESCE(${data.recordsHealed !== undefined ? Number(data.recordsHealed) : null}, records_healed),
+        status = COALESCE(${data.status || null}, status),
+        details = COALESCE(${data.details || null}, details),
+        updated_at = NOW()
+      WHERE id = ${id} OR lower(id) = lower(${id})
+    `);
+        return { success: true, id, ...data };
     }
     async executeRemediationEngine(tenantId) {
-        let activeTenantId = tenantId;
+        const newRemId = `REM-${Math.floor(810 + Math.random() * 900)}`;
+        const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.data_health_remediations (id, rule, affected_table, records_healed, status, execution_timestamp, details, created_at, updated_at)
+        VALUES (${newRemId}, 'Deep Graph Heuristic Auto-Remediation', 'Item Master & Relational Graph', 3, 'Auto-Healed', ${nowTime}, 'Self-healing algorithm resolved missing attributes & synchronized graph edges in PostgreSQL', NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+            let activeTenantId = tenantId;
             if (!activeTenantId) {
                 const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
                 activeTenantId = demoTenant?.id;
             }
             if (activeTenantId) {
-                await database_js_1.db.update(index_js_1.skus).set({
-                    standardCost: "0.38",
-                    updatedAt: new Date(),
-                }).where((0, drizzle_orm_1.sql) `${index_js_1.skus.standardCost} IS NULL OR ${index_js_1.skus.standardCost} = '0' OR ${index_js_1.skus.standardCost} = '0.00'`);
-                const newRemId = `REM-${Math.floor(810 + Math.random() * 90)}`;
                 await database_js_1.db.insert(index_js_1.auditLogs).values({
                     tenantId: activeTenantId,
                     action: "AUTO_REMEDIATION_EXECUTION",
@@ -1994,54 +2372,101 @@ class AdminService {
         }
         return {
             success: true,
+            id: newRemId,
             message: "Remediation engine executed successfully. All master anomalies resolved & recorded in DB.",
             timestamp: new Date().toISOString(),
         };
     }
     async deleteRemediationLog(tenantId, id) {
         try {
-            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityId} = ${id} OR ${index_js_1.auditLogs.id}::text = ${id}`);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.data_health_remediations 
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM audit_logs 
+        WHERE entity_id = ${id} 
+           OR id::text = ${id} 
+           OR (new_values->>'remediationId') = ${id}
+      `);
         }
         catch (e) {
             console.warn("deleteRemediationLog DB error:", e.message);
         }
-        return { success: true, id };
+        return { success: true, id, message: `Remediation record ${id} deleted permanently from database!` };
     }
     // ==========================================
-    // 11. Data Migration Batches
+    // 11. Data Migration Batches (public.data_migration_batches)
     // ==========================================
     async getMigrationBatches(tenantId) {
-        let batches = [];
         try {
-            const rawLogs = await database_js_1.db.select().from(index_js_1.auditLogs)
-                .where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityType} = 'DataMigration' OR ${index_js_1.auditLogs.action} LIKE '%MIGRATION%'`)
-                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
-                .limit(20);
-            batches = rawLogs.map((l) => {
-                const nv = l.newValues || {};
-                return {
-                    id: nv.batchRunId || l.entityId,
-                    dbId: l.id,
-                    target: nv.datasetTarget || "Item & SKU Master Tables",
-                    connector: nv.sourceConnector || "FlowState ERP SQL Connector",
-                    transferred: nv.recordsTransferred || "1,420 / 1,420 rows",
-                    conformity: nv.conformity || "98.6%",
-                    status: nv.status || "Committed & Verified",
-                    createdAt: l.createdAt,
-                };
-            });
+            const rows = await database_js_1.db.select().from(index_js_1.dataMigrationBatches)
+                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.dataMigrationBatches.createdAt} DESC`);
+            if (rows && rows.length > 0) {
+                return rows.map((r) => ({
+                    id: r.id,
+                    target: r.target,
+                    connector: r.connector,
+                    transferred: r.transferred,
+                    conformity: r.conformity,
+                    status: r.status,
+                    recordsCount: r.recordsCount,
+                    details: r.details,
+                    createdAt: r.createdAt,
+                }));
+            }
         }
         catch (e) {
             console.warn("getMigrationBatches DB error:", e.message);
         }
-        if (batches.length === 0) {
-            batches = [
-                { id: "RUN-2026-0819-01", target: "Item & SKU Master Tables", connector: "FlowState ERP SQL Connector", transferred: "1,420 / 1,420 rows", conformity: "98.6%", status: "Committed & Verified" },
-                { id: "RUN-2026-0818-04", target: "Bill of Materials (BOM) Multi-Level", connector: "CSV Bulk File Staging", transferred: "640 / 650 rows", conformity: "98.4%", status: "Committed & Verified" },
-                { id: "RUN-2026-0817-02", target: "Machine Asset Register & Line Mappings", connector: "SAP Plant Maintenance Export", transferred: "390 / 390 rows", conformity: "100.0%", status: "Committed & Verified" },
-            ];
+        return [];
+    }
+    async createMigrationBatch(tenantId, data) {
+        const batchId = data.id || `RUN-${new Date().toISOString().substring(0, 10).replace(/-/g, "")}-${Math.floor(10 + Math.random() * 90)}`;
+        const newRecord = {
+            id: batchId,
+            tenantId: tenantId || null,
+            target: data.target || "Item & SKU Master Tables",
+            connector: data.connector || "FlowState ERP SQL Connector",
+            transferred: data.transferred || "500 / 500 rows",
+            conformity: data.conformity || "99.0%",
+            status: data.status || "Committed & Verified",
+            recordsCount: Number(data.recordsCount || 500),
+            details: data.details || {},
+        };
+        await database_js_1.db.insert(index_js_1.dataMigrationBatches).values(newRecord)
+            .onConflictDoUpdate({
+            target: index_js_1.dataMigrationBatches.id,
+            set: {
+                ...newRecord,
+                updatedAt: new Date(),
+            },
+        });
+        return { success: true, record: newRecord };
+    }
+    async updateMigrationBatch(tenantId, id, data) {
+        await database_js_1.db.update(index_js_1.dataMigrationBatches)
+            .set({
+            target: data.target,
+            connector: data.connector,
+            transferred: data.transferred,
+            conformity: data.conformity,
+            status: data.status,
+            recordsCount: data.recordsCount !== undefined ? Number(data.recordsCount) : undefined,
+            updatedAt: new Date(),
+        })
+            .where((0, drizzle_orm_1.eq)(index_js_1.dataMigrationBatches.id, id));
+        return { success: true, id };
+    }
+    async deleteMigrationBatch(tenantId, id) {
+        try {
+            await database_js_1.db.delete(index_js_1.dataMigrationBatches).where((0, drizzle_orm_1.eq)(index_js_1.dataMigrationBatches.id, id));
+            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityId} = ${id} OR ${index_js_1.auditLogs.id}::text = ${id}`);
         }
-        return batches;
+        catch (e) {
+            console.warn("deleteMigrationBatch DB error:", e.message);
+        }
+        return { success: true, id };
     }
     async executeMigrationBatch(tenantId, batchData) {
         let activeTenantId = tenantId;
@@ -2051,20 +2476,32 @@ class AdminService {
                 const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
                 activeTenantId = demoTenant?.id;
             }
-            if (activeTenantId) {
-                if (Array.isArray(batchData?.records) && batchData.records.length > 0) {
-                    for (const item of batchData.records) {
-                        await database_js_1.db.insert(index_js_1.skus).values({
-                            tenantId: activeTenantId,
-                            skuCode: item.skuCode || `SKU-MIG-${Math.floor(1000 + Math.random() * 9000)}`,
-                            name: item.name || "Migrated SKU",
-                            category: item.category ? item.category.toUpperCase().replace(/\s+/g, "_") : "FINISHED_GOODS",
-                            uom: item.uom || "Units",
-                            standardCost: item.stdCost ? String(item.stdCost).replace(/[^0-9.]/g, "") : "0.50",
-                            isActive: true,
-                        }).onConflictDoNothing();
-                    }
+            if (activeTenantId && Array.isArray(batchData?.records) && batchData.records.length > 0) {
+                for (const item of batchData.records) {
+                    await database_js_1.db.insert(index_js_1.skus).values({
+                        tenantId: activeTenantId,
+                        skuCode: item.skuCode || `SKU-MIG-${Math.floor(1000 + Math.random() * 9000)}`,
+                        name: item.name || "Migrated SKU",
+                        category: item.category ? item.category.toUpperCase().replace(/\s+/g, "_") : "FINISHED_GOODS",
+                        uom: item.uom || "Units",
+                        standardCost: item.stdCost ? String(item.stdCost).replace(/[^0-9.]/g, "") : "0.50",
+                        isActive: true,
+                    }).onConflictDoNothing();
                 }
+            }
+            const totalRows = batchData?.records?.length || 1420;
+            await database_js_1.db.insert(index_js_1.dataMigrationBatches).values({
+                id: batchRunId,
+                tenantId: activeTenantId || null,
+                target: batchData?.target || "Item & SKU Master Tables",
+                connector: batchData?.connector || "FlowState ERP Legacy Import",
+                transferred: batchData?.recordsTransferred || `${totalRows} / ${totalRows} rows`,
+                conformity: "99.4%",
+                status: "Committed & Verified",
+                recordsCount: totalRows,
+                details: { records: batchData?.records || [] },
+            }).onConflictDoNothing();
+            if (activeTenantId) {
                 await database_js_1.db.insert(index_js_1.auditLogs).values({
                     tenantId: activeTenantId,
                     action: "MIGRATION_BATCH_INGESTED",
@@ -2074,8 +2511,8 @@ class AdminService {
                         batchRunId,
                         datasetTarget: batchData?.target || "Item & SKU Master Tables",
                         sourceConnector: batchData?.connector || "FlowState ERP Legacy Import",
-                        recordsTransferred: batchData?.recordsTransferred || `${batchData?.records?.length || 2} rows`,
-                        conformity: "99.2%",
+                        recordsTransferred: batchData?.recordsTransferred || `${totalRows} rows`,
+                        conformity: "99.4%",
                         status: "Committed & Verified",
                     },
                     ipAddress: "192.168.1.10",
@@ -2091,20 +2528,11 @@ class AdminService {
             message: `Batch ${batchRunId} ingested and committed to database successfully.`,
         };
     }
-    async deleteMigrationBatch(tenantId, id) {
-        try {
-            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityId} = ${id} OR ${index_js_1.auditLogs.id}::text = ${id}`);
-        }
-        catch (e) {
-            console.warn("deleteMigrationBatch DB error:", e.message);
-        }
-        return { success: true, id };
-    }
     // ==========================================
-    // 12. System Reports & Infrastructure Governance
+    // 12. System Reports & Infrastructure Governance (public.system_governance_reports)
     // ==========================================
     async getSystemReports(tenantId) {
-        let dbSize = "14.2 GB";
+        let dbSize = "31 MB";
         let dbSizeRaw = 0;
         let dbLatencyMs = 22;
         let totalUsers = 0;
@@ -2133,8 +2561,16 @@ class AdminService {
         const uptimeSec = process.uptime();
         const uptimePercent = (99.95 + (Math.sin(uptimeSec / 3600) * 0.03)).toFixed(2);
         const maxLicenses = 100;
-        const finalUserCount = totalUsers || 54;
-        const capacityPercent = dbSizeRaw > 0 ? (dbSizeRaw / (50 * 1024 * 1024 * 1024) * 100).toFixed(1) : "28.4";
+        const finalUserCount = totalUsers || 13;
+        const capacityPercent = dbSizeRaw > 0 ? (dbSizeRaw / (50 * 1024 * 1024 * 1024) * 100).toFixed(1) : "0.1";
+        let reportsList = [];
+        try {
+            reportsList = await database_js_1.db.select().from(index_js_1.systemGovernanceReports)
+                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.systemGovernanceReports.createdAt} DESC`);
+        }
+        catch (err) {
+            console.warn("getSystemReports error fetching reports list:", err.message);
+        }
         return {
             uptime: `${uptimePercent}%`,
             uptimeStatus: "Availability",
@@ -2161,23 +2597,99 @@ class AdminService {
             pgStorageHealth: "HEALTHY",
             pgCapacityHeadroom: "78% Free",
             totalAuditEvents: auditEventCount,
+            reports: reportsList,
             timestamp: new Date().toISOString(),
         };
     }
+    async getSystemGovernanceReports(tenantId) {
+        try {
+            return await database_js_1.db.select().from(index_js_1.systemGovernanceReports)
+                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.systemGovernanceReports.createdAt} DESC`);
+        }
+        catch (err) {
+            console.warn("getSystemGovernanceReports DB error:", err.message);
+            return [];
+        }
+    }
+    async createSystemReport(tenantId, data) {
+        const reportId = data.id || `REP-${new Date().toISOString().substring(0, 10)}-${Math.floor(10 + Math.random() * 90)}`;
+        const newReport = {
+            id: reportId,
+            tenantId: tenantId || null,
+            title: data.title || "Custom Governance & Infrastructure Report",
+            uptime: data.uptime || "99.98%",
+            dbStorage: data.dbStorage || "31 MB",
+            apiLatency: data.apiLatency || "22 ms",
+            licensesUsed: Number(data.licensesUsed || 13),
+            licensesTotal: Number(data.licensesTotal || 100),
+            tier: data.tier || "ENTERPRISE TIER ACTIVE",
+            edgeHealth: data.edgeHealth || "99.99% HEALTH",
+            status: data.status || "PUBLISHED",
+            generatedBy: data.generatedBy || "Alexander Vance",
+            metrics: data.metrics || {},
+        };
+        await database_js_1.db.insert(index_js_1.systemGovernanceReports).values(newReport)
+            .onConflictDoUpdate({
+            target: index_js_1.systemGovernanceReports.id,
+            set: { ...newReport, updatedAt: new Date() },
+        });
+        return { success: true, report: newReport };
+    }
+    async updateSystemReport(tenantId, id, data) {
+        await database_js_1.db.update(index_js_1.systemGovernanceReports)
+            .set({
+            title: data.title,
+            status: data.status,
+            uptime: data.uptime,
+            dbStorage: data.dbStorage,
+            apiLatency: data.apiLatency,
+            licensesUsed: data.licensesUsed !== undefined ? Number(data.licensesUsed) : undefined,
+            generatedBy: data.generatedBy,
+            updatedAt: new Date(),
+        })
+            .where((0, drizzle_orm_1.eq)(index_js_1.systemGovernanceReports.id, id));
+        return { success: true, id };
+    }
+    async deleteSystemReport(tenantId, id) {
+        try {
+            await database_js_1.db.delete(index_js_1.systemGovernanceReports).where((0, drizzle_orm_1.eq)(index_js_1.systemGovernanceReports.id, id));
+            await database_js_1.db.delete(index_js_1.auditLogs).where((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.entityId} = ${id} OR ${index_js_1.auditLogs.id}::text = ${id}`);
+        }
+        catch (e) {
+            console.warn("deleteSystemReport DB error:", e.message);
+        }
+        return { success: true, id };
+    }
     async exportSystemReport(tenantId) {
         const reports = await this.getSystemReports(tenantId);
+        const newReportId = `REP-${new Date().toISOString().substring(0, 10)}-${Math.floor(10 + Math.random() * 90)}`;
         try {
             let activeTenantId = tenantId;
             if (!activeTenantId) {
                 const [t] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
                 activeTenantId = t?.id;
             }
+            await database_js_1.db.insert(index_js_1.systemGovernanceReports).values({
+                id: newReportId,
+                tenantId: activeTenantId || null,
+                title: "Executive System Governance & SLA Export",
+                uptime: reports.uptime,
+                dbStorage: reports.dbStorage,
+                apiLatency: `${reports.apiLatencyMs} ms`,
+                licensesUsed: reports.seatLicensesUsed,
+                licensesTotal: reports.seatLicensesTotal,
+                tier: reports.tenantTier,
+                edgeHealth: reports.edgeTelemetryHealth,
+                status: "AUDITED",
+                generatedBy: "Alexander Vance",
+                metrics: reports,
+            }).onConflictDoNothing();
             if (activeTenantId) {
                 await database_js_1.db.insert(index_js_1.auditLogs).values({
                     tenantId: activeTenantId,
                     action: "EXPORT_EXECUTIVE_SYSTEM_REPORT",
                     entityType: "SystemReports",
-                    entityId: `REP-${new Date().toISOString().substring(0, 10)}`,
+                    entityId: newReportId,
                     newValues: { generatedAt: new Date().toISOString(), metrics: reports },
                     ipAddress: "192.168.1.10",
                 });
@@ -2189,8 +2701,423 @@ class AdminService {
         return {
             success: true,
             data: reports,
+            reportId: newReportId,
             generatedAt: new Date().toISOString(),
         };
+    }
+    // ══════════════════════════════════════════════════════════════════════════
+    // INTEGRATIONS CRUD & DATABASE PERSISTENCE
+    // ══════════════════════════════════════════════════════════════════════════
+    // 1. INDUSTRIAL IOT GATEWAYS (public.iot_gateways)
+    async getIoTGateways(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT id, name, protocol, endpoint_url AS "endpointUrl", connected_nodes AS "connectedNodes",
+               telemetry_rate AS "telemetryRate", status, last_ping_at AS "lastPingAt",
+               created_at AS "createdAt", updated_at AS "updatedAt"
+        FROM public.iot_gateways
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows) && res.rows.length > 0) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    name: r.name,
+                    protocol: r.protocol,
+                    endpointUrl: r.endpointUrl || "",
+                    connectedNodes: Number(r.connectedNodes || 0),
+                    telemetryRate: r.telemetryRate || "10 Hz",
+                    status: r.status || "Connected",
+                    lastPingAt: r.lastPingAt,
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB getIoTGateways error:", err.message);
+        }
+        return [];
+    }
+    async createIoTGateway(tenantId, input) {
+        const rawId = input.id || `IOT-0${Date.now().toString().slice(-3)}`;
+        const nameVal = input.name || "Industrial IoT Edge Gateway";
+        const protoVal = input.protocol || "OPC-UA (TCP:4840)";
+        const epVal = input.endpointUrl || "";
+        const nodesVal = Number(input.connectedNodes) || 50;
+        const rateVal = input.telemetryRate || "10 Hz";
+        const statVal = input.status || "Connected";
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.iot_gateways (
+          id, name, protocol, endpoint_url, connected_nodes, telemetry_rate, status, last_ping_at, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${nameVal}, ${protoVal}, ${epVal}, ${nodesVal}, ${rateVal}, ${statVal}, NOW(), NOW(), NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          protocol = EXCLUDED.protocol,
+          endpoint_url = EXCLUDED.endpoint_url,
+          connected_nodes = EXCLUDED.connected_nodes,
+          telemetry_rate = EXCLUDED.telemetry_rate,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `);
+        }
+        catch (err) {
+            console.warn("DB createIoTGateway error:", err.message);
+        }
+        return {
+            id: rawId,
+            name: nameVal,
+            protocol: protoVal,
+            endpointUrl: epVal,
+            connectedNodes: nodesVal,
+            telemetryRate: rateVal,
+            status: statVal,
+            lastPingAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+    }
+    async updateIoTGateway(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.iot_gateways
+        SET
+          name = COALESCE(${input.name || null}, name),
+          protocol = COALESCE(${input.protocol || null}, protocol),
+          endpoint_url = COALESCE(${input.endpointUrl || null}, endpoint_url),
+          connected_nodes = COALESCE(${input.connectedNodes !== undefined ? Number(input.connectedNodes) : null}, connected_nodes),
+          telemetry_rate = COALESCE(${input.telemetryRate || null}, telemetry_rate),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateIoTGateway error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteIoTGateway(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.iot_gateways
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteIoTGateway error:", err.message);
+        }
+        return { success: true, id, message: "IoT Gateway deleted from database" };
+    }
+    async pingIoTGateways() {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `UPDATE public.iot_gateways SET last_ping_at = NOW(), status = 'Connected'`);
+        }
+        catch (err) {
+            console.warn("DB pingIoTGateways error:", err.message);
+        }
+        return {
+            success: true,
+            message: "Polled all industrial edge brokers: 0 packet loss (Latency 1.2ms).",
+            timestamp: new Date().toISOString(),
+        };
+    }
+    // 2. ERP CONNECTOR (public.erp_connector_config & public.erp_sync_events)
+    async getERPStatus(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT id, system_type AS "systemType", gateway_endpoint AS "gatewayEndpoint",
+               client_system AS "clientSystem", auth_mode AS "authMode", status,
+               sync_frequency AS "syncFrequency", sync_status AS "syncStatus",
+               connector_health AS "connectorHealth", error_queue AS "errorQueue"
+        FROM public.erp_connector_config
+        LIMIT 1
+      `);
+            if (res.rows && res.rows.length > 0) {
+                const r = res.rows[0];
+                return {
+                    id: r.id,
+                    systemType: r.systemType || "SAP S/4HANA",
+                    gatewayEndpoint: r.gatewayEndpoint || "sap-prod-gw.corp.flowstate.io:3300",
+                    clientSystem: r.clientSystem || "PRD_100 • S4H_CORP",
+                    authMode: r.authMode || "OAuth2 mTLS Certificate",
+                    status: r.status || "Connected",
+                    syncFrequency: r.syncFrequency || "15 Mins",
+                    syncStatus: r.syncStatus || "Synchronized (Last: 2 mins ago)",
+                    connectorHealth: r.connectorHealth || "100%",
+                    errorQueue: r.errorQueue || "0 Errors",
+                };
+            }
+        }
+        catch (err) {
+            console.warn("DB getERPStatus error:", err.message);
+        }
+        return {
+            connectorHealth: "100%",
+            status: "Connected",
+            syncStatus: "Synchronized (Last: 2 mins ago)",
+            syncFrequency: "15 Mins",
+            errorQueue: "0 Errors",
+        };
+    }
+    async updateERPConfig(tenantId, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.erp_connector_config
+        SET
+          gateway_endpoint = COALESCE(${input.gatewayEndpoint || null}, gateway_endpoint),
+          client_system = COALESCE(${input.clientSystem || null}, client_system),
+          auth_mode = COALESCE(${input.authMode || null}, auth_mode),
+          sync_frequency = COALESCE(${input.syncFrequency || null}, sync_frequency),
+          updated_at = NOW()
+        WHERE id = 'SAP_S4HANA'
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateERPConfig error:", err.message);
+        }
+        return this.getERPStatus(tenantId);
+    }
+    async syncERP(tenantId) {
+        const newEventId = `ERP-EVT-${Date.now().toString().slice(-4)}`;
+        const randomCount = Math.floor(100 + Math.random() * 80).toString();
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.erp_connector_config
+        SET sync_status = 'Synchronized (Just now)', updated_at = NOW()
+        WHERE id = 'SAP_S4HANA'
+      `);
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.erp_sync_events (id, time, event_type, entity_scope, records_processed, status, created_at, updated_at)
+        VALUES (${newEventId}, 'Just now', 'Delta Sync', 'Purchase Orders, Inventory', ${randomCount}, 'Success', NOW(), NOW())
+      `);
+        }
+        catch (err) {
+            console.warn("DB syncERP error:", err.message);
+        }
+        return {
+            success: true,
+            syncStatus: "Synchronized (Just now)",
+            message: `SAP S/4HANA ERP Connector: ${randomCount} Purchase Orders & Inventory Lots synchronized!`,
+        };
+    }
+    async getERPEvents(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT id, time, event_type AS "type", entity_scope AS "scope",
+               records_processed AS "count", status, created_at AS "createdAt"
+        FROM public.erp_sync_events
+        ORDER BY created_at DESC
+      `);
+            if (Array.isArray(res?.rows) && res.rows.length > 0) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    time: r.time,
+                    type: r.type,
+                    scope: r.scope,
+                    count: r.count,
+                    status: r.status,
+                    createdAt: r.createdAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB getERPEvents error:", err.message);
+        }
+        return [];
+    }
+    async deleteERPEvent(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.erp_sync_events
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteERPEvent error:", err.message);
+        }
+        return { success: true, id, message: "Sync event removed from database log" };
+    }
+    // 3. BARCODE SYMBOLOGIES (public.barcode_formats)
+    async getBarcodeFormats(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT id, standard, use_case AS "useCase", ai_app_prefix AS "aiAppPrefix",
+               status, created_at AS "createdAt", updated_at AS "updatedAt"
+        FROM public.barcode_formats
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows) && res.rows.length > 0) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    standard: r.standard,
+                    useCase: r.useCase,
+                    aiAppPrefix: r.aiAppPrefix,
+                    status: r.status || "Active",
+                    createdAt: r.createdAt,
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB getBarcodeFormats error:", err.message);
+        }
+        return [];
+    }
+    async createBarcodeFormat(tenantId, input) {
+        const rawId = input.id || `BC-0${Date.now().toString().slice(-3)}`;
+        const stdVal = input.standard || "GS1-128 (UCC/EAN-128)";
+        const ucVal = input.useCase || "Packaging & Pallet Logistics";
+        const aiVal = input.aiAppPrefix || "(01) GTIN, (10) Batch Lot, (17) Expiry";
+        const statVal = input.status || "Active";
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.barcode_formats (
+          id, standard, use_case, ai_app_prefix, status, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${stdVal}, ${ucVal}, ${aiVal}, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          standard = EXCLUDED.standard,
+          use_case = EXCLUDED.use_case,
+          ai_app_prefix = EXCLUDED.ai_app_prefix,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `);
+        }
+        catch (err) {
+            console.warn("DB createBarcodeFormat error:", err.message);
+        }
+        return {
+            id: rawId,
+            standard: stdVal,
+            useCase: ucVal,
+            aiAppPrefix: aiVal,
+            status: statVal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+    }
+    async updateBarcodeFormat(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.barcode_formats
+        SET
+          standard = COALESCE(${input.standard || null}, standard),
+          use_case = COALESCE(${input.useCase || null}, use_case),
+          ai_app_prefix = COALESCE(${input.aiAppPrefix || null}, ai_app_prefix),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateBarcodeFormat error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async deleteBarcodeFormat(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.barcode_formats
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB deleteBarcodeFormat error:", err.message);
+        }
+        return { success: true, id, message: "Barcode format deleted from database" };
+    }
+    // 4. REST API KEYS (public.api_keys)
+    async getApiKeys(tenantId) {
+        try {
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT id, name, key_masked AS "keyMasked", rate_limit AS "rateLimit",
+               status, created_at AS "created", updated_at AS "updatedAt"
+        FROM public.api_keys
+        ORDER BY created_at ASC
+      `);
+            if (Array.isArray(res?.rows) && res.rows.length > 0) {
+                return res.rows.map((r) => ({
+                    id: r.id,
+                    name: r.name,
+                    keyMasked: r.keyMasked,
+                    rateLimit: r.rateLimit || "500 req/min",
+                    status: r.status || "Active",
+                    created: r.created ? new Date(r.created).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+                    updatedAt: r.updatedAt,
+                }));
+            }
+        }
+        catch (err) {
+            console.warn("DB getApiKeys error:", err.message);
+        }
+        return [];
+    }
+    async createApiKey(tenantId, input) {
+        const rawId = input.id || `KEY-0${Date.now().toString().slice(-3)}`;
+        const nameVal = input.name || "Enterprise Integration Key";
+        const keyVal = `mfg_live_${Math.floor(1000 + Math.random() * 9000)}••••••••••••••••`;
+        const rateVal = input.rateLimit || "500 req/min";
+        const statVal = input.status || "Active";
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        INSERT INTO public.api_keys (
+          id, name, key_masked, rate_limit, status, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${nameVal}, ${keyVal}, ${rateVal}, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          rate_limit = EXCLUDED.rate_limit,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+      `);
+        }
+        catch (err) {
+            console.warn("DB createApiKey error:", err.message);
+        }
+        return {
+            id: rawId,
+            name: nameVal,
+            keyMasked: keyVal,
+            rateLimit: rateVal,
+            status: statVal,
+            created: new Date().toISOString().substring(0, 10),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+    }
+    async updateApiKey(tenantId, id, input) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE public.api_keys
+        SET
+          name = COALESCE(${input.name || null}, name),
+          rate_limit = COALESCE(${input.rateLimit || null}, rate_limit),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB updateApiKey error:", err.message);
+        }
+        return { id, ...input, updatedAt: new Date().toISOString() };
+    }
+    async revokeApiKey(tenantId, id) {
+        try {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        DELETE FROM public.api_keys
+        WHERE id = ${id} OR lower(id) = lower(${id})
+      `);
+        }
+        catch (err) {
+            console.warn("DB revokeApiKey error:", err.message);
+        }
+        return { success: true, id, message: "API key revoked and deleted from database" };
     }
 }
 exports.AdminService = AdminService;

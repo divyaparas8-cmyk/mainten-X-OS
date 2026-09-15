@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userInvitations = exports.userRoles = exports.rolePermissions = exports.permissions = exports.roles = exports.users = void 0;
+exports.approvalRules = exports.userInvitations = exports.userRoles = exports.rolePermissions = exports.permissions = exports.roles = exports.users = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.users = (0, pg_core_1.pgTable)("users", {
@@ -59,6 +59,17 @@ exports.userInvitations = (0, pg_core_1.pgTable)("user_invitations", {
     invitedBy: (0, pg_core_1.varchar)("invited_by", { length: 255 }).default("Alexander Vance"),
     sentDate: (0, pg_core_1.varchar)("sent_date", { length: 20 }).notNull(), // ISO date string YYYY-MM-DD
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Pending").notNull(), // "Pending" | "Accepted" | "Revoked"
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+exports.approvalRules = (0, pg_core_1.pgTable)("approval_rules", {
+    id: (0, pg_core_1.varchar)("id", { length: 50 }).primaryKey(), // e.g. "APR-01"
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    event: (0, pg_core_1.varchar)("event", { length: 255 }).notNull(),
+    tier: (0, pg_core_1.varchar)("tier", { length: 100 }).notNull(),
+    authorizedRoles: (0, pg_core_1.varchar)("authorized_roles", { length: 255 }).notNull(),
+    compliance: (0, pg_core_1.varchar)("compliance", { length: 150 }),
+    description: (0, pg_core_1.text)("description"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });

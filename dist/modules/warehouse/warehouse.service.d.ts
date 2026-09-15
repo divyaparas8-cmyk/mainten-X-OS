@@ -95,13 +95,13 @@ export declare class WarehouseService {
     }[]>;
     listBins(warehouseId?: string): Promise<{
         id: string;
+        zone: string | null;
         warehouseId: string;
         binCode: string;
         aisle: string | null;
         rack: string | null;
         shelf: string | null;
         bin: string | null;
-        zone: string | null;
         isOccupied: boolean;
     }[]>;
     getDashboardStats(tenantId: string, plantId?: string): Promise<{

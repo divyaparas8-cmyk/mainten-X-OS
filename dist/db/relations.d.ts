@@ -30,7 +30,7 @@ export declare const bomsRelations: import("drizzle-orm").Relations<"boms", {
 }>;
 export declare const bomItemsRelations: import("drizzle-orm").Relations<"bom_items", {
     bom: import("drizzle-orm").One<"boms", true>;
-    componentSku: import("drizzle-orm").One<"skus", true>;
+    componentSku: import("drizzle-orm").One<"skus", false>;
 }>;
 export declare const productionOrdersRelations: import("drizzle-orm").Relations<"production_orders", {
     sku: import("drizzle-orm").One<"skus", true>;

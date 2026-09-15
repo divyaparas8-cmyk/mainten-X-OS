@@ -1423,6 +1423,11 @@ export class MasterAdminService {
     return { success: true, message: `Audit log ${id} deleted successfully` };
   }
 
+  async clearAllAuditLogs() {
+    await db.delete(auditLogs);
+    return { success: true, message: "All audit logs cleared successfully" };
+  }
+
   // =========================================================================
   // 11. SUPPORT TICKETS
   // =========================================================================

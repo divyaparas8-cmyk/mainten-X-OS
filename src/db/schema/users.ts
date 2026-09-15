@@ -73,3 +73,15 @@ export const userInvitations = pgTable("user_invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const approvalRules = pgTable("approval_rules", {
+  id: varchar("id", { length: 50 }).primaryKey(), // e.g. "APR-01"
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  event: varchar("event", { length: 255 }).notNull(),
+  tier: varchar("tier", { length: 100 }).notNull(),
+  authorizedRoles: varchar("authorized_roles", { length: 255 }).notNull(),
+  compliance: varchar("compliance", { length: 150 }),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

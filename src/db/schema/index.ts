@@ -14,6 +14,8 @@ export * from "./plantManager.js";
 export * from "./billing.js";
 export * from "./iot.js";
 export * from "./masterAdmin.js";
+export * from "./integrations.js";
+export * from "./datahealth.js";
 export * from "../relations.js";
 
 

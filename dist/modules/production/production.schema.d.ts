@@ -27,8 +27,8 @@ export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
     orderNumber: string;
     quantity?: number | undefined;
     notes?: string | undefined;
-    priority?: unknown;
     targetQuantity?: number | undefined;
+    priority?: unknown;
     plannedStart?: string | undefined;
     plannedEnd?: string | undefined;
     plannedQuantity?: number | undefined;
@@ -49,8 +49,8 @@ export declare const createProductionOrderSchema: z.ZodEffects<z.ZodObject<{
     orderNumber: string;
     quantity?: number | undefined;
     notes?: string | undefined;
-    priority?: unknown;
     targetQuantity?: number | undefined;
+    priority?: unknown;
     plannedStart?: string | undefined;
     plannedEnd?: string | undefined;
     plannedQuantity?: number | undefined;
@@ -111,16 +111,16 @@ export declare const logDowntimeSchema: z.ZodObject<{
     reasonCode: string;
     durationMinutes: number;
     comments?: string | undefined;
-    orderId?: string | undefined;
     assetId?: string | undefined;
+    orderId?: string | undefined;
 }, {
     lineId: string;
     reasonCode: string;
     durationMinutes: number;
     comments?: string | undefined;
     category?: string | undefined;
-    orderId?: string | undefined;
     assetId?: string | undefined;
+    orderId?: string | undefined;
 }>;
 export type LogDowntimeInput = z.infer<typeof logDowntimeSchema>;
 //# sourceMappingURL=production.schema.d.ts.map

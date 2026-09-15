@@ -199,6 +199,7 @@ export interface AllergenRuleEntity {
 }
 export interface LabourStandardEntity {
     id: string;
+    standardId?: string;
     lineId: string;
     lineName: string;
     standardCrew: number;
@@ -208,21 +209,39 @@ export interface LabourStandardEntity {
     createdAt?: string;
     updatedAt?: string;
 }
+export interface EmployeeSkillEntity {
+    id: string;
+    employeeId?: string;
+    name: string;
+    email?: string;
+    department: string;
+    departmentId?: string;
+    role: string;
+    plantId?: string;
+    plantName?: string;
+    skillLevel: string;
+    skills: string[];
+    certifications: string[];
+    assignedLineIds: string[];
+    status: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 export declare class MasterDataService {
-    listCompanies(tenantId?: string): Promise<CompanyEntity[] | {
-        id: any;
-        companyId: any;
+    listCompanies(tenantId?: string): Promise<any>;
+    createCompany(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        companyId: string;
         code: any;
-        name: any;
+        name: string;
         taxId: any;
         currency: any;
         hqLocation: any;
         fiscalYearStart: any;
         status: any;
-    }[]>;
-    createCompany(tenantId: string | undefined, input: any): Promise<CompanyEntity>;
+    }>;
     updateCompany(tenantId: string | undefined, id: string, input: any): Promise<any>;
-    deleteCompany(tenantId: string | undefined, id: string): Promise<CompanyEntity | {
+    deleteCompany(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
@@ -237,8 +256,12 @@ export declare class MasterDataService {
         timezone: string;
         location: string;
         status: string;
+        isActive: boolean;
         capacity: string;
+        dailyCapacity: string;
         linesCount: number;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     createPlant(tenantId: string | undefined, input: any): Promise<PlantEntity>;
     updatePlant(tenantId: string | undefined, id: string, input: any): Promise<any>;
@@ -246,35 +269,64 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listDepartments(tenantId?: string, plantId?: string): Promise<DepartmentEntity[] | {
-        id: any;
-        departmentId: any;
+    listDepartments(tenantId?: string, plantId?: string): Promise<any>;
+    createDepartment(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        departmentId: string;
         plantId: any;
-        code: any;
-        name: any;
+        code: string;
+        name: string;
         deptHead: any;
         managerName: any;
         costCenter: any;
         operatingShifts: any;
         status: any;
-    }[]>;
-    createDepartment(tenantId: string | undefined, input: any): Promise<DepartmentEntity>;
+    }>;
     updateDepartment(tenantId: string | undefined, id: string, input: any): Promise<any>;
-    deleteDepartment(tenantId: string | undefined, id: string): Promise<DepartmentEntity | {
+    deleteDepartment(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
-    listLines(tenantId: string | undefined, plantId?: string): Promise<LineEntity[]>;
-    createLine(tenantId: string | undefined, input: any): Promise<LineEntity>;
-    updateLine(tenantId: string | undefined, id: string, input: any): Promise<LineEntity>;
-    deleteLine(tenantId: string | undefined, id: string): Promise<LineEntity | {
+    listLines(tenantId: string | undefined, plantId?: string): Promise<any>;
+    createLine(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        lineId: string;
+        code: any;
+        lineCode: any;
+        name: string;
+        lineType: any;
+        type: any;
+        ratedSpeed: string;
+        ratedSpeedBPH: number;
+        status: any;
+        plantId: any;
+        plantName: any;
+        supervisorName: any;
+        supervisorId: any;
+        ratedOEE: string;
+        currentRunningSku: string;
+        healthScore: number;
+    }>;
+    updateLine(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteLine(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
     listWorkCenters(tenantId: string | undefined, plantId?: string): Promise<any>;
-    createWorkCenter(tenantId: string | undefined, input: any): Promise<WorkCenterEntity>;
-    updateWorkCenter(tenantId: string | undefined, id: string, input: any): Promise<WorkCenterEntity>;
-    deleteWorkCenter(tenantId: string | undefined, id: string): Promise<WorkCenterEntity | {
+    createWorkCenter(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        workCenterId: string;
+        code: string;
+        name: string;
+        category: any;
+        capacity: any;
+        lineId: any;
+        lineName: any;
+        plantId: any;
+        status: any;
+    }>;
+    updateWorkCenter(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteWorkCenter(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
@@ -443,7 +495,29 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listSkus(tenantId?: string): Promise<any[]>;
+    listSkus(tenantId?: string): Promise<{
+        id: string;
+        skuId: string;
+        skuCode: string;
+        code: string;
+        name: string;
+        category: string;
+        itemType: string;
+        uom: string;
+        plantId: string | null;
+        standardCost: string | null;
+        stdCost: string | null;
+        shelfLifeDays: number | null;
+        status: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        familyId: string | null;
+        barcode: string | null;
+        minStockLevel: string | null;
+        maxStockLevel: string | null;
+    }[]>;
     createSku(tenantId: string | undefined, input: any): Promise<{
         id: string;
         skuId: string;
@@ -471,31 +545,84 @@ export declare class MasterDataService {
     deleteSku(tenantId: string | undefined, id: string): Promise<any>;
     listBoms(tenantId?: string): Promise<any>;
     getBomById(tenantId: string, id: string): Promise<any>;
-    createBom(tenantId: string | undefined, input: any): Promise<any>;
+    createBom(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        bomId: string;
+        bomNumber: string;
+        finishedSkuId: string | null;
+        finishedSkuName: string;
+        finishedSkuCode: any;
+        revision: any;
+        batchSize: string;
+        yieldTarget: string;
+        status: any;
+        approvalStatus: any;
+        components: any;
+        createdBy: any;
+        lastUpdated: string;
+        revisionHistory: {
+            revision: any;
+            status: any;
+            createdBy: any;
+            date: string;
+            changes: string;
+            approvedBy: string;
+        }[];
+    }>;
     updateBom(tenantId: string | undefined, id: string, input: any): Promise<any>;
     deleteBom(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
     listAssets(tenantId: string | undefined, plantId?: string): Promise<{
-        status: string | null;
-        id: string;
-        name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        tenantId: string;
-        plantId: string;
-        lineId: string | null;
-        assetCode: string;
-        modelNumber: string | null;
-        manufacturer: string | null;
-        criticalLevel: string | null;
-        healthPercent: number | null;
-        mtbfHours: string | null;
-        mttrHours: string | null;
-        installDate: Date | null;
-        lastServiceDate: Date | null;
+        id: any;
+        assetId: any;
+        assetCode: any;
+        name: any;
+        type: any;
+        lineId: any;
+        lineName: any;
+        plantId: any;
+        plantName: any;
+        criticality: any;
+        criticalLevel: any;
+        manufacturer: any;
+        modelNumber: any;
+        status: any;
+        healthScore: any;
+        healthPercent: number;
+        ratedSpeed: any;
+        mtbfHours: any;
+        mttrHours: any;
+        createdAt: any;
+        updatedAt: any;
     }[]>;
+    createAsset(tenantId: string | undefined, input: any): Promise<{
+        id: any;
+        assetId: any;
+        assetCode: any;
+        name: any;
+        type: any;
+        lineId: any;
+        lineName: any;
+        plantId: any;
+        plantName: any;
+        criticality: any;
+        criticalLevel: any;
+        manufacturer: any;
+        modelNumber: any;
+        status: any;
+        healthScore: number;
+        healthPercent: number;
+        ratedSpeed: any;
+        createdAt: string;
+        updatedAt: string;
+    }>;
+    updateAsset(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteAsset(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
     listStaff(tenantId: string | undefined, plantId?: string): Promise<{
         id: string;
         name: string;
@@ -510,21 +637,177 @@ export declare class MasterDataService {
         certifications: unknown;
     }[]>;
     listQualitySpecs(tenantId?: string): Promise<{
-        id: string;
-        createdAt: Date;
-        tenantId: string;
-        uom: string;
-        skuId: string;
-        parameterName: string;
-        targetValue: string;
-        minTolerance: string;
-        maxTolerance: string;
+        id: any;
+        specId: any;
+        specificationTitle: any;
+        skuId: any;
+        skuCode: any;
+        skuName: any;
+        parameter: any;
+        parameterName: any;
+        target: any;
+        targetValue: number;
+        min: any;
+        minTolerance: number;
+        max: any;
+        maxTolerance: number;
+        uom: any;
+        criticality: any;
         isCCP: boolean;
+        criticalLimit: any;
+        testMethod: any;
+        approvalStatus: any;
+        revision: any;
+        status: any;
+        createdAt: any;
+        updatedAt: any;
     }[]>;
-    listLabourStandards(tenantId?: string): Promise<LabourStandardEntity[]>;
-    createLabourStandard(tenantId: string | undefined, input: any): Promise<LabourStandardEntity>;
+    createQualitySpec(tenantId: string | undefined, input: any): Promise<{
+        id: any;
+        specId: any;
+        specificationTitle: any;
+        skuId: any;
+        skuCode: any;
+        skuName: any;
+        parameter: any;
+        parameterName: any;
+        target: string;
+        targetValue: number;
+        min: string;
+        minTolerance: number;
+        max: string;
+        maxTolerance: number;
+        uom: any;
+        criticality: any;
+        isCCP: any;
+        criticalLimit: any;
+        testMethod: any;
+        approvalStatus: any;
+        revision: any;
+        status: any;
+        createdAt: string;
+        updatedAt: string;
+    }>;
+    updateQualitySpec(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteQualitySpec(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
+    listLabourStandards(tenantId?: string): Promise<{
+        id: any;
+        standardId: any;
+        lineId: any;
+        lineName: any;
+        standardCrew: number;
+        stdLaborHoursPer1kUnits: number;
+        directCostPerHour: any;
+        status: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    createLabourStandard(tenantId: string | undefined, input: any): Promise<any>;
     updateLabourStandard(tenantId: string | undefined, id: string, input: any): Promise<any>;
     deleteLabourStandard(tenantId: string | undefined, id: string): Promise<LabourStandardEntity | {
+        id: string;
+        message: string;
+    }>;
+    listEmployeeSkills(tenantId?: string, plantId?: string): Promise<{
+        id: any;
+        employeeId: any;
+        name: any;
+        email: any;
+        department: any;
+        departmentId: any;
+        role: any;
+        plantId: any;
+        plantName: any;
+        skillLevel: any;
+        skills: any;
+        certifications: any;
+        assignedLineIds: any;
+        status: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    createEmployeeSkill(tenantId: string | undefined, input: any): Promise<any>;
+    updateEmployeeSkill(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteEmployeeSkill(tenantId: string | undefined, id: string): Promise<EmployeeSkillEntity | {
+        id: string;
+        message: string;
+    }>;
+    listCCPLimits(tenantId?: string): Promise<{
+        id: any;
+        ccpNumber: any;
+        processStep: any;
+        hazard: any;
+        criticalLimit: any;
+        autoDivertAction: any;
+        status: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    createCCPLimit(tenantId: string | undefined, input: any): Promise<{
+        id: any;
+        ccpNumber: any;
+        processStep: any;
+        hazard: any;
+        criticalLimit: any;
+        autoDivertAction: any;
+        status: any;
+        createdAt: string;
+        updatedAt: string;
+    }>;
+    updateCCPLimit(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteCCPLimit(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
+    listStorageResources(tenantId?: string, plantId?: string): Promise<{
+        id: any;
+        resourceId: any;
+        resourceCode: any;
+        name: any;
+        resourceType: any;
+        type: any;
+        plantId: any;
+        plantName: any;
+        zone: any;
+        capacityUnit: any;
+        totalCapacity: number;
+        capacity: any;
+        currentOccupancy: any;
+        temperatureZone: any;
+        tempControl: any;
+        status: any;
+        effectiveFrom: any;
+        effectiveTo: any;
+        createdAt: any;
+        updatedAt: any;
+    }[]>;
+    createStorageResource(tenantId: string | undefined, input: any): Promise<{
+        id: any;
+        resourceId: any;
+        resourceCode: any;
+        name: any;
+        resourceType: any;
+        type: any;
+        plantId: any;
+        plantName: any;
+        zone: any;
+        capacityUnit: any;
+        totalCapacity: number;
+        capacity: any;
+        currentOccupancy: any;
+        temperatureZone: any;
+        tempControl: any;
+        status: any;
+        effectiveFrom: any;
+        effectiveTo: any;
+        createdAt: string;
+        updatedAt: string;
+    }>;
+    updateStorageResource(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteStorageResource(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;

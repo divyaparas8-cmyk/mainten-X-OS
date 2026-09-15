@@ -223,12 +223,34 @@ export declare class MasterDataController {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    createAsset(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getStaff(request: FastifyRequest<{
         Querystring: {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
     getQualitySpecs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createQualitySpec(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getLabourStandards(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createLabourStandard(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateLabourStandard(request: FastifyRequest<{
@@ -237,6 +259,50 @@ export declare class MasterDataController {
         };
     }>, reply: FastifyReply): Promise<never>;
     deleteLabourStandard(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getEmployeeSkills(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createEmployeeSkill(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCCPLimits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCCPLimit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getStorageResources(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createStorageResource(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateStorageResource(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteStorageResource(request: FastifyRequest<{
         Params: {
             id: string;
         };

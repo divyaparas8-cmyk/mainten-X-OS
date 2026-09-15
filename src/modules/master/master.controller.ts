@@ -205,6 +205,11 @@ export class MasterAdminController {
     return reply.send(data);
   }
 
+  async clearAllAuditLogs(req: FastifyRequest, reply: FastifyReply) {
+    const data = await masterAdminService.clearAllAuditLogs();
+    return reply.send({ success: true, ...data });
+  }
+
   // 11. Support Tickets
   async getSupportTickets(req: FastifyRequest<{ Querystring: { search?: string; status?: string } }>, reply: FastifyReply) {
     const data = await masterAdminService.getSupportTickets(req.query);

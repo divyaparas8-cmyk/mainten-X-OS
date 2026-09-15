@@ -64,6 +64,7 @@ export declare class QualityService {
             updatedAt: Date;
             tenantId: string;
             isActive: boolean;
+            plantId: string | null;
             skuCode: string;
             category: string;
             familyId: string | null;
@@ -131,10 +132,10 @@ export declare class QualityService {
         id: string;
         tenantId: string;
         plantId: string;
+        reason: string;
         batchId: string | null;
         releasedAt: Date | null;
         lotNumber: string;
-        reason: string;
         severity: string | null;
         holdBy: string;
         holdAt: Date;
@@ -144,10 +145,10 @@ export declare class QualityService {
         id: string;
         tenantId: string;
         plantId: string;
+        reason: string;
         batchId: string | null;
         releasedAt: Date | null;
         lotNumber: string;
-        reason: string;
         severity: string | null;
         holdBy: string;
         holdAt: Date;

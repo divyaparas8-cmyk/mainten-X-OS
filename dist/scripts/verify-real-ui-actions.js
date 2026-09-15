@@ -16,7 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const database_js_1 = require("../config/database.js");
 const index_js_1 = require("../db/schema/index.js");
 const drizzle_orm_1 = require("drizzle-orm");
-const BASE_URL = "http://localhost:4000/api/v1";
+const BASE_URL = "https://mainten-x-os-production.up.railway.app/api/v1";
 const results = [];
 async function login(email, password = "Password@123") {
     const res = await fetch(`${BASE_URL}/auth/login`, {

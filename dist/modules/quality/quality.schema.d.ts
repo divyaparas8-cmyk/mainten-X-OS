@@ -57,13 +57,13 @@ export declare const createQualityHoldSchema: z.ZodObject<{
     reason: z.ZodString;
     severity: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    lotNumber: string;
     reason: string;
+    lotNumber: string;
     severity: string;
     batchId?: string | undefined;
 }, {
-    lotNumber: string;
     reason: string;
+    lotNumber: string;
     batchId?: string | undefined;
     severity?: string | undefined;
 }>;

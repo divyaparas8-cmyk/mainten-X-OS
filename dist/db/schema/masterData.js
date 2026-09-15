@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.departments = exports.companies = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -15,6 +15,7 @@ exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
 exports.skus = (0, pg_core_1.pgTable)("skus", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
     skuCode: (0, pg_core_1.varchar)("sku_code", { length: 100 }).notNull(), // e.g. "SKU-5001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "500ml Sparkling Citrus Soda"
     category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(), // "FINISHED_GOODS", "RAW_MATERIAL", "PACKAGING"
@@ -33,6 +34,7 @@ exports.boms = (0, pg_core_1.pgTable)("boms", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
+    bomNumber: (0, pg_core_1.varchar)("bom_number", { length: 100 }),
     version: (0, pg_core_1.varchar)("version", { length: 50 }).default("v1.0").notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     batchSize: (0, pg_core_1.numeric)("batch_size", { precision: 12, scale: 2 }).default("10000").notNull(),
@@ -40,13 +42,17 @@ exports.boms = (0, pg_core_1.pgTable)("boms", {
     yieldPercent: (0, pg_core_1.numeric)("yield_percent", { precision: 5, scale: 2 }).default("98.50"),
     isDefault: (0, pg_core_1.boolean)("is_default").default(true).notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("ACTIVE").notNull(),
+    approvalStatus: (0, pg_core_1.varchar)("approval_status", { length: 50 }).default("Draft"),
+    createdBy: (0, pg_core_1.varchar)("created_by", { length: 100 }).default("Alexander Vance"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
 exports.bomItems = (0, pg_core_1.pgTable)("bom_items", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     bomId: (0, pg_core_1.uuid)("bom_id").references(() => exports.boms.id, { onDelete: "cascade" }).notNull(),
-    componentSkuId: (0, pg_core_1.uuid)("component_sku_id").references(() => exports.skus.id, { onDelete: "restrict" }).notNull(),
+    componentSkuId: (0, pg_core_1.uuid)("component_sku_id").references(() => exports.skus.id, { onDelete: "restrict" }),
+    componentName: (0, pg_core_1.varchar)("component_name", { length: 255 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
     quantity: (0, pg_core_1.numeric)("quantity", { precision: 14, scale: 4 }).notNull(),
     scrapPercentage: (0, pg_core_1.numeric)("scrap_percentage", { precision: 5, scale: 2 }).default("0.00"),
     uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(),
@@ -90,16 +96,23 @@ exports.shifts = (0, pg_core_1.pgTable)("shifts", {
 });
 exports.assets = (0, pg_core_1.pgTable)("assets", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
     lineId: (0, pg_core_1.uuid)("line_id").references(() => exports.productionLines.id, { onDelete: "set null" }),
-    assetCode: (0, pg_core_1.varchar)("asset_code", { length: 100 }).notNull(), // "FM-001"
+    assetId: (0, pg_core_1.varchar)("asset_id", { length: 50 }),
+    assetCode: (0, pg_core_1.varchar)("asset_code", { length: 100 }), // "FM-001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "Rotary Filling Machine"
+    type: (0, pg_core_1.varchar)("type", { length: 100 }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 255 }),
+    criticality: (0, pg_core_1.varchar)("criticality", { length: 100 }),
+    criticalLevel: (0, pg_core_1.varchar)("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
     modelNumber: (0, pg_core_1.varchar)("model_number", { length: 100 }),
     manufacturer: (0, pg_core_1.varchar)("manufacturer", { length: 100 }),
-    criticalLevel: (0, pg_core_1.varchar)("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("OPERATIONAL"), // "OPERATIONAL", "BREAKDOWN", "MAINTENANCE"
+    healthScore: (0, pg_core_1.integer)("health_score").default(95),
     healthPercent: (0, pg_core_1.integer)("health_percent").default(92),
+    ratedSpeed: (0, pg_core_1.varchar)("rated_speed", { length: 100 }),
     mtbfHours: (0, pg_core_1.numeric)("mtbf_hours", { precision: 10, scale: 2 }).default("412.5"),
     mttrHours: (0, pg_core_1.numeric)("mttr_hours", { precision: 10, scale: 2 }).default("1.8"),
     installDate: (0, pg_core_1.timestamp)("install_date"),
@@ -122,15 +135,30 @@ exports.staff = (0, pg_core_1.pgTable)("staff", {
 });
 exports.qualitySpecs = (0, pg_core_1.pgTable)("quality_specs", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
-    parameterName: (0, pg_core_1.varchar)("parameter_name", { length: 150 }).notNull(), // "Pasteurization Temperature"
-    targetValue: (0, pg_core_1.numeric)("target_value", { precision: 10, scale: 3 }).notNull(),
-    minTolerance: (0, pg_core_1.numeric)("min_tolerance", { precision: 10, scale: 3 }).notNull(),
-    maxTolerance: (0, pg_core_1.numeric)("max_tolerance", { precision: 10, scale: 3 }).notNull(),
-    uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(), // "°C", "pH", "Brix", "mm"
-    isCCP: (0, pg_core_1.boolean)("is_ccp").default(false).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }),
+    specId: (0, pg_core_1.varchar)("spec_id", { length: 50 }).unique(),
+    specificationTitle: (0, pg_core_1.varchar)("specification_title", { length: 255 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    parameter: (0, pg_core_1.varchar)("parameter", { length: 255 }),
+    parameterName: (0, pg_core_1.varchar)("parameter_name", { length: 150 }),
+    target: (0, pg_core_1.varchar)("target", { length: 50 }),
+    targetValue: (0, pg_core_1.numeric)("target_value", { precision: 10, scale: 3 }),
+    min: (0, pg_core_1.varchar)("min", { length: 50 }),
+    minTolerance: (0, pg_core_1.numeric)("min_tolerance", { precision: 10, scale: 3 }),
+    max: (0, pg_core_1.varchar)("max", { length: 50 }),
+    maxTolerance: (0, pg_core_1.numeric)("max_tolerance", { precision: 10, scale: 3 }),
+    uom: (0, pg_core_1.varchar)("uom", { length: 50 }),
+    criticality: (0, pg_core_1.varchar)("criticality", { length: 100 }),
+    isCCP: (0, pg_core_1.boolean)("is_ccp").default(false),
+    criticalLimit: (0, pg_core_1.varchar)("critical_limit", { length: 255 }),
+    testMethod: (0, pg_core_1.varchar)("test_method", { length: 255 }),
+    approvalStatus: (0, pg_core_1.varchar)("approval_status", { length: 50 }).default("Draft"),
+    revision: (0, pg_core_1.varchar)("revision", { length: 50 }).default("Rev 1.0"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
 exports.routings = (0, pg_core_1.pgTable)("routings", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
@@ -179,6 +207,177 @@ exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
     allergenCleaningRequired: (0, pg_core_1.boolean)("allergen_cleaning_required").default(false),
     notes: (0, pg_core_1.text)("notes"),
     status: (0, pg_core_1.varchar)("status", { length: 32 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.companies = (0, pg_core_1.pgTable)("companies", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }),
+    industry: (0, pg_core_1.varchar)("industry", { length: 100 }),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.departments = (0, pg_core_1.pgTable)("departments", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    managerName: (0, pg_core_1.varchar)("manager_name", { length: 255 }),
+    isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+});
+exports.operations = (0, pg_core_1.pgTable)("operations", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    operationCode: (0, pg_core_1.varchar)("operation_code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    sequence: (0, pg_core_1.integer)("sequence").default(10),
+    department: (0, pg_core_1.varchar)("department", { length: 100 }).default("Packaging"),
+    stdDurationMin: (0, pg_core_1.integer)("std_duration_min").default(45),
+    setupDurationMin: (0, pg_core_1.integer)("setup_duration_min").default(15),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.lineTargets = (0, pg_core_1.pgTable)("line_targets", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    targetId: (0, pg_core_1.varchar)("target_id", { length: 50 }),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }).notNull(),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    skuId: (0, pg_core_1.varchar)("sku_id", { length: 50 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    shift: (0, pg_core_1.varchar)("shift", { length: 100 }).default("Morning Shift (A)"),
+    targetQuantity: (0, pg_core_1.integer)("target_quantity").default(0),
+    targetOeePct: (0, pg_core_1.numeric)("target_oee_pct", { precision: 5, scale: 2 }).default("85.00"),
+    targetSpeedBpm: (0, pg_core_1.integer)("target_speed_bpm").default(250),
+    effectiveDate: (0, pg_core_1.timestamp)("effective_date").defaultNow(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.packaging = (0, pg_core_1.pgTable)("packaging", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    packCode: (0, pg_core_1.varchar)("pack_code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }),
+    skuId: (0, pg_core_1.varchar)("sku_id", { length: 100 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    unitsPerPack: (0, pg_core_1.integer)("units_per_pack").default(24),
+    packType: (0, pg_core_1.varchar)("pack_type", { length: 255 }).default("Corrugated Tray & Shrink Wrap"),
+    caseConfiguration: (0, pg_core_1.varchar)("case_configuration", { length: 255 }).default("4x6 Units (24 Count)"),
+    palletConfiguration: (0, pg_core_1.varchar)("pallet_configuration", { length: 255 }).default("60 Cases / 1,440 Units per Pallet"),
+    palletCount: (0, pg_core_1.integer)("pallet_count").default(60),
+    packagingUom: (0, pg_core_1.varchar)("packaging_uom", { length: 50 }).default("CASE-24"),
+    tareWeightKg: (0, pg_core_1.numeric)("tare_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+    grossWeightKg: (0, pg_core_1.numeric)("gross_weight_kg", { precision: 10, scale: 2 }).default("12.50"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.sanitationClasses = (0, pg_core_1.pgTable)("sanitation_classes", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    classId: (0, pg_core_1.varchar)("class_id", { length: 50 }),
+    sanitationId: (0, pg_core_1.varchar)("sanitation_id", { length: 50 }),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }),
+    sanitationClass: (0, pg_core_1.varchar)("sanitation_class", { length: 255 }),
+    description: (0, pg_core_1.text)("description"),
+    durationMin: (0, pg_core_1.integer)("duration_min").default(45),
+    washDurationMin: (0, pg_core_1.integer)("wash_duration_min").default(45),
+    cleaningMethod: (0, pg_core_1.varchar)("cleaning_method", { length: 255 }),
+    cleaningLevel: (0, pg_core_1.varchar)("cleaning_level", { length: 100 }),
+    riskLevel: (0, pg_core_1.varchar)("risk_level", { length: 100 }),
+    applicableProducts: (0, pg_core_1.text)("applicable_products"),
+    chemicalAgent: (0, pg_core_1.varchar)("chemical_agent", { length: 255 }),
+    validationMethod: (0, pg_core_1.varchar)("validation_method", { length: 255 }),
+    frequency: (0, pg_core_1.varchar)("frequency", { length: 100 }),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.allergenRules = (0, pg_core_1.pgTable)("allergen_rules", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    ruleCode: (0, pg_core_1.varchar)("rule_code", { length: 50 }),
+    allergenType: (0, pg_core_1.varchar)("allergen_type", { length: 100 }),
+    cleaningProtocol: (0, pg_core_1.varchar)("cleaning_protocol", { length: 255 }),
+    requiredDowntimeMin: (0, pg_core_1.integer)("required_downtime_min").default(60),
+    validationRequired: (0, pg_core_1.boolean)("validation_required").default(true),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+});
+exports.uoms = (0, pg_core_1.pgTable)("uoms", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    category: (0, pg_core_1.varchar)("category", { length: 100 }).default("Packaging"),
+    type: (0, pg_core_1.varchar)("type", { length: 100 }).default("Packaging"),
+    baseUnit: (0, pg_core_1.varchar)("base_unit", { length: 100 }).default("EA"),
+    conversionFactor: (0, pg_core_1.numeric)("conversion_factor", { precision: 10, scale: 4 }).default("1.0000"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.labourStandards = (0, pg_core_1.pgTable)("labour_standards", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    standardId: (0, pg_core_1.varchar)("standard_id", { length: 50 }),
+    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    standardCrew: (0, pg_core_1.integer)("standard_crew").default(8),
+    stdLaborHoursPer1kUnits: (0, pg_core_1.numeric)("std_labor_hours_per_1k_units", { precision: 10, scale: 2 }).default("2.00"),
+    directCostPerHour: (0, pg_core_1.varchar)("direct_cost_per_hour", { length: 50 }).default("$25.00"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.employeeSkills = (0, pg_core_1.pgTable)("employee_skills", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    employeeId: (0, pg_core_1.varchar)("employee_id", { length: 50 }).notNull().unique(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    email: (0, pg_core_1.varchar)("email", { length: 255 }),
+    department: (0, pg_core_1.varchar)("department", { length: 150 }).default("Production Operations").notNull(),
+    departmentId: (0, pg_core_1.varchar)("department_id", { length: 50 }),
+    role: (0, pg_core_1.varchar)("role", { length: 150 }).default("Line Operator").notNull(),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 150 }).default("Indore Plant"),
+    skillLevel: (0, pg_core_1.varchar)("skill_level", { length: 100 }).default("Level 2 (Certified Operator)").notNull(),
+    skills: (0, pg_core_1.jsonb)("skills").default([]).notNull(),
+    certifications: (0, pg_core_1.jsonb)("certifications").default([]).notNull(),
+    assignedLineIds: (0, pg_core_1.jsonb)("assigned_line_ids").default([]).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.ccpLimits = (0, pg_core_1.pgTable)("ccp_limits", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    ccpNumber: (0, pg_core_1.varchar)("ccp_number", { length: 50 }).notNull().unique(),
+    processStep: (0, pg_core_1.varchar)("process_step", { length: 255 }).notNull(),
+    hazard: (0, pg_core_1.varchar)("hazard", { length: 255 }).notNull(),
+    criticalLimit: (0, pg_core_1.varchar)("critical_limit", { length: 255 }).notNull(),
+    autoDivertAction: (0, pg_core_1.varchar)("auto_divert_action", { length: 255 }).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Critical Mandatory").notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.storageResources = (0, pg_core_1.pgTable)("storage_resources", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    resourceId: (0, pg_core_1.varchar)("resource_id", { length: 50 }).unique(),
+    resourceCode: (0, pg_core_1.varchar)("resource_code", { length: 50 }).notNull().unique(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    resourceType: (0, pg_core_1.varchar)("resource_type", { length: 100 }).default("Selective Pallet Rack").notNull(),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 150 }).default("Indore Plant"),
+    zone: (0, pg_core_1.varchar)("zone", { length: 100 }).default("General Staging"),
+    capacityUnit: (0, pg_core_1.varchar)("capacity_unit", { length: 50 }).default("Pallet Positions"),
+    totalCapacity: (0, pg_core_1.integer)("total_capacity").default(500),
+    capacity: (0, pg_core_1.varchar)("capacity", { length: 100 }).default("500 Pallet Positions"),
+    currentOccupancy: (0, pg_core_1.varchar)("current_occupancy", { length: 100 }).default("0 Pallets (0%)"),
+    temperatureZone: (0, pg_core_1.varchar)("temperature_zone", { length: 100 }).default("Ambient (18°C - 24°C)"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(),
+    effectiveFrom: (0, pg_core_1.varchar)("effective_from", { length: 50 }).default("2025-01-01"),
+    effectiveTo: (0, pg_core_1.varchar)("effective_to", { length: 50 }).default("2030-12-31"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });

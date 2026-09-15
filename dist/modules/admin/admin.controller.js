@@ -73,11 +73,37 @@ class AdminController {
         const res = await admin_service_js_1.adminService.deleteInvitation(user?.tenantId, id);
         return reply.status(200).send(res);
     }
+    async updateInvitation(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const res = await admin_service_js_1.adminService.updateInvitation(user?.tenantId, id, body);
+        return reply.status(200).send(res);
+    }
     async getActivityLogs(request, reply) {
         const user = request.user;
         const { query } = request.query || {};
         const logs = await admin_service_js_1.adminService.getActivityLogs(user?.tenantId, query);
         return reply.status(200).send(logs);
+    }
+    async createActivityLog(request, reply) {
+        const user = request.user;
+        const body = request.body;
+        const res = await admin_service_js_1.adminService.createActivityLog(user?.tenantId, body);
+        return reply.status(201).send(res);
+    }
+    async updateActivityLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const res = await admin_service_js_1.adminService.updateActivityLog(user?.tenantId, id, body);
+        return reply.status(200).send(res);
+    }
+    async deleteActivityLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const res = await admin_service_js_1.adminService.deleteActivityLog(user?.tenantId, id);
+        return reply.status(200).send(res);
     }
     // Roles & Permissions
     async getRoles(request, reply) {
@@ -90,6 +116,19 @@ class AdminController {
         const body = request.body;
         const newRole = await admin_service_js_1.adminService.createRole(user?.tenantId, body);
         return reply.status(201).send(newRole);
+    }
+    async updateRole(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const updated = await admin_service_js_1.adminService.updateRole(user?.tenantId, id, body);
+        return reply.status(200).send(updated);
+    }
+    async deleteRole(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteRole(user?.tenantId, id);
+        return reply.status(200).send(result);
     }
     async getPermissionMatrix(request, reply) {
         const user = request.user;
@@ -119,6 +158,25 @@ class AdminController {
         const rules = await admin_service_js_1.adminService.getApprovalRules(user?.tenantId);
         return reply.status(200).send(rules);
     }
+    async createApprovalRule(request, reply) {
+        const user = request.user;
+        const body = request.body;
+        const created = await admin_service_js_1.adminService.createApprovalRule(user?.tenantId, body);
+        return reply.status(201).send(created);
+    }
+    async updateApprovalRule(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const updated = await admin_service_js_1.adminService.updateApprovalRule(user?.tenantId, id, body);
+        return reply.status(200).send(updated);
+    }
+    async deleteApprovalRule(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteApprovalRule(user?.tenantId, id);
+        return reply.status(200).send(result);
+    }
     async scanDataHealth(request, reply) {
         const user = request.user;
         const result = await admin_service_js_1.adminService.scanDataHealth(user?.tenantId);
@@ -132,8 +190,25 @@ class AdminController {
     }
     async deleteDataHealth(request, reply) {
         const user = request.user;
+        const body = request.body || {};
+        const params = request.params || {};
+        const id = params.id || body.id;
+        const category = params.category || body.category;
+        const result = await admin_service_js_1.adminService.deleteDataHealthItem(user?.tenantId, { ...body, id, category });
+        return reply.status(200).send(result);
+    }
+    async createDataHealth(request, reply) {
+        const user = request.user;
+        const { category } = request.params;
         const body = request.body;
-        const result = await admin_service_js_1.adminService.deleteDataHealthItem(user?.tenantId, body);
+        const result = await admin_service_js_1.adminService.createDataHealthRecord(user?.tenantId, category, body);
+        return reply.status(201).send(result);
+    }
+    async updateDataHealth(request, reply) {
+        const user = request.user;
+        const { category, id } = request.params;
+        const body = request.body;
+        const result = await admin_service_js_1.adminService.updateDataHealthRecord(user?.tenantId, category, id, body);
         return reply.status(200).send(result);
     }
     // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
@@ -171,9 +246,26 @@ class AdminController {
         const status = await admin_service_js_1.adminService.getERPStatus(user?.tenantId);
         return reply.status(200).send(status);
     }
+    async updateERPConfig(request, reply) {
+        const user = request.user;
+        const body = request.body;
+        const updated = await admin_service_js_1.adminService.updateERPConfig(user?.tenantId, body);
+        return reply.status(200).send(updated);
+    }
     async syncERP(request, reply) {
         const user = request.user;
         const result = await admin_service_js_1.adminService.syncERP(user?.tenantId);
+        return reply.status(200).send(result);
+    }
+    async getERPEvents(request, reply) {
+        const user = request.user;
+        const events = await admin_service_js_1.adminService.getERPEvents(user?.tenantId);
+        return reply.status(200).send(events);
+    }
+    async deleteERPEvent(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteERPEvent(user?.tenantId, id);
         return reply.status(200).send(result);
     }
     // ── INTEGRATIONS: BARCODE SYMBOLOGY ───────────────────────────────
@@ -212,6 +304,13 @@ class AdminController {
         const body = request.body;
         const created = await admin_service_js_1.adminService.createApiKey(user?.tenantId, body);
         return reply.status(201).send(created);
+    }
+    async updateApiKey(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const body = request.body;
+        const updated = await admin_service_js_1.adminService.updateApiKey(user?.tenantId, id, body);
+        return reply.status(200).send(updated);
     }
     async revokeApiKey(request, reply) {
         const user = request.user;
@@ -282,11 +381,33 @@ class AdminController {
         const result = await admin_service_js_1.adminService.deleteRemediationLog(user?.tenantId, id);
         return reply.status(200).send(result);
     }
+    async createRemediationLog(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.createRemediationLog(user?.tenantId, request.body);
+        return reply.status(201).send(result);
+    }
+    async updateRemediationLog(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.updateRemediationLog(user?.tenantId, id, request.body);
+        return reply.status(200).send(result);
+    }
     // ── DATA MIGRATION ─────────────────────────────────────────────────
     async getMigrationBatches(request, reply) {
         const user = request.user;
         const batches = await admin_service_js_1.adminService.getMigrationBatches(user?.tenantId);
         return reply.status(200).send(batches);
+    }
+    async createMigrationBatch(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.createMigrationBatch(user?.tenantId, request.body);
+        return reply.status(201).send(result);
+    }
+    async updateMigrationBatch(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.updateMigrationBatch(user?.tenantId, id, request.body);
+        return reply.status(200).send(result);
     }
     async executeMigrationBatch(request, reply) {
         const user = request.user;
@@ -304,6 +425,28 @@ class AdminController {
         const user = request.user;
         const reports = await admin_service_js_1.adminService.getSystemReports(user?.tenantId);
         return reply.status(200).send(reports);
+    }
+    async getSystemGovernanceReports(request, reply) {
+        const user = request.user;
+        const reports = await admin_service_js_1.adminService.getSystemGovernanceReports(user?.tenantId);
+        return reply.status(200).send(reports);
+    }
+    async createSystemReport(request, reply) {
+        const user = request.user;
+        const result = await admin_service_js_1.adminService.createSystemReport(user?.tenantId, request.body);
+        return reply.status(201).send(result);
+    }
+    async updateSystemReport(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.updateSystemReport(user?.tenantId, id, request.body);
+        return reply.status(200).send(result);
+    }
+    async deleteSystemReport(request, reply) {
+        const user = request.user;
+        const { id } = request.params;
+        const result = await admin_service_js_1.adminService.deleteSystemReport(user?.tenantId, id);
+        return reply.status(200).send(result);
     }
     async exportSystemReport(request, reply) {
         const user = request.user;

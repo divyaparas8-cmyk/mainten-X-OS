@@ -85,14 +85,42 @@ async function masterDataRoutes(fastify) {
     fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.createBom.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.updateBom.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.deleteBom.bind(masterData_controller_js_1.masterDataController));
+    // 13. Assets & Machine Capability
     fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/assets", { schema: { tags: ["Master Data"], summary: "Create Equipment Asset" } }, masterData_controller_js_1.masterDataController.createAsset.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/assets/:id", { schema: { tags: ["Master Data"], summary: "Update Equipment Asset" } }, masterData_controller_js_1.masterDataController.updateAsset.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/assets/:id", { schema: { tags: ["Master Data"], summary: "Delete Equipment Asset" } }, masterData_controller_js_1.masterDataController.deleteAsset.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterData_controller_js_1.masterDataController.getStaff.bind(masterData_controller_js_1.masterDataController));
+    // 14. Quality Specifications & Parameter Master
     fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterData_controller_js_1.masterDataController.getQualitySpecs.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/quality-specs", { schema: { tags: ["Master Data"], summary: "Create QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.createQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Update QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.updateQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Delete QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.deleteQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    // 18. HACCP CCP Limits
+    fastify.get("/ccp-limits", { schema: { tags: ["Master Data"], summary: "List HACCP CCP Limits" } }, masterData_controller_js_1.masterDataController.getCCPLimits.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/ccp-limits", { schema: { tags: ["Master Data"], summary: "Create HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.createCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Update HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.updateCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Delete HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.deleteCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    // 19. Storage Resources & Warehouse Master
+    fastify.get("/storage-resources", { schema: { tags: ["Master Data"], summary: "List Storage Resources" } }, masterData_controller_js_1.masterDataController.getStorageResources.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/storage-resources", { schema: { tags: ["Master Data"], summary: "Create Storage Resource" } }, masterData_controller_js_1.masterDataController.createStorageResource.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Update Storage Resource" } }, masterData_controller_js_1.masterDataController.updateStorageResource.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Delete Storage Resource" } }, masterData_controller_js_1.masterDataController.deleteStorageResource.bind(masterData_controller_js_1.masterDataController));
     // 15. Labour Standards
     fastify.get("/labour-standards", { schema: { tags: ["Master Data"], summary: "List Labour Standards" } }, masterData_controller_js_1.masterDataController.getLabourStandards.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/labour-standards", { schema: { tags: ["Master Data"], summary: "Create Labour Standard" } }, masterData_controller_js_1.masterDataController.createLabourStandard.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Update Labour Standard" } }, masterData_controller_js_1.masterDataController.updateLabourStandard.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Delete Labour Standard" } }, masterData_controller_js_1.masterDataController.deleteLabourStandard.bind(masterData_controller_js_1.masterDataController));
+    // 17. Employee Skills & Qualifications Matrix
+    fastify.get("/employee-skills", { schema: { tags: ["Master Data"], summary: "List Employee Skill Qualification Matrix" } }, masterData_controller_js_1.masterDataController.getEmployeeSkills.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/employee-skills", { schema: { tags: ["Master Data"], summary: "Onboard Employee with Skill Competencies" } }, masterData_controller_js_1.masterDataController.createEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Skill Matrix" } }, masterData_controller_js_1.masterDataController.updateEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Skill Record" } }, masterData_controller_js_1.masterDataController.deleteEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    // Aliases for seamless API compatibility
+    fastify.get("/employees", { schema: { tags: ["Master Data"], summary: "List Employees Matrix" } }, masterData_controller_js_1.masterDataController.getEmployeeSkills.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/employees", { schema: { tags: ["Master Data"], summary: "Create Employee Record" } }, masterData_controller_js_1.masterDataController.createEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/employees/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Record" } }, masterData_controller_js_1.masterDataController.updateEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/employees/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Record" } }, masterData_controller_js_1.masterDataController.deleteEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
 }
 //# sourceMappingURL=masterData.routes.js.map

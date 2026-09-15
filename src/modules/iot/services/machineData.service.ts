@@ -17,6 +17,8 @@ export class MachineDataService {
   private latestTelemetryByAsset: Map<string, NormalizedMachineEvent> = new Map();
   private sseSubscribers: Set<FastifyReply> = new Set();
   private isSimulatorRunning = false;
+  private dbIngestPaused = false;
+  private lastDiskWarnTime = 0;
 
   constructor() {
     this.opcuaAdapter = new OpcUaAdapter();
@@ -75,33 +77,47 @@ export class MachineDataService {
     // 2. Cache latest event in-memory for zero-latency retrieval
     this.latestTelemetryByAsset.set(event.assetCode, event);
 
-    // 3. Asynchronously persist into PostgreSQL machine_telemetry table
-    db.insert(machineTelemetry)
-      .values({
-        assetId: event.assetId,
-        assetCode: event.assetCode,
-        plantId: event.plantId,
-        timestamp: new Date(event.timestamp),
-        status: event.status,
-        productionCount: event.productionCount,
-        speed: String(event.speed),
-        cycleTime: String(event.cycleTime),
-        downtime: event.downtime,
-        vibration: String(event.vibration),
-        temperature: String(event.temperature),
-        pressure: String(event.pressure),
-        rpm: event.rpm || 0,
-        powerKw: event.powerKw ? String(event.powerKw) : "0.00",
-        flowRate: event.flowRate ? String(event.flowRate) : "0.00",
-        faultCode: event.faultCode,
-        alarm: event.alarm,
-        source: event.source,
-        rawPayload: event.rawPayload,
-      })
-      .catch((err) => {
-        // Log without crashing ingestion pipeline
-        console.warn("[MachineDataService DB Ingest Warning]:", err.message);
-      });
+    // 3. Persist into PostgreSQL machine_telemetry table only if enabled and disk space is available
+    const shouldPersist = process.env.IOT_DB_INGEST_ENABLED !== "false" && !this.dbIngestPaused;
+    if (shouldPersist) {
+      db.insert(machineTelemetry)
+        .values({
+          assetId: event.assetId,
+          assetCode: event.assetCode,
+          plantId: event.plantId,
+          timestamp: new Date(event.timestamp),
+          status: event.status,
+          productionCount: event.productionCount,
+          speed: String(event.speed),
+          cycleTime: String(event.cycleTime),
+          downtime: event.downtime,
+          vibration: String(event.vibration),
+          temperature: String(event.temperature),
+          pressure: String(event.pressure),
+          rpm: event.rpm || 0,
+          powerKw: event.powerKw ? String(event.powerKw) : "0.00",
+          flowRate: event.flowRate ? String(event.flowRate) : "0.00",
+          faultCode: event.faultCode,
+          alarm: event.alarm,
+          source: event.source,
+          rawPayload: event.rawPayload,
+        })
+        .catch((err: any) => {
+          const isDiskFull = err.message?.includes("No space left on device") || err.code === "53100";
+          if (isDiskFull) {
+            this.dbIngestPaused = true;
+            const now = Date.now();
+            if (now - this.lastDiskWarnTime > 60000) {
+              this.lastDiskWarnTime = now;
+              console.warn("[MachineDataService]: Disk full (No space left on device). Paused DB writes to protect server. Live SSE telemetry remains active.");
+            }
+            // Auto-check after 30 seconds
+            setTimeout(() => { this.dbIngestPaused = false; }, 30000);
+          } else {
+            console.warn("[MachineDataService DB Ingest Warning]:", err.message);
+          }
+        });
+    }
 
     // 4. Broadcast to active SSE real-time subscribers
     this.broadcastEvent(event);

@@ -58,6 +58,7 @@ export async function masterRoutes(fastify: FastifyInstance) {
 
   // 10. Activity & Audit Logs
   fastify.get("/audit-logs", masterAdminController.getAuditLogs.bind(masterAdminController));
+  fastify.delete("/audit-logs", masterAdminController.clearAllAuditLogs.bind(masterAdminController));
   fastify.delete("/audit-logs/:id", masterAdminController.deleteAuditLog.bind(masterAdminController));
 
   // 11. Support Tickets

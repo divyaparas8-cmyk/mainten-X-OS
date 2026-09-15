@@ -680,100 +680,169 @@ export class DashboardsService {
         [plantId || 'PLT-01']
       );
 
-      const hourlyLedger = hbRes.rows.length > 0 ? hbRes.rows.map(r => ({
+      const hourlyLedger = hbRes.rows.map((r: any) => ({
         ...r,
-        delta: (r.delta > 0 ? `+${r.delta}` : `${r.delta}`)
-      })) : [
-        { hour: "06:00 - 07:00", target: 3000, actual: 3050, delta: "+50", status: "Ahead" },
-        { hour: "07:00 - 08:00", target: 3000, actual: 3020, delta: "+20", status: "Ahead" },
-        { hour: "08:00 - 09:00", target: 3000, actual: 2800, delta: "-200", status: "Behind (Micro-jam)" },
-        { hour: "09:00 - 10:00", target: 3000, actual: 3100, delta: "+100", status: "Recovering" },
-        { hour: "10:00 - 11:00", target: 3000, actual: 3050, delta: "+50", status: "On Target" },
-        { hour: "11:00 - 12:00", target: 3000, actual: 2980, delta: "-20", status: "On Target" },
-      ];
+        delta: (Number(r.delta) > 0 ? `+${r.delta}` : `${r.delta}`)
+      }));
 
-      const totalTarget = hbRes.rows.reduce((s, r) => s + Number(r.target), 0) || 24000;
-      const totalActual = hbRes.rows.reduce((s, r) => s + Number(r.actual), 0) || 23900;
+      const totalTarget = hbRes.rows.reduce((s: number, r: any) => s + Number(r.target || 0), 0);
+      const totalActual = hbRes.rows.reduce((s: number, r: any) => s + Number(r.actual || 0), 0);
       const netVariance = totalActual - totalTarget;
+
+      const processingActual = Math.round(totalActual * 0.5);
+      const processingTarget = Math.round(totalTarget * 0.5);
+      const packagingActual = totalActual - processingActual;
+      const packagingTarget = totalTarget - processingTarget;
 
       const hbSummary = {
         processing: {
-          target: Math.round(totalTarget * 0.5),
-          actual: Math.round(totalActual * 0.495),
-          variance: Math.round((totalActual * 0.495) - (totalTarget * 0.5)),
-          recoveryPace: "+35 units/hr",
-          eodProjection: 23800,
-          status: "Recovering",
+          target: processingTarget,
+          actual: processingActual,
+          variance: processingActual - processingTarget,
+          recoveryPace: totalActual > 0 ? `${totalActual} units logged` : "0 units/hr",
+          eodProjection: totalActual,
+          status: totalActual >= processingTarget && totalTarget > 0 ? "Ahead" : (totalActual > 0 ? "On Track" : "Idle"),
         },
         packaging: {
-          target: Math.round(totalTarget * 0.5),
-          actual: Math.round(totalActual * 0.505),
-          variance: Math.round((totalActual * 0.505) - (totalTarget * 0.5)),
-          recoveryPace: "On Pace (0 Delta)",
-          eodProjection: 24100,
-          status: "Ahead",
+          target: packagingTarget,
+          actual: packagingActual,
+          variance: packagingActual - packagingTarget,
+          recoveryPace: totalActual > 0 ? "On Pace" : "0 units/hr",
+          eodProjection: totalActual,
+          status: totalActual >= packagingTarget && totalTarget > 0 ? "Ahead" : (totalActual > 0 ? "On Track" : "Idle"),
         },
         total: {
           target: totalTarget,
           actual: totalActual,
           netVariance: netVariance,
-          shiftPacing: `${((totalActual / (totalTarget || 1)) * 100).toFixed(1)}% Shift Pace`,
-          eodProjection: 23950,
-          status: netVariance >= 0 ? "Ahead" : "On Track",
+          shiftPacing: totalTarget > 0 ? `${((totalActual / totalTarget) * 100).toFixed(1)}% Shift Pace` : "0.0% Shift Pace",
+          eodProjection: totalActual,
+          status: netVariance >= 0 && totalTarget > 0 ? "Ahead" : (totalActual > 0 ? "On Track" : "Idle"),
         },
       };
 
-      // 2. Telemetry and OEE
+      // 2. Telemetry and OEE from DB
       const teleRes = await client.query(
         `SELECT count(*) as total, 
-                COALESCE(avg(efficiency_percent), 94.2) as avg_eff,
-                COALESCE(sum(produced_count), 88450) as total_produced,
-                COALESCE(sum(scrap_count), 485) as total_scrap
+                COALESCE(avg(efficiency_percent), 0) as avg_eff,
+                COALESCE(sum(produced_count), 0) as total_produced,
+                COALESCE(sum(scrap_count), 0) as total_scrap
          FROM pm_machine_telemetry WHERE plant_id = $1 OR $1 IS NULL;`,
         [plantId || 'PLT-01']
       );
       const tele = teleRes.rows[0];
 
-      // Exceptions count
+      // Exceptions count from DB
       const exRes = await client.query(
         `SELECT severity, count(*) as count FROM pm_exceptions 
          WHERE status != 'Resolved' GROUP BY severity;`
       );
-      const p1Count = Number(exRes.rows.find(r => r.severity === 'P1')?.count || 0);
+      const p1Count = Number(exRes.rows.find((r: any) => r.severity === 'P1')?.count || 0);
 
-      // Counts from other tables
+      // Counts from real tables
       let activeHoldsCount = 0;
       let pendingWOCount = 0;
       let totalLotsCount = 0;
+      let totalStaffCount = 0;
+      let activeStaffCount = 0;
+      let totalProducedOrders = 0;
+
       try {
         const holds = await client.query(`SELECT count(*) FROM quality_holds WHERE status = 'ACTIVE_HOLD';`);
         activeHoldsCount = Number(holds.rows[0]?.count || 0);
-        const wos = await client.query(`SELECT count(*) FROM work_orders WHERE status = 'IN_PROGRESS';`);
-        pendingWOCount = Number(wos.rows[0]?.count || 2);
+      } catch {}
+
+      try {
+        const wos = await client.query(`SELECT count(*) FROM work_orders WHERE status = 'IN_PROGRESS' OR status = 'OPEN';`);
+        pendingWOCount = Number(wos.rows[0]?.count || 0);
+      } catch {}
+
+      try {
         const lots = await client.query(`SELECT count(*) FROM inventory_lots;`);
-        totalLotsCount = Number(lots.rows[0]?.count || 14);
-      } catch {
-        // fallback safe
-      }
+        totalLotsCount = Number(lots.rows[0]?.count || 0);
+      } catch {}
+
+      try {
+        const staffRes = await client.query(`SELECT count(*) as total, count(*) FILTER (WHERE status = 'Active' OR is_available = true) as active_count FROM public.staff;`);
+        totalStaffCount = Number(staffRes.rows[0]?.total || 0);
+        activeStaffCount = Number(staffRes.rows[0]?.active_count || 0);
+      } catch {}
+
+      try {
+        const poRes = await client.query(`SELECT COALESCE(sum(produced_quantity), 0) as produced FROM public.production_orders;`);
+        totalProducedOrders = Number(poRes.rows[0]?.produced || 0);
+      } catch {}
+
+      const totalProduced = Number(tele.total_produced || 0) || totalProducedOrders || totalActual || 0;
 
       const oeeCalc = calculateOEE({
         plannedProductionMinutes: 480,
-        downtimeMinutes: 38,
+        downtimeMinutes: 0,
         idealCycleTimeSeconds: 0.24,
-        totalUnitsProduced: Number(tele.total_produced) || 24000,
-        goodUnitsProduced: (Number(tele.total_produced) - Number(tele.total_scrap)) || 23800,
+        totalUnitsProduced: totalProduced,
+        goodUnitsProduced: Math.max(0, totalProduced - Number(tele.total_scrap || 0)),
       });
 
+      const oeeOverall = totalProduced > 0 ? oeeCalc.overallOEEPercent : "0.0";
+      const oeeAvail = totalProduced > 0 ? oeeCalc.availabilityPercent : "0";
+      const oeePerf = totalProduced > 0 ? oeeCalc.performancePercent : "0";
+      const oeeQual = totalProduced > 0 ? oeeCalc.qualityPercent : "0";
+
       const pillars = {
-        hbPacing: { value: `${totalActual.toLocaleString()}`, unit: `/ ${totalTarget.toLocaleString()} units`, trend: `Delta: ${netVariance > 0 ? '+' : ''}${netVariance} units (${((totalActual / (totalTarget || 1)) * 100).toFixed(1)}% pacing)`, status: "positive" },
-        oeeScore: { value: `${oeeCalc.overallOEEPercent}%`, unit: "Overall", trend: `A: ${oeeCalc.availabilityPercent}% • P: ${oeeCalc.performancePercent}% • Q: ${oeeCalc.qualityPercent}%`, status: "positive" },
-        productionOutput: { value: `${Number(tele.total_produced).toLocaleString()}`, unit: "Bottles/Day", trend: "Line 1: 98.5% | Line 2: 94.2%", status: "positive" },
-        qualityYield: { value: "99.2%", unit: "Pass Rate", trend: `${activeHoldsCount} active lot holds in DB`, status: activeHoldsCount > 0 ? "warning" : "positive" },
-        labourStaffing: { value: "100%", unit: "28 / 28 Present", trend: "Shift A: 0 Callouts", status: "positive" },
-        maintenanceMtbf: { value: "240.0", unit: "hrs MTBF", trend: `${pendingWOCount} Active Work Orders in DB`, status: "positive" },
-        materialStockHealth: { value: `${totalLotsCount} Lots`, unit: "Active Lots", trend: "0 Stockout Alerts", status: "positive" },
-        scheduleRecovery: { value: "+45 mins", unit: "Paced", trend: "Catch-up strategy activated", status: "positive" },
-        riskRadar: { value: p1Count > 0 ? "High Risk" : "Low / Guarded", unit: "Risk Level", trend: `${p1Count} P1 Stoppage Alarms in DB`, status: p1Count > 0 ? "warning" : "positive" },
+        hbPacing: {
+          value: totalActual > 0 ? `${totalActual.toLocaleString()}` : "0",
+          unit: totalTarget > 0 ? `/ ${totalTarget.toLocaleString()} units` : "/ 0 units",
+          trend: totalTarget > 0 ? `Delta: ${netVariance > 0 ? '+' : ''}${netVariance} units (${((totalActual / totalTarget) * 100).toFixed(1)}% pacing)` : "0 units logged in DB",
+          status: "positive"
+        },
+        oeeScore: {
+          value: `${oeeOverall}%`,
+          unit: "Overall",
+          trend: `A: ${oeeAvail}% • P: ${oeePerf}% • Q: ${oeeQual}%`,
+          status: "positive"
+        },
+        productionOutput: {
+          value: `${totalProduced.toLocaleString()}`,
+          unit: "Units Produced",
+          trend: totalProduced > 0 ? "Live production total from DB" : "0 units produced in DB",
+          status: totalProduced > 0 ? "positive" : "neutral"
+        },
+        qualityYield: {
+          value: activeHoldsCount === 0 ? "100.0%" : `${Math.max(0, 100 - activeHoldsCount * 5).toFixed(1)}%`,
+          unit: "Pass Rate",
+          trend: `${activeHoldsCount} active lot holds in DB`,
+          status: activeHoldsCount > 0 ? "warning" : "positive"
+        },
+        labourStaffing: {
+          value: totalStaffCount > 0 ? `${Math.round((activeStaffCount / totalStaffCount) * 100)}%` : "0%",
+          unit: `${activeStaffCount} / ${totalStaffCount} Present`,
+          trend: `${activeStaffCount} Active Staff in DB`,
+          status: "positive"
+        },
+        maintenanceMtbf: {
+          value: pendingWOCount > 0 ? "120.0" : "0.0",
+          unit: "hrs MTBF",
+          trend: `${pendingWOCount} Active Work Orders in DB`,
+          status: "positive"
+        },
+        materialStockHealth: {
+          value: `${totalLotsCount} Lots`,
+          unit: "Active Lots",
+          trend: `${totalLotsCount > 0 ? 'Stock available' : '0 Stockout Alerts'}`,
+          status: "positive"
+        },
+        scheduleRecovery: {
+          value: netVariance >= 0 ? "On Schedule" : `${Math.abs(netVariance)} Behind`,
+          unit: "Shift Status",
+          trend: netVariance >= 0 ? "Pacing nominal" : "Catch-up strategy required",
+          status: netVariance >= 0 ? "positive" : "warning"
+        },
+        riskRadar: {
+          value: p1Count > 0 ? "High Risk" : "Low / Guarded",
+          unit: "Risk Level",
+          trend: `${p1Count} P1 Exceptions in DB`,
+          status: p1Count > 0 ? "warning" : "positive"
+        },
       };
 
       return {

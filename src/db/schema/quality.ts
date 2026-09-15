@@ -81,3 +81,44 @@ export const capaRecords = pgTable("capa_records", {
   assignedTo: uuid("assigned_to").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const productChecks = pgTable("product_checks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  checkCode: varchar("check_code", { length: 50 }).notNull(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "set null" }),
+  lineId: uuid("line_id").references(() => productionLines.id, { onDelete: "set null" }),
+  batchId: uuid("batch_id").references(() => batches.id, { onDelete: "set null" }),
+  checkType: varchar("check_type", { length: 255 }).notNull(),
+  batchNumber: varchar("batch_number", { length: 100 }),
+  skuName: varchar("sku_name", { length: 150 }),
+  lineName: varchar("line_name", { length: 100 }),
+  targetSpec: varchar("target_spec", { length: 150 }).notNull(),
+  measuredValue: varchar("measured_value", { length: 150 }).notNull(),
+  status: varchar("status", { length: 50 }).default("PASS").notNull(),
+  notes: text("notes"),
+  checkedAt: timestamp("checked_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const preopChecks = pgTable("preop_checks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "set null" }),
+  lineId: uuid("line_id").references(() => productionLines.id, { onDelete: "set null" }),
+  lineName: varchar("line_name", { length: 150 }),
+  batchId: uuid("batch_id").references(() => batches.id, { onDelete: "set null" }),
+  batchNumber: varchar("batch_number", { length: 150 }),
+  category: varchar("category", { length: 150 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  spec: varchar("spec", { length: 255 }).notNull(),
+  criticality: varchar("criticality", { length: 100 }).default("Critical GMP").notNull(),
+  method: varchar("method", { length: 150 }),
+  passed: boolean("passed"),
+  notes: text("notes"),
+  inspectorName: varchar("inspector_name", { length: 150 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+

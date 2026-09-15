@@ -32,8 +32,20 @@ export class QualityController {
     return reply.status(201).send(formatSuccess(data, `CCP check recorded (${data.status})`));
   }
 
+  async deleteCcpCheck(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.deleteCcpCheck(tenantId, request.params.id);
+    return reply.send(formatSuccess(data, "CCP check deleted successfully"));
+  }
+
   async getQaReleaseQueue(request: FastifyRequest, reply: FastifyReply) {
     const data = await qualityService.listQaReleaseQueue(request.user.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async getQaReleaseMetrics(request: FastifyRequest, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.getQaReleaseMetrics(tenantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -193,6 +205,12 @@ export class QualityController {
   async exportProductChecks(request: FastifyRequest, reply: FastifyReply) {
     const data = await qualityService.exportProductChecks(request.user.tenantId, request.body, request.user.userId);
     return reply.send(formatSuccess(data, data.message));
+  }
+
+  async deleteProductCheck(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.deleteProductCheck(tenantId, request.params.id);
+    return reply.send(formatSuccess(data, "Product check deleted successfully"));
   }
 
   async getQualitySpecs(request: FastifyRequest, reply: FastifyReply) {
@@ -462,6 +480,40 @@ export class QualityController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async createPreOpItem(request: FastifyRequest, reply: FastifyReply) {
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await qualityService.createPreOpItem(request.user.tenantId, plantId, request.body);
+    return reply.status(201).send(formatSuccess(data, data.message));
+  }
+
+  async updatePreOpItem(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as any;
+    const data = await qualityService.updatePreOpItem(request.user.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async deletePreOpItem(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as any;
+    const data = await qualityService.deletePreOpItem(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async markAllPreOpPass(request: FastifyRequest, reply: FastifyReply) {
+    const data = await qualityService.markAllPreOpPass(request.user.tenantId, request.body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async resetPreOpChecklist(request: FastifyRequest, reply: FastifyReply) {
+    const data = await qualityService.resetPreOpChecklist(request.user.tenantId, request.body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async seedStandardPreOp(request: FastifyRequest, reply: FastifyReply) {
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await qualityService.seedStandardPreOp(request.user.tenantId, plantId, request.body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async getSanitationChecklist(request: FastifyRequest, reply: FastifyReply) {
     const data = await qualityService.getSanitationChecklist(request.user.tenantId);
     return reply.send(formatSuccess(data));
@@ -495,6 +547,36 @@ export class QualityController {
 
   async exportQualityRecords(request: FastifyRequest, reply: FastifyReply) {
     const data = await qualityService.exportQualityRecords(request.user.tenantId, request.body, request.user.userId);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getDeviationCategories(request: FastifyRequest, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.getDeviationCategories(tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async saveDeviationCategory(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.saveDeviationCategory(tenantId, request.body as any);
+    return reply.status(201).send(formatSuccess(data, "Deviation category saved successfully"));
+  }
+
+  async deleteDeviationCategory(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.deleteDeviationCategory(tenantId, request.params.id);
+    return reply.send(formatSuccess(data, "Deviation category deleted successfully"));
+  }
+
+  async deleteDeviation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.deleteDeviation(tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async deleteQualityHold(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    const data = await qualityService.deleteQualityHold(tenantId, request.params.id);
     return reply.send(formatSuccess(data, data.message));
   }
 }

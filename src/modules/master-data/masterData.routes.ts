@@ -101,6 +101,14 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterDataController.updateBom.bind(masterDataController));
   fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterDataController.deleteBom.bind(masterDataController));
 
+  fastify.get("/asset-types", { schema: { tags: ["Master Data"], summary: "List Asset Categories / Types" } }, masterDataController.getAssetTypes.bind(masterDataController));
+  fastify.post("/asset-types", { schema: { tags: ["Master Data"], summary: "Create Asset Category / Type" } }, masterDataController.createAssetType.bind(masterDataController));
+  fastify.delete("/asset-types/:id", { schema: { tags: ["Master Data"], summary: "Delete Asset Category / Type" } }, masterDataController.deleteAssetType.bind(masterDataController));
+
+  fastify.get("/criticality-levels", { schema: { tags: ["Master Data"], summary: "List Criticality Ratings" } }, masterDataController.getCriticalityLevels.bind(masterDataController));
+  fastify.post("/criticality-levels", { schema: { tags: ["Master Data"], summary: "Create Criticality Rating" } }, masterDataController.createCriticalityLevel.bind(masterDataController));
+  fastify.delete("/criticality-levels/:id", { schema: { tags: ["Master Data"], summary: "Delete Criticality Rating" } }, masterDataController.deleteCriticalityLevel.bind(masterDataController));
+
   fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterDataController.getAssets.bind(masterDataController));
   fastify.post("/assets", { schema: { tags: ["Master Data"], summary: "Register New Equipment Asset" } }, masterDataController.createAsset.bind(masterDataController));
   fastify.put("/assets/:id", { schema: { tags: ["Master Data"], summary: "Update Equipment Asset Record" } }, masterDataController.updateAsset.bind(masterDataController));
@@ -108,7 +116,13 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.delete("/assets/:id", { schema: { tags: ["Master Data"], summary: "Delete Equipment Asset" } }, masterDataController.deleteAsset.bind(masterDataController));
   fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterDataController.getAssets.bind(masterDataController));
   fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterDataController.getStaff.bind(masterDataController));
+  fastify.post("/staff", { schema: { tags: ["Master Data"], summary: "Register New Shift Supervisor / Staff Member" } }, masterDataController.createStaff.bind(masterDataController));
+  fastify.put("/staff/:id", { schema: { tags: ["Master Data"], summary: "Update Staff Member Qualifications & Profile" } }, masterDataController.updateStaff.bind(masterDataController));
+  fastify.delete("/staff/:id", { schema: { tags: ["Master Data"], summary: "Remove Staff Member" } }, masterDataController.deleteStaff.bind(masterDataController));
   fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterDataController.getQualitySpecs.bind(masterDataController));
+  fastify.post("/quality-specs", { schema: { tags: ["Master Data"], summary: "Register QA & CCP Specification" } }, masterDataController.createQualitySpec.bind(masterDataController));
+  fastify.put("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Update QA & CCP Specification" } }, masterDataController.updateQualitySpec.bind(masterDataController));
+  fastify.delete("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Remove QA & CCP Specification" } }, masterDataController.deleteQualitySpec.bind(masterDataController));
 
   // 15. Labour Standards
   fastify.get("/labour-standards", { schema: { tags: ["Master Data"], summary: "List Labour Standards" } }, masterDataController.getLabourStandards.bind(masterDataController));

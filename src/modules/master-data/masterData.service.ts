@@ -707,10 +707,10 @@ export class MasterDataService {
         ratedSpeedBPH: l.rated_speed_bph || (l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 38000),
         status: l.status || "Active",
         healthScore: l.health_score || 95,
-        supervisorId: l.supervisor_id || "EMP-005",
-        supervisorName: l.supervisor_name || "David Kim",
+        supervisorId: l.supervisor_id || null,
+        supervisorName: l.supervisor_name || null,
         ratedOEE: l.rated_oee || "88.0%",
-        currentRunningSku: l.current_running_sku || "SKU-5001"
+        currentRunningSku: l.current_running_sku || null
       }));
     } catch (e: any) {
       console.warn("DB listLines error:", e.message);
@@ -733,11 +733,11 @@ export class MasterDataService {
       const nominalSpeedBpm = ratedSpeedBPH ? Math.round(ratedSpeedBPH / 60) : 250;
       const status = input.status || "Active";
       const plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
-      const plantName = input.plantName || "Main Facility";
-      const supervisorName = input.supervisorName || "David Kim";
-      const supervisorId = input.supervisorId || "EMP-005";
+      const plantName = input.plantName || null;
+      const supervisorName = input.supervisorName || null;
+      const supervisorId = input.supervisorId || null;
       const ratedOee = input.ratedOEE || "88.0%";
-      const currentRunningSku = input.currentRunningSku || "SKU-5001";
+      const currentRunningSku = input.currentRunningSku || null;
       const type = input.type || "Continuous Flow";
 
       const res = await db.execute(sql`
@@ -793,6 +793,7 @@ export class MasterDataService {
           status = COALESCE(${input.status || null}, status),
           plant_name = COALESCE(${input.plantName || null}, plant_name),
           supervisor_name = COALESCE(${input.supervisorName || null}, supervisor_name),
+          supervisor_id = COALESCE(${input.supervisorId || null}, supervisor_id),
           updated_at = NOW()
         WHERE id::text = ${id} OR code = ${id} OR line_code = ${id}
       `);
@@ -2962,19 +2963,12 @@ export class MasterDataService {
         if (nameMatch) skuId = nameMatch.id;
       }
       if (!skuId) {
-        // Auto-create finished goods SKU
-        const skuCodeVal = input.finishedSkuCode || `SKU-${Date.now().toString().slice(-4)}`;
-        const skuNameVal = input.finishedSkuName || input.name || "Finished Recipe Product";
-        const [newSku] = await db.insert(skus).values({
-          tenantId: resolvedTenantId,
-          skuCode: skuCodeVal,
-          name: skuNameVal,
-          category: "FINISHED_GOODS",
-          uom: "Units",
-          standardCost: "15.00",
-          isActive: true,
-        }).returning({ id: skus.id });
-        if (newSku) skuId = newSku.id;
+        const [fallbackSku] = await db.select({ id: skus.id }).from(skus).limit(1);
+        if (fallbackSku) {
+          skuId = fallbackSku.id;
+        } else {
+          throw new Error("No SKU available in database. Please register an SKU first in SKU Master.");
+        }
       }
 
       // 3. Prepare BOM fields
@@ -3162,6 +3156,124 @@ export class MasterDataService {
     }
   }
 
+  async listAssetTypes(tenantId?: string) {
+    try {
+      const res = await db.execute(sql`
+        SELECT id, name, code, description, created_at 
+        FROM public.asset_types 
+        ORDER BY name ASC
+      `);
+      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      return rows.map((r: any) => ({
+        id: String(r.id),
+        name: r.name,
+        code: r.code || "",
+        description: r.description || "",
+        createdAt: r.created_at
+      }));
+    } catch (e: any) {
+      console.warn("DB listAssetTypes error:", e.message);
+      return [];
+    }
+  }
+
+  async createAssetType(tenantId: string | undefined, input: any) {
+    try {
+      const name = String(input.name || "").trim();
+      if (!name) {
+        throw new Error("Asset type name is required");
+      }
+      const code = (input.code || name.replace(/[^A-Z0-9]/gi, "").substring(0, 8)).toUpperCase();
+      const description = input.description || "";
+      const res = await db.execute(sql`
+        INSERT INTO public.asset_types (name, code, description, created_at, updated_at)
+        VALUES (${name}, ${code}, ${description}, NOW(), NOW())
+        ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description, updated_at = NOW()
+        RETURNING *
+      `);
+      const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+      return {
+        id: String(row?.id || ""),
+        name: row?.name || name,
+        code: row?.code || code,
+        description: row?.description || description,
+        createdAt: row?.created_at || new Date().toISOString()
+      };
+    } catch (err: any) {
+      console.warn("DB createAssetType error:", err.message);
+      throw err;
+    }
+  }
+
+  async deleteAssetType(tenantId: string | undefined, id: string) {
+    try {
+      await db.execute(sql`DELETE FROM public.asset_types WHERE id::text = ${id} OR code = ${id} OR name = ${id}`);
+      return { id, message: "Asset type deleted successfully" };
+    } catch (err: any) {
+      console.warn("DB deleteAssetType error:", err.message);
+      throw err;
+    }
+  }
+
+  async listCriticalityLevels(tenantId?: string) {
+    try {
+      const res = await db.execute(sql`
+        SELECT id, name, code, description, created_at 
+        FROM public.criticality_levels 
+        ORDER BY name ASC
+      `);
+      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      return rows.map((r: any) => ({
+        id: String(r.id),
+        name: r.name,
+        code: r.code || "",
+        description: r.description || "",
+        createdAt: r.created_at
+      }));
+    } catch (e: any) {
+      console.warn("DB listCriticalityLevels error:", e.message);
+      return [];
+    }
+  }
+
+  async createCriticalityLevel(tenantId: string | undefined, input: any) {
+    try {
+      const name = String(input.name || "").trim();
+      if (!name) {
+        throw new Error("Criticality rating name is required");
+      }
+      const code = (input.code || name.replace(/[^A-Z0-9]/gi, "").substring(0, 8)).toUpperCase();
+      const description = input.description || "";
+      const res = await db.execute(sql`
+        INSERT INTO public.criticality_levels (name, code, description, created_at, updated_at)
+        VALUES (${name}, ${code}, ${description}, NOW(), NOW())
+        ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description, updated_at = NOW()
+        RETURNING *
+      `);
+      const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+      return {
+        id: String(row?.id || ""),
+        name: row?.name || name,
+        code: row?.code || code,
+        description: row?.description || description,
+        createdAt: row?.created_at || new Date().toISOString()
+      };
+    } catch (err: any) {
+      console.warn("DB createCriticalityLevel error:", err.message);
+      throw err;
+    }
+  }
+
+  async deleteCriticalityLevel(tenantId: string | undefined, id: string) {
+    try {
+      await db.execute(sql`DELETE FROM public.criticality_levels WHERE id::text = ${id} OR code = ${id} OR name = ${id}`);
+      return { id, message: "Criticality level deleted successfully" };
+    } catch (err: any) {
+      console.warn("DB deleteCriticalityLevel error:", err.message);
+      throw err;
+    }
+  }
+
   async listAssets(tenantId: string | undefined, plantId?: string) {
     try {
       const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
@@ -3199,22 +3311,26 @@ export class MasterDataService {
 
         return {
           id: r.assetCode || r.id,
+          assetId: r.assetCode || `AST-${String(r.id).substring(0, 4)}`,
           assetCode: r.assetCode,
           dbId: r.id,
           name: r.name,
           type: r.modelNumber || "Packaging & Bottling",
           department: r.department || "Packaging",
           plant: plantName,
+          plantId: r.plantId ? String(r.plantId) : "",
           line: lineName,
+          lineId: r.lineId ? String(r.lineId) : null,
           location: r.location || "Bay 4A",
           status: formattedStatus,
           health: Number(r.healthPercent) ?? 100,
+          healthScore: Number(r.healthPercent) ?? 100,
           criticality: criticality || "Medium",
           mtbf: Number(r.mtbfHours) || 0,
           mttr: Number(r.mttrHours) || 0,
           vibration: null,
           temperature: null,
-          manufacturer: r.manufacturer || null,
+          manufacturer: r.manufacturer || "Krones AG",
           model: r.modelNumber || null,
           serialNumber: r.serialNumber || (r.assetCode ? `SN-${r.assetCode}` : null),
           nameplatePower: r.nameplatePower || null,
@@ -3248,14 +3364,36 @@ export class MasterDataService {
       lineId = pl[0]?.id || null;
     }
 
-    const assetCode = String(input.id || input.assetCode || `ASSET-${Date.now()}`).trim();
+    // Auto-increment code if needed: AST-001, AST-002...
+    let assetCode = input.assetCode || input.assetId || input.id;
+    const isAutoFormat = !assetCode || assetCode.startsWith("AST-00") || assetCode.startsWith("AST-");
+    if (isAutoFormat) {
+      try {
+        const existingRes = await db.execute(sql`SELECT asset_code FROM public.assets`);
+        const rows = ((existingRes as any)?.rows || (Array.isArray(existingRes) ? existingRes : []));
+        let maxNum = 0;
+        for (const r of rows) {
+          const match = String(r.asset_code || "").match(/^AST-(\d+)$/i);
+          if (match) {
+            const n = parseInt(match[1], 10);
+            if (n > maxNum) maxNum = n;
+          }
+        }
+        assetCode = `AST-${String(maxNum + 1).padStart(3, "0")}`;
+      } catch {
+        assetCode = `AST-${Date.now().toString().slice(-4)}`;
+      }
+    } else {
+      assetCode = String(assetCode).trim().toUpperCase();
+    }
+
     const name = String(input.name || "Unnamed Machine").trim();
     const status = String(input.status || "OPERATIONAL").toUpperCase();
-    const healthPercent = Number(input.health ?? input.healthPercent) || 100;
+    const healthPercent = Number(input.health ?? input.healthPercent) || 98;
     const criticalLevel = String(input.criticality || input.criticalLevel || "IMPORTANT_P2");
     const mtbfHours = String(input.mtbf || input.mtbfHours || "400.0");
     const mttrHours = String(input.mttr || input.mttrHours || "1.5");
-    const manufacturer = String(input.manufacturer || "Standard OEM").trim();
+    const manufacturer = String(input.manufacturer || "Krones AG").trim();
     const modelNumber = String(input.model || input.modelNumber || input.type || "Packaging & Bottling").trim();
 
     const [inserted] = await db.insert(assets).values({
@@ -3277,16 +3415,20 @@ export class MasterDataService {
 
     return {
       id: inserted.assetCode,
+      assetId: inserted.assetCode,
       assetCode: inserted.assetCode,
       dbId: inserted.id,
       name: inserted.name,
       type: inserted.modelNumber,
       department: input.department || "Packaging",
-      plant: input.plant || "Plant 1 - North Facility",
-      line: input.line || "Line 1 (Aseptic Bottling)",
+      plant: input.plant || "Indore Mega Facility",
+      plantId,
+      line: input.line || "Line 1 Bottling & Canning",
+      lineId,
       location: input.location || "Bay 4A - Main Hall",
       status: input.status || "Operational",
       health: inserted.healthPercent,
+      healthScore: inserted.healthPercent,
       criticality: input.criticality || "Medium",
       mtbf: Number(inserted.mtbfHours),
       mttr: Number(inserted.mttrHours),
@@ -3374,6 +3516,7 @@ export class MasterDataService {
 
     return {
       id: updated.assetCode,
+      assetId: updated.assetCode,
       assetCode: updated.assetCode,
       dbId: updated.id,
       name: updated.name,
@@ -3383,6 +3526,7 @@ export class MasterDataService {
       location: updated.location || "Bay 4A",
       status: input.status || (updated.status ? updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase() : "Operational"),
       health: updated.healthPercent,
+      healthScore: updated.healthPercent,
       criticality: input.criticality || (updated.criticalLevel ? updated.criticalLevel.replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "") : "Medium"),
       mtbf: Number(updated.mtbfHours) || 0,
       mttr: Number(updated.mttrHours) || 0,
@@ -3429,29 +3573,303 @@ export class MasterDataService {
   }
 
   async listStaff(tenantId: string | undefined, plantId?: string) {
-    if (tenantId) {
-      try {
-        const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+    try {
+      let query = sql`SELECT * FROM public.staff`;
+      if (plantId && plantId !== "ALL") {
+        const isUuid = plantId.length === 36 && plantId.includes("-");
         if (isUuid) {
-          return await db.select().from(staff).where(and(eq(staff.tenantId, tenantId), eq(staff.plantId, plantId)));
+          query = sql`SELECT * FROM public.staff WHERE (plant_id IS NULL OR plant_id = ${plantId}::uuid)`;
+        } else {
+          query = sql`
+            SELECT * FROM public.staff 
+            WHERE plant_id IS NULL 
+               OR plant_id::text = ${plantId}
+               OR plant_id IN (SELECT id FROM public.plants WHERE code = ${plantId} OR id::text = ${plantId})
+               OR NOT EXISTS (SELECT 1 FROM public.plants WHERE id::text = ${plantId})
+          `;
         }
-        return await db.select().from(staff).where(eq(staff.tenantId, tenantId));
-      } catch {
-        return [];
       }
+      query = sql`${query} ORDER BY created_at DESC`;
+      const res = await db.execute(query);
+      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      return rows.map((s: any) => ({
+        id: String(s.id),
+        employeeId: s.employee_code || `EMP-${String(s.id).substring(0, 4)}`,
+        name: s.name,
+        email: s.email || "",
+        role: s.role || s.designation || "Staff Member",
+        designation: s.designation || s.role || "Staff Member",
+        department: s.department || "Production",
+        plantId: s.plant_id ? String(s.plant_id) : "",
+        skillLevel: s.skill_level || "Level 2 (Autonomous Operator)",
+        skills: Array.isArray(s.skills) ? s.skills : [],
+        certifications: Array.isArray(s.certifications) ? s.certifications : [],
+        phone: s.phone || "",
+        status: s.status || (s.is_available ? "Active" : "Inactive"),
+        isAvailable: s.is_available ?? true,
+        createdAt: s.created_at,
+      }));
+    } catch (err: any) {
+      console.warn("DB listStaff error:", err.message);
+      return [];
     }
-    return [];
   }
 
-  async listQualitySpecs(tenantId?: string) {
-    if (tenantId) {
-      try {
-        return await db.select().from(qualitySpecs).where(eq(qualitySpecs.tenantId, tenantId));
-      } catch {
-        return [];
+  async createStaff(tenantId: string | undefined, input: any) {
+    try {
+      let resolvedTenantId = tenantId;
+      if (!resolvedTenantId) {
+        const [t] = await db.select({ id: tenants.id }).from(tenants).limit(1);
+        resolvedTenantId = t?.id;
       }
+
+      // Auto-increment code: EMP-001, EMP-002, EMP-003...
+      let code = input.employeeCode || input.employeeId;
+      const isAutoFormat = !code || code.startsWith("EMP-00") || code.startsWith("EMP-");
+      if (isAutoFormat) {
+        const existingRes = await db.execute(sql`SELECT employee_code FROM public.staff`);
+        const rows = ((existingRes as any)?.rows || (Array.isArray(existingRes) ? existingRes : []));
+        let maxNum = 0;
+        for (const r of rows) {
+          const match = String(r.employee_code || "").match(/^EMP-(\d+)$/i);
+          if (match) {
+            const n = parseInt(match[1], 10);
+            if (n > maxNum) maxNum = n;
+          }
+        }
+        code = `EMP-${String(maxNum + 1).padStart(3, '0')}`;
+      } else {
+        code = String(code).trim().toUpperCase();
+      }
+
+      const name = String(input.name || "Staff Member").trim();
+      const designation = input.designation || input.role || "Shift Supervisor";
+      const role = input.role || designation;
+      const department = input.department || "Production";
+      const skillLevel = input.skillLevel || "Level 2 (Autonomous Operator)";
+      const email = input.email || `${name.toLowerCase().replace(/\s+/g, ".")}@flowstate.io`;
+      const phone = input.phone || "";
+      let plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
+      if (!plantId) {
+        const [p] = await db.select({ id: plants.id }).from(plants).limit(1);
+        plantId = p?.id || null;
+      }
+      const skills = JSON.stringify(Array.isArray(input.skills) ? input.skills : []);
+      const certs = JSON.stringify(Array.isArray(input.certifications) ? input.certifications : []);
+      const status = input.status || "Active";
+
+      const res = await db.execute(sql`
+        INSERT INTO public.staff (
+          tenant_id, plant_id, employee_code, name, designation, role, department, skill_level, email, phone, skills, certifications, is_available, status, created_at
+        ) VALUES (
+          ${resolvedTenantId || null}, ${plantId}, ${code}, ${name}, ${designation}, ${role}, ${department}, ${skillLevel}, ${email}, ${phone}, ${skills}::jsonb, ${certs}::jsonb, true, ${status}, NOW()
+        ) RETURNING *
+      `);
+      const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+      const newId = row?.id ? String(row.id) : `EMP-${Date.now().toString().slice(-4)}`;
+      return {
+        id: newId,
+        employeeId: code,
+        name,
+        role,
+        designation,
+        department,
+        skillLevel,
+        skills: Array.isArray(input.skills) ? input.skills : [],
+        certifications: Array.isArray(input.certifications) ? input.certifications : [],
+        email,
+        phone,
+        plantId: input.plantId || "",
+        status,
+      };
+    } catch (err: any) {
+      console.warn("DB createStaff error:", err.message);
+      throw err;
     }
-    return [];
+  }
+
+  async updateStaff(tenantId: string | undefined, id: string, input: any) {
+    try {
+      const skills = JSON.stringify(Array.isArray(input.skills) ? input.skills : []);
+      const certs = JSON.stringify(Array.isArray(input.certifications) ? input.certifications : []);
+      const isUuid = id && id.length === 36 && id.includes("-");
+      const condition = isUuid ? sql`id::text = ${id}` : sql`employee_code = ${id}`;
+
+      await db.execute(sql`
+        UPDATE public.staff
+        SET 
+          name = COALESCE(${input.name || null}, name),
+          designation = COALESCE(${input.designation || input.role || null}, designation),
+          role = COALESCE(${input.role || input.designation || null}, role),
+          department = COALESCE(${input.department || null}, department),
+          skill_level = COALESCE(${input.skillLevel || null}, skill_level),
+          email = COALESCE(${input.email || null}, email),
+          phone = COALESCE(${input.phone || null}, phone),
+          skills = ${skills}::jsonb,
+          certifications = ${certs}::jsonb,
+          status = COALESCE(${input.status || null}, status)
+        WHERE ${condition}
+      `);
+      return { id, ...input };
+    } catch (err: any) {
+      console.warn("DB updateStaff error:", err.message);
+      return { id, ...input };
+    }
+  }
+
+  async deleteStaff(tenantId: string | undefined, id: string) {
+    try {
+      const isUuid = id && id.length === 36 && id.includes("-");
+      const condition = isUuid ? sql`id::text = ${id}` : sql`employee_code = ${id}`;
+      await db.execute(sql`DELETE FROM public.staff WHERE ${condition}`);
+      return { id, message: "Staff member deleted" };
+    } catch (err: any) {
+      console.warn("DB deleteStaff error:", err.message);
+      return { id, message: "Staff member deleted" };
+    }
+  }
+
+  async listQualitySpecs(tenantId?: string, skuIdFilter?: string) {
+    try {
+      const dbRows = await db.execute(sql`
+        SELECT 
+          qs.id,
+          qs.tenant_id,
+          qs.sku_id,
+          qs.parameter_name,
+          qs.target_value,
+          qs.min_tolerance,
+          qs.max_tolerance,
+          qs.uom,
+          qs.is_ccp,
+          qs.created_at,
+          s.sku_code,
+          s.name AS sku_name
+        FROM public.quality_specs qs
+        LEFT JOIN public.skus s ON s.id = qs.sku_id
+        ORDER BY qs.created_at DESC
+      `);
+      const rows = (dbRows as any)?.rows || (Array.isArray(dbRows) ? dbRows : []);
+      return rows.map((r: any) => ({
+        id: String(r.id),
+        specId: String(r.id),
+        skuId: r.sku_id ? String(r.sku_id) : "",
+        skuCode: r.sku_code || "SKU-001",
+        skuName: r.sku_name || "Finished Good",
+        parameter: r.parameter_name,
+        specificationTitle: r.parameter_name,
+        target: String(r.target_value ?? "0"),
+        min: String(r.min_tolerance ?? "0"),
+        max: String(r.max_tolerance ?? "0"),
+        uom: r.uom || "",
+        criticality: r.is_ccp ? "Critical CCP (HACCP-1)" : "Quality Spec",
+        isCCP: Boolean(r.is_ccp),
+        testMethod: "Digital Instrument",
+        status: "Active",
+        approvalStatus: "Approved",
+        createdAt: r.created_at,
+      }));
+    } catch (err: any) {
+      console.warn("DB listQualitySpecs error:", err.message);
+      return [];
+    }
+  }
+
+  async createQualitySpec(tenantId: string | undefined, input: any) {
+    try {
+      let resolvedTenantId = tenantId;
+      if (!resolvedTenantId) {
+        const [t] = await db.select({ id: tenants.id }).from(tenants).limit(1);
+        resolvedTenantId = t?.id;
+      }
+      let skuId = input.skuId;
+      if (skuId && (!skuId.includes("-") || skuId.length !== 36)) {
+        const found = await db.select({ id: skus.id }).from(skus).where(or(eq(skus.skuCode, skuId), eq(skus.name, skuId))).limit(1);
+        if (found.length > 0) skuId = found[0].id;
+        else {
+          const [anySku] = await db.select({ id: skus.id }).from(skus).limit(1);
+          skuId = anySku?.id;
+        }
+      }
+      if (!skuId) {
+        const [anySku] = await db.select({ id: skus.id }).from(skus).limit(1);
+        skuId = anySku?.id;
+      }
+
+      const param = String(input.parameter || input.specificationTitle || "Specification").trim();
+      const target = String(input.target || "0");
+      const min = String(input.min || "0");
+      const max = String(input.max || "0");
+      const uom = String(input.uom || "").trim();
+      const isCcp = Boolean(input.isCCP || (input.criticality || "").toLowerCase().includes("ccp"));
+
+      const res = await db.execute(sql`
+        INSERT INTO public.quality_specs (
+          tenant_id, sku_id, parameter_name, target_value, min_tolerance, max_tolerance, uom, is_ccp, created_at
+        ) VALUES (
+          ${resolvedTenantId || null}, ${skuId}, ${param}, ${target}::numeric, ${min}::numeric, ${max}::numeric, ${uom}, ${isCcp}, NOW()
+        ) RETURNING *
+      `);
+      const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
+      const newId = row?.id ? String(row.id) : `QSP-${Date.now().toString().slice(-4)}`;
+
+      return {
+        id: newId,
+        specId: newId,
+        skuId: skuId ? String(skuId) : "",
+        parameter: param,
+        specificationTitle: param,
+        target,
+        min,
+        max,
+        uom,
+        criticality: isCcp ? "Critical CCP (HACCP-1)" : "Quality Spec",
+        isCCP: isCcp,
+        testMethod: input.testMethod || "Standard Instrument",
+        status: "Active",
+        approvalStatus: "Approved",
+        createdAt: row?.created_at || new Date().toISOString(),
+      };
+    } catch (err: any) {
+      console.error("DB createQualitySpec error:", err.message);
+      throw err;
+    }
+  }
+
+  async updateQualitySpec(tenantId: string | undefined, id: string, input: any) {
+    try {
+      const isUuid = id && id.length === 36 && id.includes("-");
+      const condition = isUuid ? sql`id = ${id}::uuid` : sql`parameter_name = ${id}`;
+      const isCcp = input.criticality ? Boolean(input.criticality.toLowerCase().includes("ccp")) : undefined;
+
+      await db.execute(sql`
+        UPDATE public.quality_specs
+        SET
+          parameter_name = COALESCE(${input.parameter || input.specificationTitle || null}, parameter_name),
+          target_value = COALESCE(${input.target !== undefined ? String(input.target) : null}::numeric, target_value),
+          min_tolerance = COALESCE(${input.min !== undefined ? String(input.min) : null}::numeric, min_tolerance),
+          max_tolerance = COALESCE(${input.max !== undefined ? String(input.max) : null}::numeric, max_tolerance),
+          uom = COALESCE(${input.uom || null}, uom),
+          is_ccp = COALESCE(${isCcp !== undefined ? isCcp : null}, is_ccp)
+        WHERE ${condition}
+      `);
+      return { id, ...input };
+    } catch (err: any) {
+      console.warn("DB updateQualitySpec error:", err.message);
+      return { id, ...input };
+    }
+  }
+
+  async deleteQualitySpec(tenantId: string | undefined, id: string) {
+    try {
+      const isUuid = id && id.length === 36 && id.includes("-");
+      const condition = isUuid ? sql`id = ${id}::uuid` : sql`parameter_name = ${id}`;
+      await db.execute(sql`DELETE FROM public.quality_specs WHERE ${condition}`);
+      return { id, message: "Quality specification deleted" };
+    } catch (err: any) {
+      console.warn("DB deleteQualitySpec error:", err.message);
+      return { id, message: "Quality specification deleted" };
+    }
   }
 
   // ==========================================

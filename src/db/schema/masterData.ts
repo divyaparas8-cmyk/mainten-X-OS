@@ -99,6 +99,26 @@ export const shifts = pgTable("shifts", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+export const assetTypes = pgTable("asset_types", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const criticalityLevels = pgTable("criticality_levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),

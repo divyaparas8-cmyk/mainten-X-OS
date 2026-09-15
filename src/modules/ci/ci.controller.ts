@@ -1,8 +1,18 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { ciService } from "./ci.service.js";
+import { ciService, UserContext } from "./ci.service.js";
 import { formatSuccess } from "../../shared/utils/responseFormatter.js";
 
 export class CIController {
+  private getUserContext(request: FastifyRequest): UserContext {
+    const u = (request.user as any) || {};
+    return {
+      tenantId: u.tenantId || null,
+      plantId: u.plantId || null,
+      userId: u.id || null,
+      userName: u.name || u.email || "Lead CI Engineer",
+    };
+  }
+
   // ============================================================================
   // 1. DASHBOARD
   // ============================================================================
@@ -30,13 +40,14 @@ export class CIController {
   }
 
   async createInvestigation(request: FastifyRequest, reply: FastifyReply) {
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "David Kim (Lead CI Engineer)";
-    const data = await ciService.createInvestigation(request.body as any, userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createInvestigation(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "RCA Investigation initiated successfully"));
   }
 
   async updateInvestigation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.updateInvestigation(request.params.id, request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateInvestigation(request.params.id, request.body as any, ctx);
     return reply.send(formatSuccess(data, "RCA Investigation updated successfully"));
   }
 
@@ -45,12 +56,14 @@ export class CIController {
     if (!phase) {
       return reply.status(400).send({ success: false, message: "Next phase is required" });
     }
-    const data = await ciService.advanceInvestigationPhase(request.params.id, phase);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.advanceInvestigationPhase(request.params.id, phase, ctx);
     return reply.send(formatSuccess(data, `RCA ${request.params.id} phase advanced to "${phase}"`));
   }
 
   async deleteInvestigation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteInvestigation(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteInvestigation(request.params.id, ctx);
     return reply.send(formatSuccess(data, "RCA Investigation deleted successfully"));
   }
 
@@ -70,13 +83,14 @@ export class CIController {
   }
 
   async createEvidence(request: FastifyRequest, reply: FastifyReply) {
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "David Kim";
-    const data = await ciService.createEvidence(request.body as any, userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createEvidence(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Evidence logged successfully"));
   }
 
   async deleteEvidence(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteEvidence(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteEvidence(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Evidence deleted"));
   }
 
@@ -90,7 +104,8 @@ export class CIController {
   }
 
   async createHypothesis(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createHypothesis(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createHypothesis(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Hypothesis formulated successfully"));
   }
 
@@ -102,16 +117,17 @@ export class CIController {
     reply: FastifyReply
   ) {
     const { validationStatus, evidenceResult } = request.body || {};
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "Lead CI Engineer";
     if (!validationStatus) {
       return reply.status(400).send({ success: false, message: "validationStatus is required" });
     }
-    const data = await ciService.validateHypothesis(request.params.id, validationStatus, evidenceResult, userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.validateHypothesis(request.params.id, validationStatus, evidenceResult, ctx);
     return reply.send(formatSuccess(data, `Hypothesis marked as "${validationStatus}"`));
   }
 
   async deleteHypothesis(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteHypothesis(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteHypothesis(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Hypothesis deleted"));
   }
 
@@ -127,7 +143,8 @@ export class CIController {
   }
 
   async createCapaAction(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createCapaAction(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createCapaAction(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "CAPA Action created successfully"));
   }
 
@@ -139,7 +156,8 @@ export class CIController {
     if (!status) {
       return reply.status(400).send({ success: false, message: "Status is required" });
     }
-    const data = await ciService.updateCapaStatus(request.params.id, status, completionDate, evidenceNotes);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateCapaStatus(request.params.id, status, completionDate, evidenceNotes, ctx);
     return reply.send(formatSuccess(data, `CAPA Action updated to ${status}`));
   }
 
@@ -148,13 +166,14 @@ export class CIController {
     reply: FastifyReply
   ) {
     const { effectivenessResult } = request.body || {};
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "Quality Manager";
-    const data = await ciService.verifyCapaEffectiveness(request.params.id, effectivenessResult || "Verified Effective", userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.verifyCapaEffectiveness(request.params.id, effectivenessResult || "Verified Effective", ctx);
     return reply.send(formatSuccess(data, "CAPA Action verified effective"));
   }
 
   async deleteCapaAction(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteCapaAction(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteCapaAction(request.params.id, ctx);
     return reply.send(formatSuccess(data, "CAPA Action deleted"));
   }
 
@@ -168,12 +187,14 @@ export class CIController {
   }
 
   async createLoss(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createLoss(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createLoss(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Loss incident logged"));
   }
 
   async deleteLoss(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteLoss(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteLoss(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Loss incident deleted"));
   }
 
@@ -201,30 +222,33 @@ export class CIController {
   }
 
   async createProject(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createProject(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createProject(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "CI Project created successfully"));
   }
 
   async updateProject(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.updateProject(request.params.id, request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateProject(request.params.id, request.body as any, ctx);
     return reply.send(formatSuccess(data, "CI Project updated successfully"));
   }
 
   async deleteProject(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteProject(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteProject(request.params.id, ctx);
     return reply.send(formatSuccess(data, "CI Project deleted successfully"));
   }
 
   async verifyAndLockBenefit(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "David Kim (Lead CI)";
-    const data = await ciService.verifyAndLockBenefit(request.params.id, userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.verifyAndLockBenefit(request.params.id, ctx);
     return reply.send(formatSuccess(data, `Project ${request.params.id} benefit certified and immutably locked`));
   }
 
   async unlockBenefit(request: FastifyRequest<{ Params: { id: string }; Body: { justification?: string } }>, reply: FastifyReply) {
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "David Kim (Lead CI)";
+    const ctx = this.getUserContext(request);
     const justification = request.body?.justification || "Engineering review and metric recalculation";
-    const data = await ciService.unlockBenefit(request.params.id, justification, userName);
+    const data = await ciService.unlockBenefit(request.params.id, justification, ctx);
     return reply.send(formatSuccess(data, `Project ${request.params.id} benefit unlocked for recalculation`));
   }
 
@@ -244,17 +268,20 @@ export class CIController {
   }
 
   async createStandard(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createStandard(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createStandard(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Standard published successfully"));
   }
 
   async updateStandard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.updateStandard(request.params.id, request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateStandard(request.params.id, request.body as any, ctx);
     return reply.send(formatSuccess(data, "Standard revised successfully"));
   }
 
   async deleteStandard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteStandard(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteStandard(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Standard archived/deleted"));
   }
 
@@ -268,12 +295,14 @@ export class CIController {
   }
 
   async createSolution(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createSolution(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createSolution(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Verified solution documented"));
   }
 
   async deleteSolution(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteSolution(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteSolution(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Verified solution removed"));
   }
 
@@ -287,12 +316,14 @@ export class CIController {
   }
 
   async createCapex(request: FastifyRequest, reply: FastifyReply) {
-    const data = await ciService.createCapex(request.body as any);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.createCapex(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "Capex project proposal submitted"));
   }
 
   async deleteCapex(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await ciService.deleteCapex(request.params.id);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.deleteCapex(request.params.id, ctx);
     return reply.send(formatSuccess(data, "Capex proposal removed"));
   }
 
@@ -309,8 +340,8 @@ export class CIController {
   }
 
   async launchRcaFromBadActor(request: FastifyRequest<{ Params: { assetId: string } }>, reply: FastifyReply) {
-    const userName = (request.user as any)?.name || (request.user as any)?.email || "David Kim (Lead CI)";
-    const data = await ciService.launchRcaFromBadActor(request.params.assetId, userName);
+    const ctx = this.getUserContext(request);
+    const data = await ciService.launchRcaFromBadActor(request.params.assetId, ctx);
     return reply.status(201).send(formatSuccess(data, `RCA launched for Bad Actor asset ${request.params.assetId}`));
   }
 }

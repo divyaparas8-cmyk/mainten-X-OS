@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.capaRecords = exports.deviations = exports.qualityHolds = exports.qaReleases = exports.ccpChecks = void 0;
+exports.preopChecks = exports.productChecks = exports.capaRecords = exports.deviations = exports.qualityHolds = exports.qaReleases = exports.ccpChecks = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -78,5 +78,42 @@ exports.capaRecords = (0, pg_core_1.pgTable)("capa_records", {
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("IN_PROGRESS"), // "IN_PROGRESS", "EFFECTIVENESS_CHECK", "CLOSED"
     assignedTo: (0, pg_core_1.uuid)("assigned_to").references(() => users_1.users.id, { onDelete: "set null" }),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+});
+exports.productChecks = (0, pg_core_1.pgTable)("product_checks", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    checkCode: (0, pg_core_1.varchar)("check_code", { length: 50 }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "set null" }),
+    lineId: (0, pg_core_1.uuid)("line_id").references(() => masterData_1.productionLines.id, { onDelete: "set null" }),
+    batchId: (0, pg_core_1.uuid)("batch_id").references(() => production_1.batches.id, { onDelete: "set null" }),
+    checkType: (0, pg_core_1.varchar)("check_type", { length: 255 }).notNull(),
+    batchNumber: (0, pg_core_1.varchar)("batch_number", { length: 100 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 150 }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 100 }),
+    targetSpec: (0, pg_core_1.varchar)("target_spec", { length: 150 }).notNull(),
+    measuredValue: (0, pg_core_1.varchar)("measured_value", { length: 150 }).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("PASS").notNull(),
+    notes: (0, pg_core_1.text)("notes"),
+    checkedAt: (0, pg_core_1.timestamp)("checked_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+exports.preopChecks = (0, pg_core_1.pgTable)("preop_checks", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "set null" }),
+    lineId: (0, pg_core_1.uuid)("line_id").references(() => masterData_1.productionLines.id, { onDelete: "set null" }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 150 }),
+    batchId: (0, pg_core_1.uuid)("batch_id").references(() => production_1.batches.id, { onDelete: "set null" }),
+    batchNumber: (0, pg_core_1.varchar)("batch_number", { length: 150 }),
+    category: (0, pg_core_1.varchar)("category", { length: 150 }).notNull(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    spec: (0, pg_core_1.varchar)("spec", { length: 255 }).notNull(),
+    criticality: (0, pg_core_1.varchar)("criticality", { length: 100 }).default("Critical GMP").notNull(),
+    method: (0, pg_core_1.varchar)("method", { length: 150 }),
+    passed: (0, pg_core_1.boolean)("passed"),
+    notes: (0, pg_core_1.text)("notes"),
+    inspectorName: (0, pg_core_1.varchar)("inspector_name", { length: 150 }),
+    createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 //# sourceMappingURL=quality.js.map

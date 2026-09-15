@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 export declare class CIController {
+    private getUserContext;
     getDashboardSummary(request: FastifyRequest<{
         Querystring: {
             plantId?: string;

@@ -110,8 +110,8 @@ export declare class AdminService {
         id: string;
         name: string;
         email: string;
-        role: any;
-        roleCode: any;
+        role: string;
+        roleCode: string;
         department: string;
         plant: any;
         status: string;

@@ -126,12 +126,27 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.listNotifications(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async markNotificationRead(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.markNotificationRead(request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Notification marked as read"));
+    }
+    async markAllNotificationsRead(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.markAllNotificationsRead(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "All notifications marked as read"));
+    }
+    async clearNotifications(request, reply) {
+        const data = await maintenance_service_js_1.maintenanceService.clearNotifications(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "All notifications cleared"));
+    }
     async getProfile(request, reply) {
-        const data = await maintenance_service_js_1.maintenanceService.listProfile(request.user.tenantId);
+        const userId = request.user?.userId || request.user?.id;
+        const userEmail = request.user?.email;
+        const data = await maintenance_service_js_1.maintenanceService.listProfile(request.user.tenantId, userId, userEmail);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async updateProfile(request, reply) {
-        const data = await maintenance_service_js_1.maintenanceService.updateProfile(request.user.tenantId, request.body);
+        const userId = request.user?.userId || request.user?.id;
+        const data = await maintenance_service_js_1.maintenanceService.updateProfile(request.user.tenantId, userId, request.body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Profile updated successfully"));
     }
     async getSpareParts(request, reply) {

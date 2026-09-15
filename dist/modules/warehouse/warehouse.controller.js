@@ -17,6 +17,10 @@ class WarehouseController {
         const data = await warehouse_service_js_1.warehouseService.createLot(request.user.tenantId, plantId, input);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Inventory lot registered & initial receipt transaction logged"));
     }
+    async deleteLot(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteLot(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async recordTransaction(request, reply) {
         const raw = request.body || {};
         const effectiveType = raw.type || raw.transactionType || "RECEIPT";
@@ -62,7 +66,7 @@ class WarehouseController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async scanBarcode(request, reply) {
-        const barcode = request.body?.barcode || "LOT-RM-ORG-4402";
+        const barcode = request.body?.barcode || "";
         const data = await warehouse_service_js_1.warehouseService.scanBarcode(request.user.tenantId, barcode);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Barcode scanned & validated"));
     }
@@ -153,6 +157,14 @@ class WarehouseController {
         const data = await warehouse_service_js_1.warehouseService.dockCheckIn(request.user.tenantId, request.body || {});
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `Inbound shipment ${data.id} checked in to ${data.dock}`));
     }
+    async updateWmsReceiving(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.updateWmsReceiving(request.user.tenantId, request.params.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Inbound shipment ${request.params.id} updated`));
+    }
+    async deleteWmsReceiving(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteWmsReceiving(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async inspectAndAccept(request, reply) {
         const data = await warehouse_service_js_1.warehouseService.inspectAndAccept(request.user.tenantId, request.body || {});
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Shipment inspected & accepted into put-away backlog`));
@@ -191,6 +203,18 @@ class WarehouseController {
     async listLocations(request, reply) {
         const data = await warehouse_service_js_1.warehouseService.listLocations(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createLocation(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.createLocation(request.user.tenantId, request.body || {});
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `Storage bin location ${data.location} created`));
+    }
+    async updateLocation(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.updateLocation(request.user.tenantId, request.params.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Storage bin location ${data.location} updated`));
+    }
+    async deleteLocation(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteLocation(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async getBinsLocations(request, reply) {
         const data = await warehouse_service_js_1.warehouseService.getBinsLocations(request.user.tenantId);
@@ -252,9 +276,24 @@ class WarehouseController {
     // TRACEABILITY & FDA 21 CFR CONTROLLER
     // ==========================================
     async getTraceability(request, reply) {
-        const lotNumber = request.params?.lotNumber || request.query?.lot || "LOT-RM-ORG-4402";
+        const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber || "";
+        if (!lotNumber) {
+            return reply.send((0, responseFormatter_js_1.formatSuccess)(null));
+        }
         const data = await warehouse_service_js_1.warehouseService.getTraceability(request.user.tenantId, lotNumber);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createTraceabilityBatch(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.createTraceabilityBatch(request.user.tenantId, request.body || {});
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `Batch ${data.batchNumber} created in database`));
+    }
+    async updateTraceabilityBatch(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.updateTraceabilityBatch(request.user.tenantId, request.params.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Batch updated in database`));
+    }
+    async deleteTraceabilityBatch(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteTraceabilityBatch(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Batch deleted from database`));
     }
     async simulateRecall(request, reply) {
         const data = await warehouse_service_js_1.warehouseService.simulateRecall(request.user.tenantId, request.body || {}, request.user?.id);
@@ -282,8 +321,20 @@ class WarehouseController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message || "Packaging status updated"));
     }
     async getFinishedGoods(request, reply) {
-        const data = await warehouse_service_js_1.warehouseService.getFinishedGoods(request.user.tenantId, request.query || {});
+        const data = await warehouse_service_js_1.warehouseService.getFinishedGoods(request.user?.tenantId, request.query || {});
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createFinishedGood(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.createFinishedGood(request.user?.tenantId, request.body || {});
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `Finished Good ${data.sku} created in database`));
+    }
+    async updateFinishedGood(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.updateFinishedGood(request.user?.tenantId, request.params.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Finished Good updated successfully`));
+    }
+    async deleteFinishedGood(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteFinishedGood(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Finished Good deleted from database`));
     }
     // ==========================================
     // OUTBOUND SHIPPING & LOGISTICS CONTROLLER
@@ -301,8 +352,13 @@ class WarehouseController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Shipment ${request.params.id} updated successfully`));
     }
     async dispatchShipmentOrder(request, reply) {
-        const data = await warehouse_service_js_1.warehouseService.dispatchShipmentOrder(request.user.tenantId, request.params.id);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Shipment ${request.params.id} dispatched successfully`));
+        const id = request.params?.id || request.body?.id || request.body?.shipmentId;
+        const data = await warehouse_service_js_1.warehouseService.dispatchShipmentOrder(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Shipment ${id} dispatched successfully`));
+    }
+    async deleteShipmentOrder(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.deleteShipmentOrder(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Shipment ${request.params.id} deleted successfully`));
     }
     // ==========================================
     // PICKING & PALLETS CONTROLLERS

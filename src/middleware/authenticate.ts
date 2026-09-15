@@ -33,7 +33,6 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
     if (!currentUser.tenantId) {
       currentUser.tenantId = headerTenantId || "5bce8458-909a-4dd2-b221-614c32ac7c89";
     }
-    }
     return;
   }
 

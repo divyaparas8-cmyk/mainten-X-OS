@@ -7,6 +7,7 @@ const masterData_js_1 = require("../../db/schema/masterData.js");
 const production_js_1 = require("../../db/schema/production.js");
 const tenants_js_1 = require("../../db/schema/tenants.js");
 const users_js_1 = require("../../db/schema/users.js");
+const common_js_1 = require("../../db/schema/common.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
 const mtbfEngine_js_1 = require("../../shared/engines/mtbfEngine.js");
@@ -222,6 +223,22 @@ class MaintenanceService {
             })
                 .where((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, resolvedAsset.id));
         }
+        // 7. Auto-create notification in notifications table
+        try {
+            await database_js_1.db.insert(common_js_1.notifications).values({
+                tenantId,
+                plantId: finalPlantId,
+                title: `Critical Breakdown: ${resolvedAsset?.name || input.assetName || "Machine"} (${resolvedAsset?.assetCode || input.assetId || "AST"})`,
+                message: `${input.failureCategory || "Mechanical"} breakdown reported (Code: ${input.failureCode || "UNPLANNED"}). Note: ${input.symptom || "Emergency stoppage"}.`,
+                category: "Breakdowns",
+                severity: input.severity === "Critical" ? "CRITICAL" : "WARNING",
+                isRead: false,
+                linkUrl: "/maintenance/breakdowns",
+            });
+        }
+        catch (notifErr) {
+            console.warn("Auto-create notification on breakdown notice:", notifErr.message);
+        }
         return {
             id: `BD-2026-${newDowntime.id.slice(0, 4).toUpperCase()}`,
             dbId: newDowntime.id,
@@ -303,6 +320,26 @@ class MaintenanceService {
             }
             if (Object.keys(updatePayload).length > 0) {
                 await database_js_1.db.update(production_js_1.downtimeLogs).set(updatePayload).where((0, drizzle_orm_1.eq)(production_js_1.downtimeLogs.id, target.dt.id));
+            }
+            // Synchronize associated notification in public.notifications
+            try {
+                const newCat = input.failureCategory || target.dt.category || "Mechanical";
+                const newCode = input.failureCode || target.dt.reasonCode || "LINE-STOP";
+                const newComments = input.symptom || target.dt.comments || "Breakdown";
+                const newMins = input.durationMinutes !== undefined && input.durationMinutes !== null && input.durationMinutes !== "" ? Number(input.durationMinutes) : (target.dt.durationMinutes || 0);
+                const allNotifs = await database_js_1.db.select().from(common_js_1.notifications).where((0, drizzle_orm_1.eq)(common_js_1.notifications.category, "Breakdowns"));
+                const matched = allNotifs.find(n => (target.dt.comments && n.message.includes(target.dt.comments)) ||
+                    (input.symptom && n.message.includes(input.symptom)) ||
+                    (target.dt.id && n.linkUrl?.includes(target.dt.id)));
+                if (matched) {
+                    await database_js_1.db.update(common_js_1.notifications).set({
+                        message: `${newCat} breakdown reported (Code: ${newCode}). Downtime: ${newMins} mins. Note: ${newComments}.`,
+                        severity: input.status === "Resolved" || input.status === "Closed" ? "INFO" : (input.severity === "Critical" ? "CRITICAL" : matched.severity),
+                    }).where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, matched.id));
+                }
+            }
+            catch (notifSyncErr) {
+                console.warn("updateBreakdown notification sync warning:", notifSyncErr.message);
             }
             if (target.assetId) {
                 const [linkedWo] = await database_js_1.db.select().from(maintenance_js_1.workOrders).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.assetId, target.assetId), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.type, "EMERGENCY_BREAKDOWN"))).orderBy((0, drizzle_orm_1.desc)(maintenance_js_1.workOrders.createdAt)).limit(1);
@@ -789,6 +826,22 @@ class MaintenanceService {
             scheduledDate: scheduledDateVal,
         })
             .returning();
+        // Auto-create notification in notifications table
+        try {
+            await database_js_1.db.insert(common_js_1.notifications).values({
+                tenantId,
+                plantId,
+                title: `Work Order Assigned: ${input.title}`,
+                message: `${input.type || "Corrective"} work order (${woNumber}) created with priority ${input.priority || "HIGH"}.`,
+                category: "Work Orders",
+                severity: input.priority === "P1" || input.priority === "P1_CRITICAL" ? "CRITICAL" : "INFO",
+                isRead: false,
+                linkUrl: "/maintenance/work-orders",
+            });
+        }
+        catch (notifErr) {
+            console.warn("Auto-create notification on work order notice:", notifErr.message);
+        }
         const fullWo = await database_js_1.db.query.workOrders.findFirst({
             where: (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.id, wo.id),
             with: {
@@ -929,7 +982,7 @@ class MaintenanceService {
         const allAssets = await database_js_1.db.select().from(masterData_js_1.assets);
         const assetMap = new Map();
         allAssets.forEach((a) => {
-            assetMap.set(a.id, { code: a.assetCode, name: a.name });
+            assetMap.set(a.id, { code: a.assetCode || "AST-001", name: a.name });
         });
         return rows.map((s) => {
             const a = assetMap.get(s.assetId);
@@ -1523,23 +1576,284 @@ class MaintenanceService {
         return await database_js_1.db.select().from(maintenance_js_1.pmSchedules).where((0, drizzle_orm_1.eq)(maintenance_js_1.pmSchedules.tenantId, tenantId));
     }
     async listNotifications(tenantId) {
-        return [
-            { id: "NOTIF-001", title: "Critical Breakdown: Heat Exchanger HT-105", type: "critical", category: "Breakdowns", timestamp: "10 mins ago", read: false }
-        ];
+        // 1. Fetch real assets
+        const assetRows = await database_js_1.db
+            .select()
+            .from(masterData_js_1.assets)
+            .where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(masterData_js_1.assets.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`);
+        const assetMap = new Map();
+        for (const a of assetRows) {
+            assetMap.set(a.id, a);
+        }
+        // 2. Fetch real breakdowns
+        const dtRows = await database_js_1.db
+            .select()
+            .from(production_js_1.downtimeLogs)
+            .where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(production_js_1.downtimeLogs.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`)
+            .orderBy((0, drizzle_orm_1.desc)(production_js_1.downtimeLogs.createdAt));
+        // 3. Fetch real work orders
+        const woRows = await database_js_1.db
+            .select()
+            .from(maintenance_js_1.workOrders)
+            .where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`)
+            .orderBy((0, drizzle_orm_1.desc)(maintenance_js_1.workOrders.createdAt));
+        // 4. Fetch notifications from notifications table
+        let dbNotifs = await database_js_1.db
+            .select()
+            .from(common_js_1.notifications)
+            .where((0, drizzle_orm_1.and)((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(common_js_1.notifications.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`, (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(common_js_1.notifications.targetRole, "MAINTENANCE"), (0, drizzle_orm_1.inArray)(common_js_1.notifications.category, ["Breakdowns", "Work Orders", "Preventive Maintenance"]))))
+            .orderBy((0, drizzle_orm_1.desc)(common_js_1.notifications.createdAt));
+        // If notifications table has fewer than 2 items, synchronize with actual live database events
+        if (!dbNotifs || dbNotifs.length < 2) {
+            const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : (assetRows[0]?.tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0");
+            for (const dt of dtRows.slice(0, 3)) {
+                const ast = dt.assetId ? assetMap.get(dt.assetId) : null;
+                const assetName = ast ? `${ast.name} (${ast.assetCode})` : "Fleet Asset";
+                const mins = dt.durationMinutes || 0;
+                const existing = dbNotifs?.find((n) => n.message?.includes(dt.comments || "---"));
+                if (!existing && validTenant) {
+                    try {
+                        await database_js_1.db.insert(common_js_1.notifications).values({
+                            tenantId: validTenant,
+                            title: `Critical Breakdown: ${assetName}`,
+                            message: `${dt.category || "Mechanical"} stoppage logged (Reason: ${dt.reasonCode || "LINE-STOP"}). Downtime: ${mins} mins. Note: ${dt.comments || "Immediate intervention required"}.`,
+                            category: "Breakdowns",
+                            severity: "CRITICAL",
+                            targetRole: "MAINTENANCE",
+                            isRead: false,
+                            linkUrl: "/maintenance/breakdowns",
+                            createdAt: dt.createdAt || new Date(),
+                        });
+                    }
+                    catch (e) {
+                        console.warn("Auto-insert breakdown notification notice:", e.message);
+                    }
+                }
+            }
+            const openWOs = woRows.filter((w) => ["OPEN", "IN_PROGRESS"].includes(w.status));
+            for (const wo of openWOs.slice(0, 3)) {
+                const isPM = wo.type === "PREVENTIVE";
+                const existing = dbNotifs?.find((n) => n.title?.includes(wo.title));
+                if (!existing && validTenant) {
+                    try {
+                        await database_js_1.db.insert(common_js_1.notifications).values({
+                            tenantId: validTenant,
+                            title: isPM ? `Preventive Maintenance Due: ${wo.title}` : `Work Order Assigned: ${wo.title}`,
+                            message: `${isPM ? "Scheduled PM task" : "Repair work order"} (${wo.woNumber || "WO"}) in status ${wo.status}. Priority: ${wo.priority || "HIGH"}.`,
+                            category: isPM ? "Preventive Maintenance" : "Work Orders",
+                            severity: isPM ? "WARNING" : "INFO",
+                            targetRole: "MAINTENANCE",
+                            isRead: false,
+                            linkUrl: isPM ? "/maintenance/pm" : "/maintenance/work-orders",
+                            createdAt: wo.createdAt || new Date(),
+                        });
+                    }
+                    catch (e) {
+                        console.warn("Auto-insert work order notification notice:", e.message);
+                    }
+                }
+            }
+            dbNotifs = await database_js_1.db
+                .select()
+                .from(common_js_1.notifications)
+                .where((0, drizzle_orm_1.and)((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(common_js_1.notifications.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`, (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(common_js_1.notifications.targetRole, "MAINTENANCE"), (0, drizzle_orm_1.inArray)(common_js_1.notifications.category, ["Breakdowns", "Work Orders", "Preventive Maintenance"]))))
+                .orderBy((0, drizzle_orm_1.desc)(common_js_1.notifications.createdAt));
+        }
+        // Dynamic synchronization: ensure notifications reflect latest breakdown & work order edits (category, codes, notes, status)
+        for (const notif of dbNotifs) {
+            if (notif.category === "Breakdowns") {
+                const matchingDt = dtRows.find(dt => (dt.id && notif.linkUrl?.includes(dt.id)) || (dt.comments && notif.message?.includes(dt.comments)));
+                if (matchingDt) {
+                    const ast = matchingDt.assetId ? assetMap.get(matchingDt.assetId) : null;
+                    const assetName = ast ? `${ast.name} (${ast.assetCode})` : (notif.title.replace("Critical Breakdown: ", "") || "Equipment Asset");
+                    const mins = matchingDt.durationMinutes || 0;
+                    const freshMessage = `${matchingDt.category || "Mechanical"} breakdown reported (Code: ${matchingDt.reasonCode || "LINE-STOP"}). Downtime: ${mins} mins. Note: ${matchingDt.comments || "Immediate intervention required"}.`;
+                    if (notif.message !== freshMessage) {
+                        notif.message = freshMessage;
+                        notif.title = `Critical Breakdown: ${assetName}`;
+                        // Persist the updated message to PostgreSQL DB
+                        await database_js_1.db.update(common_js_1.notifications)
+                            .set({ message: freshMessage, title: `Critical Breakdown: ${assetName}` })
+                            .where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, notif.id));
+                    }
+                }
+            }
+            else if (notif.category === "Work Orders" || notif.category === "Preventive Maintenance") {
+                const matchingWo = woRows.find((wo) => (wo.id && notif.linkUrl?.includes(wo.id)) || (wo.title && notif.title?.includes(wo.title)));
+                if (matchingWo) {
+                    const isPM = matchingWo.type === "PREVENTIVE";
+                    const freshTitle = isPM ? `Preventive Maintenance Due: ${matchingWo.title}` : `Work Order Assigned: ${matchingWo.title}`;
+                    const freshMessage = `${isPM ? "Scheduled PM task" : "Repair work order"} (${matchingWo.woNumber || "WO"}) in status ${matchingWo.status}. Priority: ${matchingWo.priority || "HIGH"}.`;
+                    if (notif.message !== freshMessage || notif.title !== freshTitle) {
+                        notif.message = freshMessage;
+                        notif.title = freshTitle;
+                        await database_js_1.db.update(common_js_1.notifications)
+                            .set({ message: freshMessage, title: freshTitle })
+                            .where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, notif.id));
+                    }
+                }
+            }
+        }
+        return dbNotifs.map((n) => {
+            const timeDiff = Date.now() - new Date(n.createdAt).getTime();
+            const minsAgo = Math.floor(timeDiff / (1000 * 60));
+            const hoursAgo = Math.floor(minsAgo / 60);
+            const daysAgo = Math.floor(hoursAgo / 24);
+            let timeStr = "Just now";
+            if (minsAgo < 60)
+                timeStr = `${Math.max(1, minsAgo)} mins ago`;
+            else if (hoursAgo < 24)
+                timeStr = `${hoursAgo} hour${hoursAgo > 1 ? "s" : ""} ago`;
+            else
+                timeStr = `${daysAgo} day${daysAgo > 1 ? "s" : ""} ago`;
+            const sev = (n.severity || "INFO").toLowerCase();
+            let actionText = "View Details";
+            if (n.category?.toLowerCase().includes("breakdown"))
+                actionText = "View Breakdown";
+            else if (n.category?.toLowerCase().includes("preventive") || n.category?.toLowerCase().includes("pm"))
+                actionText = "Execute PM";
+            else if (n.category?.toLowerCase().includes("order"))
+                actionText = "Open Work Order";
+            else if (n.category?.toLowerCase().includes("part") || n.category?.toLowerCase().includes("stock"))
+                actionText = "Inventory";
+            return {
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                type: sev === "critical" ? "critical" : (sev === "warning" ? "warning" : "info"),
+                category: n.category,
+                timestamp: timeStr,
+                read: n.isRead,
+                link: n.linkUrl || "/maintenance/breakdowns",
+                actionText,
+            };
+        });
     }
-    async listProfile(tenantId) {
+    async markNotificationRead(id) {
+        return await database_js_1.db.update(common_js_1.notifications).set({ isRead: true }).where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, id));
+    }
+    async markAllNotificationsRead(tenantId) {
+        return await database_js_1.db.update(common_js_1.notifications).set({ isRead: true }).where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(common_js_1.notifications.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`);
+    }
+    async clearNotifications(tenantId) {
+        return await database_js_1.db.delete(common_js_1.notifications).where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(common_js_1.notifications.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`);
+    }
+    async listProfile(tenantId, userId, userEmail) {
+        // 1. Resolve real user from users table
+        let targetUser = null;
+        if (userId && (0, tenantContext_js_1.isValidUuid)(userId)) {
+            const [u] = await database_js_1.db.select().from(users_js_1.users).where((0, drizzle_orm_1.eq)(users_js_1.users.id, userId)).limit(1);
+            targetUser = u;
+        }
+        if (!targetUser && userEmail) {
+            const [u] = await database_js_1.db.select().from(users_js_1.users).where((0, drizzle_orm_1.eq)(users_js_1.users.email, userEmail)).limit(1);
+            targetUser = u;
+        }
+        if (!targetUser) {
+            const [u] = await database_js_1.db.select().from(users_js_1.users).where((0, drizzle_orm_1.eq)(users_js_1.users.email, "maintenance@maintenx.com")).limit(1);
+            targetUser = u;
+        }
+        if (!targetUser) {
+            const [firstU] = await database_js_1.db.select().from(users_js_1.users).limit(1);
+            targetUser = firstU;
+        }
+        // 2. Resolve Plant name
+        const [plant] = await database_js_1.db.select().from(tenants_js_1.plants).where(targetUser?.plantId ? (0, drizzle_orm_1.eq)(tenants_js_1.plants.id, targetUser.plantId) : ((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(tenants_js_1.plants.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`)).limit(1);
+        const plantDisplay = plant ? `${plant.name} (${plant.code})` : "Indore Mega Bottling & Canning Facility (INDORE-01)";
+        // 3. Resolve Staff details (shift, bio, certifications)
+        let staffRec = null;
+        if (targetUser) {
+            const [s] = await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.ilike)(masterData_js_1.staff.name, `%${targetUser.firstName}%`), (0, drizzle_orm_1.eq)(masterData_js_1.staff.employeeCode, "EMP-DM01"))).limit(1);
+            staffRec = s;
+        }
+        // 4. Compute real live KPIs from PostgreSQL
+        const activeWos = await database_js_1.db.select().from(maintenance_js_1.workOrders).where((0, drizzle_orm_1.and)((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`, (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.status, "OPEN"), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.status, "IN_PROGRESS"))));
+        const completedWos = await database_js_1.db.select().from(maintenance_js_1.workOrders).where((0, drizzle_orm_1.and)((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`, (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.status, "COMPLETED"), (0, drizzle_orm_1.eq)(maintenance_js_1.workOrders.status, "CLOSED"))));
+        const pmList = await database_js_1.db.select().from(maintenance_js_1.pmSchedules).where((0, tenantContext_js_1.isValidUuid)(tenantId) ? (0, drizzle_orm_1.eq)(maintenance_js_1.pmSchedules.tenantId, tenantId) : (0, drizzle_orm_1.sql) `1=1`);
+        const completedPms = pmList.filter(p => p.status === "Completed").length;
+        const pmCompliance = pmList.length > 0
+            ? `${Math.round((completedPms / pmList.length) * 100)}%`
+            : "100%";
+        const fullName = targetUser ? `${targetUser.firstName} ${targetUser.lastName}`.trim() : "Dave Miller";
+        const initials = targetUser
+            ? `${targetUser.firstName?.[0] || 'D'}${targetUser.lastName?.[0] || 'M'}`.toUpperCase()
+            : "DM";
+        let userCerts = [];
+        let userSkills = [];
+        if (staffRec?.certifications) {
+            if (Array.isArray(staffRec.certifications)) {
+                userCerts = staffRec.certifications;
+            }
+            else if (typeof staffRec.certifications === "object") {
+                userCerts = Array.isArray(staffRec.certifications.certs) ? staffRec.certifications.certs : [];
+                userSkills = Array.isArray(staffRec.certifications.skills) ? staffRec.certifications.skills : [];
+            }
+        }
         return {
-            name: "Marcus Vance",
-            email: "m.vance@flowstate.ind",
-            phone: "+1 (555) 392-8819",
-            role: "SENIOR RELIABILITY TECHNICIAN & MAINTENANCE LEAD",
-            plant: "Plant 1 - North Facility",
-            shift: "Shift A (06:00 - 14:30)",
-            avatar: "MV",
-            bio: "Senior Maintenance Specialist with 12+ years experience in rotary packaging machinery, condition monitoring, hydraulic loops, and predictive maintenance."
+            id: targetUser?.id || "EMP-DM01",
+            name: fullName,
+            email: targetUser?.email || "maintenance@maintenx.com",
+            phone: targetUser?.phone || staffRec?.phone || "",
+            role: staffRec?.designation || "SENIOR RELIABILITY TECHNICIAN & MAINTENANCE LEAD",
+            plant: plantDisplay,
+            shift: staffRec?.shiftCode || "Shift A (06:00 - 14:30)",
+            avatar: initials,
+            bio: staffRec?.designation ? `Certified technician assigned to ${plantDisplay}.` : "",
+            activeWorkOrdersCount: activeWos.length,
+            completedWOsThisYear: completedWos.length,
+            pmComplianceContribution: pmCompliance,
+            certifications: userCerts,
+            skills: userSkills
         };
     }
-    async updateProfile(tenantId, input) {
+    async updateProfile(tenantId, userId, input) {
+        // 1. Update users table in PostgreSQL
+        const emailToUpdate = input.email || "maintenance@maintenx.com";
+        if (input.name) {
+            const parts = input.name.trim().split(/\s+/);
+            const firstName = parts[0];
+            const lastName = parts.slice(1).join(" ") || "";
+            await database_js_1.db.update(users_js_1.users).set({
+                firstName,
+                lastName,
+                phone: input.phone || null,
+                updatedAt: new Date()
+            }).where((0, drizzle_orm_1.eq)(users_js_1.users.email, emailToUpdate));
+        }
+        // 2. Persist to staff table in PostgreSQL
+        try {
+            const certsPayload = {
+                certs: Array.isArray(input.certifications) ? input.certifications : [],
+                skills: Array.isArray(input.skills) ? input.skills : [],
+            };
+            const existingStaff = await database_js_1.db.select().from(masterData_js_1.staff).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.staff.employeeCode, "EMP-DM01"), (0, drizzle_orm_1.ilike)(masterData_js_1.staff.name, input.name || ""))).limit(1);
+            if (existingStaff[0]) {
+                await database_js_1.db.update(masterData_js_1.staff).set({
+                    name: input.name || "Dave Miller",
+                    phone: input.phone || null,
+                    shiftCode: input.shift || "Shift A",
+                    designation: input.role || "Senior Maintenance Technician",
+                    certifications: certsPayload,
+                }).where((0, drizzle_orm_1.eq)(masterData_js_1.staff.id, existingStaff[0].id));
+            }
+            else {
+                const [firstPlant] = await database_js_1.db.select().from(tenants_js_1.plants).limit(1);
+                await database_js_1.db.insert(masterData_js_1.staff).values({
+                    tenantId: (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
+                    plantId: firstPlant?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+                    employeeCode: "EMP-DM01",
+                    name: input.name || "Dave Miller",
+                    phone: input.phone || null,
+                    shiftCode: input.shift || "Shift A",
+                    designation: input.role || "Senior Maintenance Technician",
+                    certifications: certsPayload,
+                    isAvailable: true,
+                });
+            }
+        }
+        catch (e) {
+            console.warn("staff table persist notice:", e.message);
+        }
         return {
             ...input,
             updatedAt: new Date(),

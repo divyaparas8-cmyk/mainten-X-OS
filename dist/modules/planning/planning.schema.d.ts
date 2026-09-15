@@ -27,9 +27,9 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -43,9 +43,9 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
@@ -76,9 +76,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -92,9 +92,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>, {
     quantity: number;
@@ -108,9 +108,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -124,9 +124,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export type CreateCustomerOrderInput = z.infer<typeof customerOrderBaseSchema>;
@@ -158,9 +158,9 @@ export declare const updateCustomerOrderSchema: z.ZodObject<{
     priority?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     status?: string | undefined;
@@ -174,9 +174,9 @@ export declare const updateCustomerOrderSchema: z.ZodObject<{
     priority?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export type UpdateCustomerOrderInput = z.infer<typeof updateCustomerOrderSchema>;
@@ -209,8 +209,8 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
     justification?: string | undefined;
@@ -226,8 +226,8 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
     justification?: string | undefined;
@@ -313,8 +313,8 @@ export declare const createPromotionSchema: z.ZodObject<{
     startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
 }, {
     status?: string | undefined;
     title?: string | undefined;
@@ -324,8 +324,8 @@ export declare const createPromotionSchema: z.ZodObject<{
     startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     projectedUnits?: number | undefined;
 }>;
 export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
@@ -398,8 +398,8 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     shiftId?: string | undefined;
     orderId?: string | undefined;
     productionOrderId?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     scheduleId?: string | undefined;
 }, {
     startTime: string;
@@ -414,8 +414,8 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     changeoverMinutes?: number | undefined;
     cipRequired?: boolean | undefined;
     productionOrderId?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     scheduleId?: string | undefined;
     runRate?: number | undefined;
 }>;

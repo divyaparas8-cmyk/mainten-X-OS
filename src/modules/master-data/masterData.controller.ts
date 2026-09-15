@@ -468,7 +468,6 @@ export class MasterDataController {
     const data = await masterDataService.deleteAsset(request.user?.tenantId, id);
     return reply.send(formatSuccess(data, "Machine asset deleted successfully"));
   }
-  }
 
   async getStaff(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
     const data = await masterDataService.listStaff(request.user?.tenantId, request.query.plantId || request.user?.plantId);
@@ -491,7 +490,7 @@ export class MasterDataController {
   }
 
   async getQualitySpecs(request: FastifyRequest<{ Querystring: { skuId?: string } }>, reply: FastifyReply) {
-    const data = await masterDataService.listQualitySpecs(request.user?.tenantId, request.query?.skuId);
+    const data = await masterDataService.listQualitySpecs(request.user?.tenantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -510,7 +509,6 @@ export class MasterDataController {
     const id = request.params.id;
     const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, id);
     return reply.send(formatSuccess(data, "Quality parameter specification deleted successfully"));
-  }
   }
 
   // ==========================================

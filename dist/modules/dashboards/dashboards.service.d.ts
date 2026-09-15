@@ -111,15 +111,25 @@ export declare class DashboardsService {
         status: string;
         message: string;
     }>;
-    private hbLogs;
     getHbLogs(tenantId: string): Promise<{
         shiftDate: string;
         lineId: string;
-        logs: any[];
+        logs: {
+            id: string;
+            hour: string;
+            target: number;
+            actual: number;
+            variance: number;
+            lossDriver: string;
+            status: string;
+            costImpact: string;
+            notes: string;
+            recordedAt: string;
+        }[];
         summary: {
-            totalTarget: any;
-            totalActual: any;
-            totalVariance: any;
+            totalTarget: number;
+            totalActual: number;
+            totalVariance: number;
             passedHours: number;
             failedHours: number;
         };
@@ -131,7 +141,6 @@ export declare class DashboardsService {
         lossDriver?: string;
         notes?: string;
     }): Promise<{
-        message: string;
         id: string;
         hour: string;
         target: number;
@@ -139,8 +148,9 @@ export declare class DashboardsService {
         variance: number;
         lossDriver: string;
         status: string;
+        costImpact: string;
         notes: string;
-        recordedAt: string;
+        message: string;
     }>;
     updateHbRecord(tenantId: string, id: string, payload: {
         hour?: string;
@@ -148,7 +158,22 @@ export declare class DashboardsService {
         actual?: number;
         lossDriver?: string;
         notes?: string;
-    }): Promise<any>;
+    }): Promise<{
+        id: string;
+        hour: string | undefined;
+        target: number;
+        actual: number;
+        variance: number;
+        lossDriver: string;
+        status: string;
+        costImpact: string;
+        notes: string;
+        message: string;
+    }>;
+    deleteHbRecord(tenantId: string, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
     recalculateCatchUp(tenantId: string, payload: {
         lineId?: string;
     }): Promise<{
@@ -167,20 +192,30 @@ export declare class DashboardsService {
         lineId: string;
         submittedBy: string;
         totalHoursReconciled: number;
-        totalTarget: any;
-        totalActual: any;
+        totalTarget: number;
+        totalActual: number;
         totalVariance: number;
         submittedAt: string;
         status: string;
         message: string;
     }>;
-    private downtimeLogs;
     getDowntimeLogs(tenantId: string): Promise<{
-        logs: any[];
+        logs: {
+            id: string;
+            assetId: string | null;
+            assetDbId: string | null;
+            assetName: string;
+            failureCategory: string;
+            startTime: string;
+            symptom: string;
+            durationMinutes: number;
+            status: string;
+            endTime: string | null;
+        }[];
         summary: {
             activeCount: number;
             resolvedCount: number;
-            totalDowntimeMinutes: any;
+            totalDowntimeMinutes: number;
         };
     }>;
     logBreakdown(tenantId: string, payload: {
@@ -189,9 +224,9 @@ export declare class DashboardsService {
         failureCategory: string;
         symptom: string;
     }): Promise<{
-        message: string;
         id: string;
         assetId: string;
+        assetDbId: string;
         assetName: string;
         failureCategory: string;
         startTime: string;
@@ -199,12 +234,12 @@ export declare class DashboardsService {
         durationMinutes: number;
         status: string;
         endTime: null;
-        loggedAt: string;
+        message: string;
     }>;
     acknowledgeDowntime(tenantId: string, id: string): Promise<{
         id: string;
         status: string;
-        acknowledgedAt: any;
+        acknowledgedAt: string;
         message: string;
     }>;
     dispatchTech(tenantId: string, id: string, payload: {
@@ -216,10 +251,19 @@ export declare class DashboardsService {
         downtimeId: string;
         assetName: string;
         title: string;
-        description: string;
+        description: string | null;
         priority: string;
         status: string;
         assignedAt: string;
+        message: string;
+    }>;
+    resolveDowntime(tenantId: string, id: string): Promise<{
+        id: string;
+        status: string;
+        message: string;
+    }>;
+    deleteDowntimeLog(tenantId: string, id: string): Promise<{
+        id: string;
         message: string;
     }>;
     private changeoverSession;
@@ -280,8 +324,8 @@ export declare class DashboardsService {
                 status: string;
             };
             total: {
-                target: any;
-                actual: any;
+                target: number;
+                actual: number;
                 netVariance: number;
                 shiftPacing: string;
                 eodProjection: number;
@@ -458,7 +502,11 @@ export declare class DashboardsService {
     }>;
     submitRecoveryProposal(tenantId: string, payload: {
         lineId?: string;
+        name?: string;
+        type?: string;
+        projectedRecoveryUnits?: number;
     }): Promise<{
+        id: string;
         message: string;
         submittedAt: string;
         status: string;
@@ -636,8 +684,9 @@ export declare class DashboardsService {
         goodUnits: number;
         scrapUnits: number;
         reworkUnits: number;
+        lineId?: string;
+        shiftCode?: string;
     }): Promise<{
-        logId: string;
         goodUnits: number;
         scrapUnits: number;
         reworkUnits: number;
@@ -907,6 +956,7 @@ export declare class DashboardsService {
         shiftLead: string;
         handoffStatus: string;
         activeSchedules: {
+            id: string;
             line: string;
             status: string;
             order: string;
@@ -916,16 +966,20 @@ export declare class DashboardsService {
         shiftName: string;
     }): Promise<{
         shiftName: string;
+        handoffStatus: string;
         message: string;
     }>;
-    getSupervisorDeptSchedule(tenantId: string): Promise<{
+    getSupervisorDeptSchedule(tenantId: string): Promise<any[]>;
+    createSupervisorDeptSchedule(tenantId: string, input: any): Promise<{
         id: string;
+        orderId: string;
+        lineId: string;
         line: string;
         order: string;
         target: string;
-        shift: string;
+        shift: any;
         status: string;
-    }[]>;
+    }>;
     resequenceSupervisorDeptSchedule(tenantId: string): Promise<{
         message: string;
     }>;
@@ -944,8 +998,52 @@ export declare class DashboardsService {
         status: string;
         message: string;
     }>;
-    getSupervisorWorkforce(tenantId: string): Promise<never[]>;
-    addSupervisorWorkforceEmployee(tenantId: string, payload: any): Promise<any>;
+    getSupervisorWorkforce(tenantId: string): Promise<{
+        id: string;
+        employeeId: string;
+        name: string;
+        role: string;
+        department: any;
+        shift: string;
+        skills: any;
+        skillLevel: any;
+        trainingStatus: any;
+        qualificationStatus: any;
+        status: any;
+        currentStatus: any;
+        productivityScore: any;
+        unitsPerHour: any;
+        efficiency: any;
+        hoursWorkedMonth: any;
+        plant: any;
+        activeStation: any;
+        shiftTiming: string;
+        phone: string;
+        avatar: string;
+        notes: any;
+    }[]>;
+    addSupervisorWorkforceEmployee(tenantId: string, payload: any): Promise<{
+        message: string;
+        department: any;
+        skills: any;
+        skillLevel: any;
+        trainingStatus: any;
+        qualificationStatus: any;
+        currentStatus: any;
+        productivityScore: any;
+        unitsPerHour: any;
+        efficiency: any;
+        hoursWorkedMonth: any;
+        plant: any;
+        activeStation: any;
+        notes: any;
+        id: string;
+        employeeId: string;
+        name: string;
+        role: string;
+        shift: string | null;
+        status: any;
+    }>;
     updateSupervisorWorkforceEmployee(tenantId: string, id: string, payload: any): Promise<any>;
     assignSupervisorWorkforceSkill(tenantId: string, id: string, payload: {
         skillName: string;
@@ -971,6 +1069,10 @@ export declare class DashboardsService {
         targetDate: string;
         id: string;
     }>;
+    deleteSupervisorWorkforceEmployee(tenantId: string, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
     getSupervisorLabourTime(tenantId: string): Promise<{
         plannedLabour: number;
         actualLabour: number;
@@ -981,17 +1083,7 @@ export declare class DashboardsService {
         labourProductivityTarget: string;
         labourAllocationDirect: number;
         labourAllocationIndirect: number;
-        lines: {
-            line: string;
-            department: string;
-            planned: number;
-            actual: number;
-            available: number;
-            utilization: string;
-            productivity: number;
-            lead: string;
-            status: string;
-        }[];
+        lines: any[];
         shifts: {
             shift: string;
             planned: number;
@@ -1016,20 +1108,7 @@ export declare class DashboardsService {
         toLine: string;
         operatorsCount: number;
     }>;
-    getSupervisorLiveHB(tenantId: string): Promise<{
-        id: string;
-        hour: string;
-        shift: string;
-        line: string;
-        department: string;
-        plannedHB: number;
-        actualHB: number;
-        requiredHB: number;
-        availableHB: number;
-        shortage: number;
-        status: string;
-        operatorNotes: string;
-    }[]>;
+    getSupervisorLiveHB(tenantId: string): Promise<any[]>;
     logSupervisorHB(tenantId: string, payload: any): Promise<any>;
     dispatchSupervisorHBBackup(tenantId: string, payload: {
         pool: string;
@@ -1043,30 +1122,21 @@ export declare class DashboardsService {
         targetLine: string;
         recordId?: string;
     }>;
-    getSupervisorSkills(tenantId: string): Promise<{
-        id: string;
-        skillName: string;
-        skillCategory: string;
-        employee: string;
-        employeeId: string;
-        skillLevel: string;
-        certification: string;
-        expiry: string;
-        status: string;
-    }[]>;
+    getSupervisorSkills(tenantId: string): Promise<any[]>;
     addSupervisorSkill(tenantId: string, payload: any): Promise<any>;
     updateSupervisorSkillLevel(tenantId: string, id: string, payload: any): Promise<any>;
     getSupervisorTraining(tenantId: string): Promise<{
         id: string;
-        trainingProgram: string;
+        staffId: string;
+        trainingProgram: any;
         employee: string;
         employeeId: string;
         trainingType: string;
-        completionDate: string;
-        expiryDate: string;
+        completionDate: any;
+        expiryDate: any;
         trainer: string;
-        status: string;
-        certification: string;
+        status: any;
+        certification: any;
     }[]>;
     addSupervisorTraining(tenantId: string, payload: any): Promise<any>;
     completeSupervisorTraining(tenantId: string, id: string, payload: any): Promise<any>;
@@ -1076,7 +1146,9 @@ export declare class DashboardsService {
         averageProductivity: string;
         labourUtilization: string;
         hoursWorkedMTD: number;
+        totalHoursWorked: number;
         grossFactoryOutput: number;
+        totalOutputUnits: number;
         byLine: {
             line: string;
             unitsPerHr: number;
@@ -1084,24 +1156,34 @@ export declare class DashboardsService {
         }[];
         byShift: {
             shift: string;
+            output: number;
             outputUnits: number;
             hoursWorked: number;
             efficiency: string;
+            targetVsActual: string;
             pacingVsTarget: string;
         }[];
+        trend: {
+            week: string;
+            unitsPerHour: number;
+            utilization: number;
+        }[];
+        employees: {
+            id: string;
+            employeeCode: string;
+            name: string;
+            role: string;
+            department: any;
+            shift: string;
+            productivityScore: number;
+            unitsPerHour: number;
+            hoursWorkedMonth: number;
+            monthlyOutput: number;
+            efficiency: any;
+            status: string;
+        }[];
     }>;
-    getSupervisorStaffing(tenantId: string): Promise<{
-        id: string;
-        shiftName: string;
-        shiftTiming: string;
-        date: string;
-        line: string;
-        supervisor: string;
-        operators: string[];
-        plannedHeadcount: number;
-        actualHeadcount: number;
-        shiftStatus: string;
-    }[]>;
+    getSupervisorStaffing(tenantId: string): Promise<any[]>;
     addSupervisorStaffing(tenantId: string, payload: any): Promise<any>;
     updateSupervisorStaffing(tenantId: string, id: string, payload: any): Promise<any>;
     assignSupervisorStaffingPersonnel(tenantId: string, id: string, payload: {
@@ -1128,6 +1210,10 @@ export declare class DashboardsService {
         notes?: string;
         id: string;
     }>;
+    deleteSupervisorStaffing(tenantId: string, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
     setSupervisorProductionSpeedLimit(tenantId: string, payload: {
         speedLimit: number;
         line?: string;
@@ -1142,18 +1228,55 @@ export declare class DashboardsService {
         minutes: number;
         lossPercentage: string;
     }[]>;
+    updateSupervisorProductionRun(tenantId: string, payload: {
+        status: string;
+        producedQuantity: number;
+        scrapQuantity: number;
+        speedBPM?: number;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     getSupervisorHolds(tenantId: string): Promise<{
         id: string;
+        holdCode: string;
         batch: string;
         reason: string;
+        severity: string;
         status: string;
+        holdAt: Date;
+        releasedAt: Date | null;
     }[]>;
+    createSupervisorHold(tenantId: string, payload: {
+        batchNumber: string;
+        reason: string;
+        severity?: string;
+    }): Promise<{
+        success: boolean;
+        data: {
+            status: string;
+            id: string;
+            tenantId: string;
+            plantId: string;
+            reason: string;
+            batchId: string | null;
+            releasedAt: Date | null;
+            lotNumber: string;
+            severity: string | null;
+            holdBy: string;
+            holdAt: Date;
+        };
+        message: string;
+    }>;
     addSupervisorHoldNote(tenantId: string, id: string, payload: {
         noteText: string;
     }): Promise<{
         message: string;
         noteText: string;
         id: string;
+    } | {
+        id: string;
+        message: string;
     }>;
     requestSupervisorHoldRework(tenantId: string, id: string, payload: {
         pin: string;
@@ -1163,6 +1286,9 @@ export declare class DashboardsService {
         pin: string;
         batch?: string;
         id: string;
+    } | {
+        id: string;
+        message: string;
     }>;
     authorizeSupervisorHoldRelease(tenantId: string, id: string, payload: {
         pin: string;
@@ -1172,17 +1298,23 @@ export declare class DashboardsService {
         pin: string;
         batch?: string;
         id: string;
+    } | {
+        id: string;
+        message: string;
     }>;
     scrapSupervisorHoldBatch(tenantId: string, id: string): Promise<{
         id: string;
         message: string;
     }>;
     getSupervisorRecoveryCountermeasures(tenantId: string): Promise<{
-        id: number;
+        id: string;
         name: string;
         type: string;
         impact: string;
         active: boolean;
+        status: string;
+        createdAt: Date | null;
+        appliedAt: Date | null;
     }[]>;
     authorizeSupervisorRecoveryCountermeasure(tenantId: string, id: string | number): Promise<{
         id: string | number;
@@ -1193,12 +1325,70 @@ export declare class DashboardsService {
         success: boolean;
         message: string;
     }>;
+    createSupervisorRecoveryCountermeasure(tenantId: string, payload: {
+        name: string;
+        type?: string;
+        projectedRecoveryUnits?: number;
+        speedBoostPercent?: number;
+        overtimeHours?: number;
+    }): Promise<{
+        success: boolean;
+        data: {
+            type: string | null;
+            status: string | null;
+            id: string;
+            createdAt: Date | null;
+            tenantId: string | null;
+            plantId: string;
+            scenarioName: string;
+            speedBoostPercent: string | null;
+            overtimeHours: string | null;
+            projectedRecoveryUnits: number | null;
+            feasibilityPercent: string | null;
+            estimatedCostUsd: string | null;
+            appliedAt: Date | null;
+        };
+        message: string;
+    }>;
+    deleteSupervisorRecoveryCountermeasure(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     getSupervisorApprovals(tenantId: string): Promise<{
         id: string;
+        approvalCode: string;
         type: string;
         details: string;
         status: string;
+        requestedBy: string | null;
+        proposedSpeed: number | null;
+        supervisorComment: string | null;
+        createdAt: Date;
+        approvedAt: Date | null;
     }[]>;
+    createSupervisorApproval(tenantId: string, payload: {
+        type: string;
+        details: string;
+        requestedBy?: string;
+        proposedSpeed?: number;
+    }): Promise<{
+        success: boolean;
+        data: {
+            type: string;
+            status: string;
+            details: string;
+            id: string;
+            createdAt: Date;
+            tenantId: string;
+            plantId: string | null;
+            approvalCode: string;
+            requestedBy: string | null;
+            proposedSpeed: number | null;
+            supervisorComment: string | null;
+            approvedAt: Date | null;
+        };
+        message: string;
+    }>;
     approveSupervisorApproval(tenantId: string, id: string, payload?: any): Promise<{
         id: string;
         status: string;
@@ -1218,27 +1408,62 @@ export declare class DashboardsService {
         success: boolean;
         message: string;
     }>;
+    deleteSupervisorApproval(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     getSupervisorReportsList(tenantId: string): Promise<{
         id: string;
+        dbId: string;
+        docCode: string;
         name: string;
         category: string;
         date: string;
         cadence: string;
         format: string;
+        status: string;
+        version: string;
+        summary: string | null;
+        effectiveDate: Date;
     }[]>;
+    createSupervisorReport(tenantId: string, authorId: string, payload: {
+        title: string;
+        category?: string;
+        docCode?: string;
+        cadence?: string;
+        format?: string;
+        summary?: string;
+    }): Promise<{
+        message: string;
+        report: {
+            id: string;
+            dbId: string;
+            docCode: string;
+            name: string;
+            category: string;
+            date: string;
+            cadence: string;
+            format: string;
+            status: string;
+            summary: string | null;
+        };
+    }>;
     printSupervisorReport(tenantId: string, id: string): Promise<{
         id: string;
         printedAt: string;
         message: string;
     }>;
     getSupervisorNotificationsList(tenantId: string): Promise<{
-        id: number;
+        id: string;
         type: string;
         read: boolean;
         title: string;
         msg: string;
+        category: string;
+        severity: string;
         time: string;
         path: string;
+        createdAt: Date;
     }[]>;
     markSupervisorNotificationRead(tenantId: string, id: string | number): Promise<{
         id: string | number;
@@ -1257,7 +1482,37 @@ export declare class DashboardsService {
         success: boolean;
         message: string;
     }>;
-    getSupervisorProfile(tenantId: string): Promise<{
+    createSupervisorNotification(tenantId: string, payload: {
+        title: string;
+        message: string;
+        category?: string;
+        severity?: string;
+        linkUrl?: string;
+    }): Promise<{
+        message: string;
+        notification: {
+            id: string;
+            type: string;
+            read: boolean;
+            title: string;
+            msg: string;
+            category: string;
+            severity: string;
+            time: string;
+            path: string | null;
+        };
+    }>;
+    getSupervisorProfile(tenantId: string, userId?: string): Promise<{
+        id: string | undefined;
+        name: string;
+        title: string;
+        employeeId: string;
+        email: string;
+        phone: string;
+        plant: any;
+        shift: string;
+        certifications: any;
+    } | {
         name: string;
         title: string;
         employeeId: string;
@@ -1271,18 +1526,23 @@ export declare class DashboardsService {
             level: string;
             variant: string;
         }[];
+        id?: undefined;
     }>;
-    updateSupervisorProfile(tenantId: string, payload: {
+    updateSupervisorProfile(tenantId: string, userId: string | undefined, payload: {
+        name?: string;
         email?: string;
         phone?: string;
         plant?: string;
         shift?: string;
+        certifications?: any[];
     }): Promise<{
         message: string;
+        name?: string;
         email?: string;
         phone?: string;
         plant?: string;
         shift?: string;
+        certifications?: any[];
     }>;
 }
 export declare const dashboardsService: DashboardsService;

@@ -82,9 +82,9 @@ export declare class PlanningService {
         priority?: string | undefined;
         requestedDate?: string | undefined;
         deliveryAddress?: string | undefined;
+        productName?: string | undefined;
         customer?: string | undefined;
         productCode?: string | undefined;
-        productName?: string | undefined;
         requestedShipDate?: string | undefined;
         id: string;
     }>;

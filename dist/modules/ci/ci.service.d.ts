@@ -1,3 +1,9 @@
+export interface UserContext {
+    tenantId?: string | null;
+    plantId?: string | null;
+    userId?: string | null;
+    userName?: string;
+}
 export interface WhyTreeNode {
     id: string;
     question: string;
@@ -122,7 +128,7 @@ export interface CIStandardEntity {
     type: string;
     version: string;
     plantId: string;
-    lineId?: string | null;
+    lineId: string;
     assetId?: string | null;
     sourceProjectId?: string | null;
     sourceRcaId?: string | null;
@@ -130,7 +136,7 @@ export interface CIStandardEntity {
     status: string;
     effectiveDate: string;
     reviewDate: string;
-    approvedBy: string;
+    approvedBy?: string | null;
     createdAt?: string;
 }
 export interface CIVerifiedSolutionEntity {
@@ -186,6 +192,7 @@ export interface CIReliabilityRecordEntity {
     createdAt?: string;
 }
 export declare class CIService {
+    private logAudit;
     getDashboardSummary(plantId?: string): Promise<{
         financials: {
             projectedSavings: number;
@@ -207,43 +214,65 @@ export declare class CIService {
         projects: {
             total: number;
             completed: number;
+            pendingBenefits: number;
         };
         capa: {
             total: number;
             pending: number;
             verified: number;
+            overdue: number;
+        };
+        capex: {
+            total: number;
+            open: number;
+        };
+        standards: {
+            total: number;
+            active: number;
+        };
+        solutions: {
+            total: number;
         };
     }>;
     private mapInvestigation;
     listInvestigations(plantId?: string): Promise<RCAInvestigationEntity[]>;
     getInvestigation(id: string): Promise<RCAInvestigationEntity | undefined>;
-    createInvestigation(data: Partial<RCAInvestigationEntity>, userName?: string): Promise<RCAInvestigationEntity>;
-    updateInvestigation(id: string, data: Partial<RCAInvestigationEntity>): Promise<RCAInvestigationEntity>;
-    advanceInvestigationPhase(id: string, nextPhase: string): Promise<RCAInvestigationEntity>;
-    deleteInvestigation(id: string): Promise<{
+    createInvestigation(data: Partial<RCAInvestigationEntity>, userContext?: UserContext): Promise<RCAInvestigationEntity>;
+    updateInvestigation(id: string, data: Partial<RCAInvestigationEntity>, userContext?: UserContext): Promise<RCAInvestigationEntity>;
+    advanceInvestigationPhase(id: string, nextPhase: string, userContext?: UserContext): Promise<RCAInvestigationEntity>;
+    deleteInvestigation(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     getRCASummary(plantId?: string): Promise<{
-        total: number;
-        active: number;
-        closed: number;
-        validated: number;
-        critical: number;
-        avgDays: number;
+        totalInvestigations: number;
+        activeInvestigations: number;
+        validatedRootCauses: number;
+        criticalIncidents: number;
+        avgDaysToRootCause: number;
+        phaseDistribution: {
+            event: number;
+            evidence: number;
+            hypothesis: number;
+            occurrence: number;
+            escape: number;
+            capa: number;
+            verification: number;
+            closed: number;
+        };
     }>;
     private mapEvidence;
     listEvidence(rcaId?: string): Promise<RcaEvidenceEntity[]>;
-    createEvidence(data: Partial<RcaEvidenceEntity>, userName?: string): Promise<RcaEvidenceEntity>;
-    deleteEvidence(id: string): Promise<{
+    createEvidence(data: Partial<RcaEvidenceEntity>, userContext?: UserContext): Promise<RcaEvidenceEntity>;
+    deleteEvidence(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     private mapHypothesis;
     listHypotheses(rcaId?: string): Promise<RcaHypothesisEntity[]>;
-    createHypothesis(data: Partial<RcaHypothesisEntity>): Promise<RcaHypothesisEntity>;
-    validateHypothesis(id: string, validationStatus: "Confirmed Root Cause" | "Refuted" | "In Progress", evidenceResult?: string, validatedBy?: string): Promise<RcaHypothesisEntity>;
-    deleteHypothesis(id: string): Promise<{
+    createHypothesis(data: Partial<RcaHypothesisEntity>, userContext?: UserContext): Promise<RcaHypothesisEntity>;
+    validateHypothesis(id: string, validationStatus: "Confirmed Root Cause" | "Refuted" | "In Progress", evidenceResult?: string, userContext?: UserContext): Promise<RcaHypothesisEntity>;
+    deleteHypothesis(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
@@ -254,42 +283,42 @@ export declare class CIService {
         actionType?: string;
         status?: string;
     }): Promise<CapaActionEntity[]>;
-    createCapaAction(data: Partial<CapaActionEntity>): Promise<CapaActionEntity>;
-    updateCapaStatus(id: string, status: string, completionDate?: string, evidenceNotes?: string): Promise<CapaActionEntity>;
-    verifyCapaEffectiveness(id: string, effectivenessResult: string, verifiedBy?: string): Promise<CapaActionEntity>;
-    deleteCapaAction(id: string): Promise<{
+    createCapaAction(data: Partial<CapaActionEntity>, userContext?: UserContext): Promise<CapaActionEntity>;
+    updateCapaStatus(id: string, status: string, completionDate?: string, evidenceNotes?: string, userContext?: UserContext): Promise<CapaActionEntity>;
+    verifyCapaEffectiveness(id: string, effectivenessResult: string, userContext?: UserContext): Promise<CapaActionEntity>;
+    deleteCapaAction(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     private mapLoss;
     listLosses(plantId?: string, category?: string): Promise<CILossEntity[]>;
-    createLoss(data: Partial<CILossEntity>): Promise<CILossEntity>;
-    deleteLoss(id: string): Promise<{
+    createLoss(data: Partial<CILossEntity>, userContext?: UserContext): Promise<CILossEntity>;
+    deleteLoss(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     getLossSummary(plantId?: string): Promise<{
-        totalHoursLost: number;
-        totalFinancialImpactUSD: number;
-        recordsCount: number;
-        breakdown: {
-            category: string;
+        totalUSD: number;
+        totalHours: number;
+        totalUnits: number;
+        incidentsCount: number;
+        breakdown: Record<string, {
+            totalUSD: number;
+            hours: number;
             count: number;
-            hoursLost: number;
-            financialImpactUSD: number;
-        }[];
+        }>;
     }>;
     private mapProject;
     listProjects(plantId?: string): Promise<CIProjectEntity[]>;
     getProject(id: string): Promise<CIProjectEntity | undefined>;
-    createProject(input: Partial<CIProjectEntity>): Promise<CIProjectEntity>;
-    updateProject(id: string, input: Partial<CIProjectEntity>): Promise<CIProjectEntity>;
-    deleteProject(id: string): Promise<{
+    createProject(input: Partial<CIProjectEntity>, userContext?: UserContext): Promise<CIProjectEntity>;
+    updateProject(id: string, input: Partial<CIProjectEntity>, userContext?: UserContext): Promise<CIProjectEntity>;
+    deleteProject(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
-    verifyAndLockBenefit(id: string, userName?: string): Promise<CIProjectEntity>;
-    unlockBenefit(id: string, justification: string, userName?: string): Promise<CIProjectEntity>;
+    verifyAndLockBenefit(id: string, userContext?: UserContext): Promise<CIProjectEntity>;
+    unlockBenefit(id: string, justification: string, userContext?: UserContext): Promise<CIProjectEntity>;
     getBenefitsSummary(plantId?: string): Promise<{
         verifiedCount: number;
         pendingCount: number;
@@ -301,29 +330,29 @@ export declare class CIService {
     }>;
     private mapStandard;
     listStandards(plantId?: string, type?: string): Promise<CIStandardEntity[]>;
-    createStandard(data: Partial<CIStandardEntity>): Promise<CIStandardEntity>;
-    updateStandard(id: string, data: Partial<CIStandardEntity>): Promise<CIStandardEntity>;
-    deleteStandard(id: string): Promise<{
+    createStandard(data: Partial<CIStandardEntity>, userContext?: UserContext): Promise<CIStandardEntity>;
+    updateStandard(id: string, data: Partial<CIStandardEntity>, userContext?: UserContext): Promise<CIStandardEntity>;
+    deleteStandard(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     private mapSolution;
     listSolutions(assetId?: string, search?: string): Promise<CIVerifiedSolutionEntity[]>;
-    createSolution(data: Partial<CIVerifiedSolutionEntity>): Promise<CIVerifiedSolutionEntity>;
-    deleteSolution(id: string): Promise<{
+    createSolution(data: Partial<CIVerifiedSolutionEntity>, userContext?: UserContext): Promise<CIVerifiedSolutionEntity>;
+    deleteSolution(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     private mapCapex;
     listCapex(plantId?: string): Promise<CICapexProjectEntity[]>;
-    createCapex(data: Partial<CICapexProjectEntity>): Promise<CICapexProjectEntity>;
-    deleteCapex(id: string): Promise<{
+    createCapex(data: Partial<CICapexProjectEntity>, userContext?: UserContext): Promise<CICapexProjectEntity>;
+    deleteCapex(id: string, userContext?: UserContext): Promise<{
         id: string;
         message: string;
     }>;
     private mapReliability;
     listReliabilityRecords(plantId?: string, onlyBadActors?: boolean): Promise<CIReliabilityRecordEntity[]>;
-    launchRcaFromBadActor(assetId: string, userName?: string): Promise<RCAInvestigationEntity>;
+    launchRcaFromBadActor(assetId: string, userContext?: UserContext): Promise<RCAInvestigationEntity>;
 }
 export declare const ciService: CIService;
 //# sourceMappingURL=ci.service.d.ts.map

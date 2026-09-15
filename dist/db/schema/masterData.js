@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.departments = exports.companies = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -94,6 +94,24 @@ exports.shifts = (0, pg_core_1.pgTable)("shifts", {
     endTime: (0, pg_core_1.varchar)("end_time", { length: 10 }).notNull(), // "14:30"
     isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
 });
+exports.assetTypes = (0, pg_core_1.pgTable)("asset_types", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }),
+    name: (0, pg_core_1.varchar)("name", { length: 150 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+exports.criticalityLevels = (0, pg_core_1.pgTable)("criticality_levels", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    code: (0, pg_core_1.varchar)("code", { length: 50 }),
+    name: (0, pg_core_1.varchar)("name", { length: 150 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
 exports.assets = (0, pg_core_1.pgTable)("assets", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
@@ -115,6 +133,11 @@ exports.assets = (0, pg_core_1.pgTable)("assets", {
     ratedSpeed: (0, pg_core_1.varchar)("rated_speed", { length: 100 }),
     mtbfHours: (0, pg_core_1.numeric)("mtbf_hours", { precision: 10, scale: 2 }).default("412.5"),
     mttrHours: (0, pg_core_1.numeric)("mttr_hours", { precision: 10, scale: 2 }).default("1.8"),
+    serialNumber: (0, pg_core_1.varchar)("serial_number", { length: 100 }),
+    nameplatePower: (0, pg_core_1.varchar)("nameplate_power", { length: 50 }),
+    warrantyExpiry: (0, pg_core_1.varchar)("warranty_expiry", { length: 50 }),
+    operatingHours: (0, pg_core_1.integer)("operating_hours"),
+    location: (0, pg_core_1.varchar)("location", { length: 100 }),
     installDate: (0, pg_core_1.timestamp)("install_date"),
     lastServiceDate: (0, pg_core_1.timestamp)("last_service_date"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
@@ -209,24 +232,6 @@ exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
     status: (0, pg_core_1.varchar)("status", { length: 32 }).default("Active"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
-});
-exports.companies = (0, pg_core_1.pgTable)("companies", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
-    code: (0, pg_core_1.varchar)("code", { length: 50 }),
-    industry: (0, pg_core_1.varchar)("industry", { length: 100 }),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
-});
-exports.departments = (0, pg_core_1.pgTable)("departments", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
-    code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
-    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
-    managerName: (0, pg_core_1.varchar)("manager_name", { length: 255 }),
-    isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.operations = (0, pg_core_1.pgTable)("operations", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),

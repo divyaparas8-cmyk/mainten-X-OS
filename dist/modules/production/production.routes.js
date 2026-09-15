@@ -9,6 +9,7 @@ async function productionRoutes(fastify) {
     fastify.get("/orders", { schema: { tags: ["Production & MES"], summary: "List Production Orders" } }, production_controller_js_1.productionController.getOrders.bind(production_controller_js_1.productionController));
     fastify.post("/orders", { schema: { tags: ["Production & MES"], summary: "Create Production Order" } }, production_controller_js_1.productionController.createOrder.bind(production_controller_js_1.productionController));
     fastify.patch("/orders/:id/status", { schema: { tags: ["Production & MES"], summary: "Advance Production Order Status" } }, production_controller_js_1.productionController.updateOrderStatus.bind(production_controller_js_1.productionController));
+    fastify.delete("/orders/:id", { schema: { tags: ["Production & MES"], summary: "Delete Production Order" } }, production_controller_js_1.productionController.deleteOrder.bind(production_controller_js_1.productionController));
     // Batches / eBR
     fastify.get("/batches", { schema: { tags: ["Production & MES"], summary: "List 6-Step eBR Batches" } }, production_controller_js_1.productionController.getBatches.bind(production_controller_js_1.productionController));
     fastify.post("/batches/:id/steps", { schema: { tags: ["Production & MES"], summary: "Complete eBR Batch Step" } }, production_controller_js_1.productionController.advanceBatchStep.bind(production_controller_js_1.productionController));

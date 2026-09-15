@@ -74,12 +74,15 @@ exports.pmRecoveryPlans = (0, pg_core_1.pgTable)("pm_recovery_plans", {
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }),
     plantId: (0, pg_core_1.varchar)("plant_id", { length: 100 }).default("PLT-01").notNull(),
     scenarioName: (0, pg_core_1.varchar)("scenario_name", { length: 255 }).default("Recovery Scenario").notNull(),
-    speedBoostPercent: (0, pg_core_1.numeric)("speed_boost_percent", { precision: 5, scale: 2 }).notNull(),
-    overtimeHours: (0, pg_core_1.numeric)("overtime_hours", { precision: 5, scale: 2 }).notNull(),
-    projectedRecoveryUnits: (0, pg_core_1.integer)("projected_recovery_units").notNull(),
-    feasibilityPercent: (0, pg_core_1.numeric)("feasibility_percent", { precision: 5, scale: 2 }).notNull(),
-    estimatedCostUsd: (0, pg_core_1.numeric)("estimated_cost_usd", { precision: 10, scale: 2 }).notNull(),
-    appliedAt: (0, pg_core_1.timestamp)("applied_at", { withTimezone: true }).defaultNow().notNull(),
+    type: (0, pg_core_1.varchar)("type", { length: 100 }).default("Speed Tune"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("PROPOSED"),
+    speedBoostPercent: (0, pg_core_1.numeric)("speed_boost_percent", { precision: 5, scale: 2 }).default("0"),
+    overtimeHours: (0, pg_core_1.numeric)("overtime_hours", { precision: 5, scale: 2 }).default("0"),
+    projectedRecoveryUnits: (0, pg_core_1.integer)("projected_recovery_units").default(0),
+    feasibilityPercent: (0, pg_core_1.numeric)("feasibility_percent", { precision: 5, scale: 2 }).default("90"),
+    estimatedCostUsd: (0, pg_core_1.numeric)("estimated_cost_usd", { precision: 10, scale: 2 }).default("0"),
+    appliedAt: (0, pg_core_1.timestamp)("applied_at", { withTimezone: true }),
+    createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
 });
 // 6. Digital Shift Handover Logs
 exports.pmShiftHandoffs = (0, pg_core_1.pgTable)("pm_shift_handoffs", {

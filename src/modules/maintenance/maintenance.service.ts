@@ -1095,7 +1095,7 @@ export class MaintenanceService {
     const allAssets = await db.select().from(assets);
     const assetMap = new Map<string, { code: string; name: string }>();
     allAssets.forEach((a) => {
-      assetMap.set(a.id, { code: a.assetCode, name: a.name });
+      assetMap.set(a.id, { code: a.assetCode || "AST-001", name: a.name });
     });
 
     return rows.map((s) => {

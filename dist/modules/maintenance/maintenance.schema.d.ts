@@ -4,7 +4,7 @@ export declare const createWorkOrderSchema: z.ZodObject<{
     title: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
     type: z.ZodEffects<z.ZodDefault<z.ZodEnum<["CORRECTIVE", "PREVENTIVE", "EMERGENCY_BREAKDOWN", "CALIBRATION"]>>, "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION", unknown>;
-    priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]>>, "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM", unknown>;
+    priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]>>, "HIGH" | "LOW" | "MEDIUM" | "P1_CRITICAL", unknown>;
     assignedTo: z.ZodOptional<z.ZodString>;
     failureCodeId: z.ZodOptional<z.ZodString>;
     estimatedHours: z.ZodDefault<z.ZodNumber>;
@@ -12,7 +12,7 @@ export declare const createWorkOrderSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION";
     title: string;
-    priority: "HIGH" | "LOW" | "P1_CRITICAL" | "MEDIUM";
+    priority: "HIGH" | "LOW" | "MEDIUM" | "P1_CRITICAL";
     assetId: string;
     estimatedHours: number;
     description?: string | undefined;

@@ -280,8 +280,8 @@ export declare class DashboardsService {
                 status: string;
             };
             total: {
-                target: any;
-                actual: any;
+                target: number;
+                actual: number;
                 netVariance: number;
                 shiftPacing: string;
                 eodProjection: number;
@@ -1283,6 +1283,58 @@ export declare class DashboardsService {
         phone?: string;
         plant?: string;
         shift?: string;
+    }>;
+    getLabourAllocations(tenantId?: string, shift?: string): Promise<{
+        allocations: {
+            id: any;
+            line: any;
+            lineId: any;
+            shift: any;
+            required: number;
+            assigned: number;
+            supervisor: any;
+            supervisorId: any;
+            status: any;
+            notes: any;
+            createdAt: any;
+            updatedAt: any;
+        }[];
+        kpis: {
+            totalPlantStaffing: {
+                assigned: number;
+                required: number;
+                display: string;
+                unit: string;
+                trend: string;
+                isPositive: boolean;
+                attendancePct: number;
+            };
+            lineStaffingHealth: {
+                value: string;
+                unit: string;
+                trend: string;
+                isPositive: boolean;
+            };
+            supervisorCoverage: {
+                value: string;
+                unit: string;
+                trend: string;
+                isPositive: boolean;
+            };
+            taktUtilization: {
+                value: string;
+                unit: string;
+                trend: string;
+                isPositive: boolean;
+            };
+        };
+    }>;
+    createLabourAllocation(tenantId: string | undefined, payload: any): Promise<any>;
+    updateLabourAllocation(tenantId: string | undefined, id: string, payload: any): Promise<any>;
+    deleteLabourAllocation(tenantId: string | undefined, id: string): Promise<{
+        success: boolean;
+        id: string;
+        message: string;
     }>;
 }
 export declare const dashboardsService: DashboardsService;

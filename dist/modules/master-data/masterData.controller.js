@@ -349,17 +349,77 @@ class MasterDataController {
         const data = await masterData_service_js_1.masterDataService.deleteBom(request.user?.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "BOM recipe deleted successfully"));
     }
+    async getAssetTypes(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listAssetTypes(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createAssetType(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createAssetType(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Asset category created successfully"));
+    }
+    async deleteAssetType(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.deleteAssetType(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Asset category deleted successfully"));
+    }
+    async getCriticalityLevels(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listCriticalityLevels(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createCriticalityLevel(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createCriticalityLevel(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Criticality rating created successfully"));
+    }
+    async deleteCriticalityLevel(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.deleteCriticalityLevel(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Criticality rating deleted successfully"));
+    }
     async getAssets(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listAssets(request.user?.tenantId, request.query.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createAsset(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createAsset(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset created successfully"));
+    }
+    async updateAsset(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset updated successfully"));
+    }
+    async deleteAsset(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset deleted successfully"));
     }
     async getStaff(request, reply) {
         const data = await masterData_service_js_1.masterDataService.listStaff(request.user?.tenantId, request.query.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async createStaff(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createStaff(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Staff member registered successfully"));
+    }
+    async updateStaff(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.updateStaff(request.user?.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Staff member updated successfully"));
+    }
+    async deleteStaff(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.deleteStaff(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Staff member deleted successfully"));
+    }
     async getQualitySpecs(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.listQualitySpecs(request.user?.tenantId);
+        const data = await masterData_service_js_1.masterDataService.listQualitySpecs(request.user?.tenantId, request.query?.skuId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createQualitySpec(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createQualitySpec(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification created successfully"));
+    }
+    async updateQualitySpec(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.updateQualitySpec(request.user?.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification updated successfully"));
+    }
+    async deleteQualitySpec(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification deleted successfully"));
     }
     // ==========================================
     // 15. LABOUR STANDARDS

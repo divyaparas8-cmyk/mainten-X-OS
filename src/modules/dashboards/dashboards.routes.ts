@@ -316,7 +316,14 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.get("/supervisor/profile", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Profile Details" } }, dashboardsController.getSupervisorProfile.bind(dashboardsController));
 
   fastify.put("/supervisor/profile", { schema: { tags: ["Dashboards & Executive"], summary: "Update Supervisor Profile Information" } }, dashboardsController.updateSupervisorProfile.bind(dashboardsController));
+
+  // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
+  fastify.get("/labour/allocations", { schema: { tags: ["Dashboards & Executive"], summary: "Get Shift Labour Staffing & Line Allocations" } }, dashboardsController.getLabourAllocations.bind(dashboardsController));
+  fastify.post("/labour/allocations", { schema: { tags: ["Dashboards & Executive"], summary: "Create Shift Labour Allocation" } }, dashboardsController.createLabourAllocation.bind(dashboardsController));
+  fastify.put("/labour/allocations/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Update Shift Labour Allocation" } }, dashboardsController.updateLabourAllocation.bind(dashboardsController));
+  fastify.delete("/labour/allocations/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Delete Shift Labour Allocation" } }, dashboardsController.deleteLabourAllocation.bind(dashboardsController));
 }
+
 
 
 

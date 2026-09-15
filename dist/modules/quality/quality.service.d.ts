@@ -1,23 +1,19 @@
 import { RecordCcpCheckInput, CreateQualityHoldInput } from "./quality.schema.js";
 export declare class QualityService {
     listCcpChecks(tenantId: string, plantId?: string): Promise<{
-        status: string;
         id: string;
-        tenantId: string;
-        plantId: string;
-        uom: string;
-        lineId: string;
-        targetValue: string;
-        notes: string | null;
-        batchId: string;
-        operatorId: string;
-        verifiedBy: string | null;
         ccpCode: string;
         ccpName: string;
+        targetValue: string;
         actualValue: string;
-        criticalLimitMin: string | null;
-        criticalLimitMax: string | null;
+        uom: string;
+        status: string;
         checkedAt: Date;
+        notes: string | null;
+        lineId: string;
+        batchId: string;
+        lineName: string | null;
+        batchNumber: string | null;
     }[]>;
     recordCcpCheck(tenantId: string, plantId: string, input: RecordCcpCheckInput, userId: string): Promise<{
         status: string;
@@ -38,75 +34,23 @@ export declare class QualityService {
         criticalLimitMax: string | null;
         checkedAt: Date;
     }>;
-    listQaReleaseQueue(tenantId: string): Promise<{
-        status: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        tenantId: string;
-        plantId: string;
-        uom: string;
-        skuId: string;
-        productionOrderId: string;
-        batchNumber: string;
-        recipeVersion: string;
-        tankNumber: string | null;
-        targetVolume: string;
-        actualVolume: string | null;
-        currentStep: number;
-        progressPercent: number;
-        startedAt: Date | null;
-        completedAt: Date | null;
-        sku: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            tenantId: string;
-            isActive: boolean;
-            skuCode: string;
-            category: string;
-            familyId: string | null;
-            uom: string;
-            barcode: string | null;
-            standardCost: string | null;
-            shelfLifeDays: number | null;
-            minStockLevel: string | null;
-            maxStockLevel: string | null;
+    listQaReleaseQueue(tenantId: string): Promise<any[]>;
+    getQaReleaseMetrics(tenantId: string): Promise<{
+        pendingBatchesCount: number;
+        ccpClearances: {
+            rate: string;
+            rawRate: number;
+            passedCount: number;
+            totalCount: number;
+            badge: string;
+            subtitle: string;
         };
-        steps: {
-            status: string;
-            parameters: unknown;
-            id: string;
-            notes: string | null;
-            startedAt: Date | null;
-            completedAt: Date | null;
-            batchId: string;
-            stepNumber: number;
-            stepName: string;
-            operatorId: string | null;
-            verifiedBy: string | null;
-        }[];
-        ccpChecks: {
-            status: string;
-            id: string;
-            tenantId: string;
-            plantId: string;
-            uom: string;
-            lineId: string;
-            targetValue: string;
-            notes: string | null;
-            batchId: string;
-            operatorId: string;
-            verifiedBy: string | null;
-            ccpCode: string;
-            ccpName: string;
-            actualValue: string;
-            criticalLimitMin: string | null;
-            criticalLimitMax: string | null;
-            checkedAt: Date;
-        }[];
-    }[]>;
+        qaCycleTime: {
+            time: string;
+            badge: string;
+            subtitle: string;
+        };
+    }>;
     authorizeBatchRelease(tenantId: string, plantId: string, input: any, userId: string, ipAddress?: string): Promise<{
         id: string;
         tenantId: string;
@@ -131,10 +75,10 @@ export declare class QualityService {
         id: string;
         tenantId: string;
         plantId: string;
+        reason: string;
         batchId: string | null;
         releasedAt: Date | null;
         lotNumber: string;
-        reason: string;
         severity: string | null;
         holdBy: string;
         holdAt: Date;
@@ -144,10 +88,10 @@ export declare class QualityService {
         id: string;
         tenantId: string;
         plantId: string;
+        reason: string;
         batchId: string | null;
         releasedAt: Date | null;
         lotNumber: string;
-        reason: string;
         severity: string | null;
         holdBy: string;
         holdAt: Date;
@@ -164,19 +108,6 @@ export declare class QualityService {
         status: string;
     }>;
     listDeviations(tenantId: string): Promise<{
-        holdId: any;
-        id: string;
-        status: string | null;
-        title: string;
-        description: string;
-        createdAt: Date;
-        tenantId: string;
-        plantId: string;
-        category: string | null;
-        severity: string | null;
-        deviationNumber: string;
-        reportedBy: string;
-    }[] | {
         id: string;
         deviationNumber: string;
         title: string;
@@ -184,7 +115,7 @@ export declare class QualityService {
         category: string;
         severity: string;
         status: string;
-        holdId: string;
+        holdId: any;
         createdAt: string;
     }[]>;
     reportDeviation(tenantId: string, plantId: string, input: any, userId: string): Promise<{
@@ -986,28 +917,28 @@ export declare class QualityService {
         message: string;
     }>;
     getPreOpChecklist(tenantId: string): Promise<{
-        items: ({
-            id: number;
+        items: {
+            id: string;
             category: string;
             name: string;
             spec: string;
             criticality: string;
-            method: string;
-            passed: boolean;
+            method: string | null;
+            passed: boolean | null;
             notes: string;
-        } | {
-            id: number;
-            category: string;
+            inspectorName: string;
+        }[];
+        lines: {
+            id: string;
+            code: string;
             name: string;
-            spec: string;
-            criticality: string;
-            method: string;
-            passed: null;
-            notes: string;
-        })[];
-        line: string;
-        batch: string;
-        inspector: string;
+            displayName: string;
+        }[];
+        batches: {
+            id: string;
+            batchNumber: string;
+            displayName: string;
+        }[];
         status: string;
         metrics: {
             totalVerifications: number;
@@ -1019,30 +950,68 @@ export declare class QualityService {
     }>;
     savePreOpProgress(tenantId: string, body: any, userId?: string): Promise<{
         success: boolean;
-        items: ({
-            id: number;
-            category: string;
+        message: string;
+    }>;
+    createPreOpItem(tenantId: string, plantId: string, input: any): Promise<{
+        success: boolean;
+        item: {
+            method: string | null;
+            id: string;
             name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string | null;
+            category: string;
+            lineId: string | null;
+            notes: string | null;
+            lineName: string | null;
+            batchNumber: string | null;
+            batchId: string | null;
             spec: string;
             criticality: string;
-            method: string;
-            passed: boolean;
-            notes: string;
-        } | {
-            id: number;
-            category: string;
-            name: string;
-            spec: string;
-            criticality: string;
-            method: string;
-            passed: null;
-            notes: string;
-        })[];
-        config: {
-            line: string;
-            batch: string;
-            inspector: string;
+            passed: boolean | null;
+            inspectorName: string | null;
         };
+        message: string;
+    }>;
+    updatePreOpItem(tenantId: string, id: string, input: any): Promise<{
+        success: boolean;
+        item: {
+            id: string;
+            tenantId: string;
+            plantId: string | null;
+            lineId: string | null;
+            lineName: string | null;
+            batchId: string | null;
+            batchNumber: string | null;
+            category: string;
+            name: string;
+            spec: string;
+            criticality: string;
+            method: string | null;
+            passed: boolean | null;
+            notes: string | null;
+            inspectorName: string | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        message: string;
+    }>;
+    deletePreOpItem(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    markAllPreOpPass(tenantId: string, body?: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    resetPreOpChecklist(tenantId: string, body?: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    seedStandardPreOp(tenantId: string, plantId: string, body?: any): Promise<{
+        success: boolean;
         message: string;
     }>;
     getSanitationChecklist(tenantId: string): Promise<{
@@ -1150,6 +1119,47 @@ export declare class QualityService {
         exportedAt: string;
         count: number;
         message: string;
+    }>;
+    deleteProductCheck(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    deleteCcpCheck(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    updateCcpCheckStatus(tenantId: string, id: string, status: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    deleteQualityHold(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    deleteDeviation(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    updateDeviationStatus(tenantId: string, id: string, status: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    getDeviationCategories(tenantId: string): Promise<any>;
+    saveDeviationCategory(tenantId: string, input: {
+        id?: string;
+        code?: string;
+        name: string;
+        description?: string;
+    }): Promise<{
+        id: string;
+        code: string;
+        name: string;
+        description: string;
+        createdAt: string;
+    }>;
+    deleteDeviationCategory(tenantId: string, categoryIdOrCode: string): Promise<{
+        success: boolean;
+        remaining: number;
     }>;
 }
 export declare const qualityService: QualityService;

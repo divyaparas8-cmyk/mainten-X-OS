@@ -99,6 +99,26 @@ export const shifts = pgTable("shifts", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+export const assetTypes = pgTable("asset_types", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const criticalityLevels = pgTable("criticality_levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
@@ -316,5 +336,23 @@ export const uoms = pgTable("uoms", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const labourAllocations = pgTable("labour_allocations", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: uuid("tenant_id"),
+  plantId: varchar("plant_id", { length: 64 }).default("PLT-01"),
+  shift: varchar("shift", { length: 50 }).default("Shift A"),
+  line: varchar("line", { length: 255 }).notNull(),
+  lineId: varchar("line_id", { length: 64 }),
+  required: integer("required").default(1).notNull(),
+  assigned: integer("assigned").default(0).notNull(),
+  supervisor: varchar("supervisor", { length: 255 }).notNull(),
+  supervisorId: varchar("supervisor_id", { length: 64 }),
+  status: varchar("status", { length: 50 }).default("Full Coverage"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
 
 

@@ -82,6 +82,7 @@ async function buildApp() {
     await app.register(traceability_routes_js_1.traceabilityRoutes, { prefix: "/api/v1/traceability" });
     await app.register(maintenance_routes_js_1.maintenanceRoutes, { prefix: "/api/v1/maintenance" });
     await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/dashboards" });
+    await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/plant-manager" });
     await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/executive" });
     await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
     await app.register(notifications_routes_js_1.notificationsRoutes, { prefix: "/api/v1/notifications" });

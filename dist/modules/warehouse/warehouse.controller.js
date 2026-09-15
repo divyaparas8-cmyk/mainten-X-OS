@@ -62,7 +62,7 @@ class WarehouseController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async scanBarcode(request, reply) {
-        const barcode = request.body?.barcode || "LOT-RM-ORG-4402";
+        const barcode = request.body?.barcode || "";
         const data = await warehouse_service_js_1.warehouseService.scanBarcode(request.user.tenantId, barcode);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Barcode scanned & validated"));
     }
@@ -248,7 +248,10 @@ class WarehouseController {
     // TRACEABILITY & FDA 21 CFR CONTROLLER
     // ==========================================
     async getTraceability(request, reply) {
-        const lotNumber = request.params?.lotNumber || request.query?.lot || "LOT-RM-ORG-4402";
+        const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber;
+        if (!lotNumber) {
+            return reply.send((0, responseFormatter_js_1.formatSuccess)(null));
+        }
         const data = await warehouse_service_js_1.warehouseService.getTraceability(request.user.tenantId, lotNumber);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }

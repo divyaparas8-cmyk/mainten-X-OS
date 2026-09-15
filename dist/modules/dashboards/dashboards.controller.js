@@ -39,7 +39,7 @@ class DashboardsController {
     }
     // Plant Manager Command Center
     async getCommandCenter(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getPlantManagerCommandCenter(request.user.tenantId, request.query?.plantId || request.user.plantId);
+        const data = await dashboards_service_js_1.dashboardsService.getPlantManagerCommandCenter(request.user?.tenantId, request.query?.plantId || request.user?.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async getKPIs(request, reply) {
@@ -690,7 +690,30 @@ class DashboardsController {
     }
     async updateSupervisorProfile(request, reply) {
         const body = request.body || {};
-        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user.tenantId, body);
+        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user?.tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
+    async getLabourAllocations(request, reply) {
+        const query = request.query || {};
+        const shift = query.shift || "Shift A";
+        const data = await dashboards_service_js_1.dashboardsService.getLabourAllocations(request.user?.tenantId, shift);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createLabourAllocation(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.createLabourAllocation(request.user?.tenantId, body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Staff allocation created successfully"));
+    }
+    async updateLabourAllocation(request, reply) {
+        const { id } = request.params;
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.updateLabourAllocation(request.user?.tenantId, id, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Staff allocation updated successfully"));
+    }
+    async deleteLabourAllocation(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
 }

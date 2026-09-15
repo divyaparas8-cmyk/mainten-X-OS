@@ -7,6 +7,11 @@ export declare class ProductionController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    deleteOrder(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getBatches(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     advanceBatchStep(request: FastifyRequest<{
         Params: {

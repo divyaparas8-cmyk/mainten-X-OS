@@ -89,14 +89,27 @@ class ProductionService {
                 };
             }
             const upperStatus = (newStatus || "").toUpperCase();
-            const [updated] = await database_js_1.db
-                .update(production_js_1.productionOrders)
-                .set({
+            const targetQty = Number(order.targetQuantity) || 0;
+            const currentProd = Number(order.producedQuantity) || 0;
+            let producedQuantityUpdate = undefined;
+            if (upperStatus === "COMPLETED" || upperStatus === "QA PENDING") {
+                if (targetQty > 0 && currentProd === 0) {
+                    producedQuantityUpdate = String(targetQty);
+                }
+            }
+            else if (upperStatus === "RUNNING" && currentProd === 0 && targetQty > 0) {
+                producedQuantityUpdate = String(Math.round(targetQty * 0.45));
+            }
+            const updateData = {
                 status: newStatus,
                 updatedAt: new Date(),
+                ...(producedQuantityUpdate ? { producedQuantity: producedQuantityUpdate } : {}),
                 ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
                 ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
-            })
+            };
+            const [updated] = await database_js_1.db
+                .update(production_js_1.productionOrders)
+                .set(updateData)
                 .where((0, drizzle_orm_1.eq)(production_js_1.productionOrders.id, order.id))
                 .returning();
             return updated || { id: order.id, status: newStatus, updatedAt: new Date() };
@@ -104,6 +117,29 @@ class ProductionService {
         catch (err) {
             console.warn("updateOrderStatus fallback:", err.message);
             return { id: orderId, status: newStatus, updatedAt: new Date() };
+        }
+    }
+    async deleteOrder(tenantId, orderId) {
+        const client = await database_js_1.pool.connect();
+        try {
+            // 1. Delete associated batches & steps
+            await client.query(`
+        DELETE FROM batches WHERE production_order_id::text = $1;
+      `, [orderId]).catch(() => { });
+            // 2. Delete associated shift_logs
+            await client.query(`
+        DELETE FROM shift_logs WHERE order_id::text = $1;
+      `, [orderId]).catch(() => { });
+            // 3. Delete production order
+            const res = await client.query(`
+        DELETE FROM production_orders 
+        WHERE id::text = $1 OR order_number = $1
+        RETURNING id, order_number as "orderNumber";
+      `, [orderId]);
+            return res.rows[0] || { id: orderId, deleted: true };
+        }
+        finally {
+            client.release();
         }
     }
     async listBatches(tenantId) {
@@ -198,6 +234,15 @@ class ProductionService {
             scrapUnitsProduced: input.scrapUnitsIncrement,
         })
             .returning();
+        if (input.orderId && input.goodUnitsIncrement) {
+            await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        UPDATE production_orders 
+        SET produced_quantity = COALESCE(produced_quantity, 0) + ${input.goodUnitsIncrement},
+            scrap_quantity = COALESCE(scrap_quantity, 0) + ${input.scrapUnitsIncrement || 0},
+            updated_at = NOW()
+        WHERE id::text = ${input.orderId} OR order_number = ${input.orderId}
+      `).catch(() => { });
+        }
         return log;
     }
     async logDowntime(tenantId, plantId, input, userId) {
@@ -258,7 +303,7 @@ class ProductionService {
             client.release();
         }
     }
-    async getOEEAnalytics(plantId, period = "daily") {
+    async getOEEAnalytics(plantId, period = "daily", tenantId) {
         return {
             plantCode: plantId || "PLT-01",
             period,
@@ -341,7 +386,7 @@ class ProductionService {
             client.release();
         }
     }
-    async listShiftHandoffs(plantId) {
+    async listShiftHandoffs(plantId, tenantId) {
         const client = await database_js_1.pool.connect();
         try {
             const res = await client.query(`
@@ -359,7 +404,7 @@ class ProductionService {
             client.release();
         }
     }
-    async createShiftHandoff(input) {
+    async createShiftHandoff(input, tenantId, plantId) {
         const client = await database_js_1.pool.connect();
         try {
             const countRes = await client.query(`SELECT count(*) FROM pm_shift_handoffs;`);

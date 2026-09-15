@@ -9,6 +9,7 @@ export async function productionRoutes(fastify: FastifyInstance) {
   fastify.get("/orders", { schema: { tags: ["Production & MES"], summary: "List Production Orders" } }, productionController.getOrders.bind(productionController));
   fastify.post("/orders", { schema: { tags: ["Production & MES"], summary: "Create Production Order" } }, productionController.createOrder.bind(productionController));
   fastify.patch("/orders/:id/status", { schema: { tags: ["Production & MES"], summary: "Advance Production Order Status" } }, productionController.updateOrderStatus.bind(productionController));
+  fastify.delete("/orders/:id", { schema: { tags: ["Production & MES"], summary: "Delete Production Order" } }, productionController.deleteOrder.bind(productionController));
 
   // Batches / eBR
   fastify.get("/batches", { schema: { tags: ["Production & MES"], summary: "List 6-Step eBR Batches" } }, productionController.getBatches.bind(productionController));

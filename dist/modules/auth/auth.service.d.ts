@@ -6,9 +6,11 @@ export declare class AuthService {
             email: string;
             firstName: string;
             lastName: string;
+            name: string;
             tenantId: string;
             plantId: string;
             role: string;
+            roleName: string;
             isMasterAdmin: boolean;
             avatarUrl: string | null;
         };

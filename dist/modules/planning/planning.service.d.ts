@@ -104,6 +104,22 @@ export declare class PlanningService {
         overrideQuantity: number;
         finalForecast: number;
         method: string;
+        mapeAccuracy: number;
+        status: string;
+        confidenceLevel: number;
+        recommendedAction: string;
+    }[] | {
+        id: string;
+        period: string;
+        skuId: string;
+        productCode: string;
+        productName: string;
+        historicalDemand: number;
+        baselineForecast: number;
+        baselineDemand: number;
+        overrideQuantity: number;
+        finalForecast: number;
+        method: string;
         modelType: string;
         mapeAccuracy: number;
         reason: string;
@@ -138,8 +154,8 @@ export declare class PlanningService {
         baselineDemand?: number | undefined;
         overrideQuantity?: number | undefined;
         finalForecast?: number | undefined;
-        reason?: string | undefined;
         owner?: string | undefined;
+        reason?: string | undefined;
         baselineForecast?: number | undefined;
         id: string;
     }>;
@@ -321,6 +337,7 @@ export declare class PlanningService {
     runStatisticalForecast(tenantId: string, plantId: string, input: RunForecastInput): Promise<{
         historicalDemand: number[];
         calculationDetails: import("../../shared/engines/forecastEngine.js").ForecastOutput;
+        status: string | null;
         id: string;
         createdAt: Date;
         tenantId: string;
@@ -333,6 +350,8 @@ export declare class PlanningService {
         finalForecast: string;
         mapeAccuracy: string | null;
         modelType: string | null;
+        owner: string | null;
+        reason: string | null;
     }>;
     listApsSchedules(tenantId: string, plantId?: string): Promise<any[]>;
     createApsSchedule(tenantId: string, plantId: string, input: CreateApsScheduleInput): Promise<{

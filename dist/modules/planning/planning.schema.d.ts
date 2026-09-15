@@ -206,8 +206,8 @@ export declare const createForecastSchema: z.ZodObject<{
     baselineDemand?: number | undefined;
     finalForecast?: number | undefined;
     modelType?: string | undefined;
-    reason?: string | undefined;
     owner?: string | undefined;
+    reason?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
     historicalDemand?: number | undefined;
@@ -222,8 +222,8 @@ export declare const createForecastSchema: z.ZodObject<{
     overrideQuantity?: number | undefined;
     finalForecast?: number | undefined;
     modelType?: string | undefined;
-    reason?: string | undefined;
     owner?: string | undefined;
+    reason?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
     historicalDemand?: number | undefined;
@@ -249,8 +249,8 @@ export declare const updateForecastSchema: z.ZodObject<{
     baselineDemand?: number | undefined;
     overrideQuantity?: number | undefined;
     finalForecast?: number | undefined;
-    reason?: string | undefined;
     owner?: string | undefined;
+    reason?: string | undefined;
     baselineForecast?: number | undefined;
 }, {
     status?: string | undefined;
@@ -260,8 +260,8 @@ export declare const updateForecastSchema: z.ZodObject<{
     baselineDemand?: number | undefined;
     overrideQuantity?: number | undefined;
     finalForecast?: number | undefined;
-    reason?: string | undefined;
     owner?: string | undefined;
+    reason?: string | undefined;
     baselineForecast?: number | undefined;
 }>;
 export type UpdateForecastInput = z.infer<typeof updateForecastSchema>;
@@ -366,10 +366,10 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     quantity?: number | undefined;
     endTime?: string | undefined;
     lineId?: string | undefined;
+    targetQuantity?: number | undefined;
     orderNumber?: string | undefined;
     shiftId?: string | undefined;
     orderId?: string | undefined;
-    targetQuantity?: number | undefined;
     productionOrderId?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
@@ -380,12 +380,12 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     quantity?: number | undefined;
     endTime?: string | undefined;
     lineId?: string | undefined;
+    targetQuantity?: number | undefined;
     orderNumber?: string | undefined;
     shiftId?: string | undefined;
     orderId?: string | undefined;
     changeoverMinutes?: number | undefined;
     cipRequired?: boolean | undefined;
-    targetQuantity?: number | undefined;
     productionOrderId?: string | undefined;
     productCode?: string | undefined;
     productName?: string | undefined;
@@ -606,8 +606,8 @@ export declare const createScheduleVersionSchema: z.ZodObject<{
 }, {
     title: string;
     status?: string | undefined;
-    reason?: string | undefined;
     createdBy?: string | undefined;
+    reason?: string | undefined;
 }>;
 export type CreateScheduleVersionInput = z.infer<typeof createScheduleVersionSchema>;
 export declare const validateScheduleSchema: z.ZodObject<{

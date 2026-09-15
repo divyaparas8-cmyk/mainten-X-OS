@@ -218,9 +218,41 @@ export declare class MasterDataController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    getAssetTypes(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAssetType(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAssetType(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCriticalityLevels(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCriticalityLevel(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteCriticalityLevel(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getAssets(request: FastifyRequest<{
         Querystring: {
             plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createAsset(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAsset(request: FastifyRequest<{
+        Params: {
+            id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
     getStaff(request: FastifyRequest<{
@@ -228,7 +260,39 @@ export declare class MasterDataController {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
-    getQualitySpecs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createStaff(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateStaff(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteStaff(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getQualitySpecs(request: FastifyRequest<{
+        Querystring: {
+            skuId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createQualitySpec(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getLabourStandards(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createLabourStandard(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateLabourStandard(request: FastifyRequest<{

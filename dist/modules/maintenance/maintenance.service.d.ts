@@ -224,9 +224,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;
@@ -245,9 +245,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;
@@ -280,9 +280,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;
@@ -295,9 +295,9 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
+        frequency: string;
         assetId: string;
         scheduleCode: string;
-        frequency: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
         nextDueDate: Date;

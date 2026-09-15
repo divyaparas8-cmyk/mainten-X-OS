@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminRoutes = adminRoutes;
 const admin_controller_js_1 = require("./admin.controller.js");
+const authenticate_js_1 = require("../../middleware/authenticate.js");
 async function adminRoutes(fastify) {
+    fastify.addHook("preHandler", authenticate_js_1.authenticate);
     // Allow optional authentication so dashboard & management work seamlessly in both demo & live modes
     fastify.get("/dashboard", {
         schema: {

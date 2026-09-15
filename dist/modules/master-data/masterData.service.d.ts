@@ -209,20 +209,20 @@ export interface LabourStandardEntity {
     updatedAt?: string;
 }
 export declare class MasterDataService {
-    listCompanies(tenantId?: string): Promise<CompanyEntity[] | {
-        id: any;
-        companyId: any;
+    listCompanies(tenantId?: string): Promise<any>;
+    createCompany(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        companyId: string;
         code: any;
-        name: any;
+        name: string;
         taxId: any;
         currency: any;
         hqLocation: any;
         fiscalYearStart: any;
         status: any;
-    }[]>;
-    createCompany(tenantId: string | undefined, input: any): Promise<CompanyEntity>;
+    }>;
     updateCompany(tenantId: string | undefined, id: string, input: any): Promise<any>;
-    deleteCompany(tenantId: string | undefined, id: string): Promise<CompanyEntity | {
+    deleteCompany(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
@@ -237,8 +237,12 @@ export declare class MasterDataService {
         timezone: string;
         location: string;
         status: string;
+        isActive: boolean;
         capacity: string;
+        dailyCapacity: string;
         linesCount: number;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     createPlant(tenantId: string | undefined, input: any): Promise<PlantEntity>;
     updatePlant(tenantId: string | undefined, id: string, input: any): Promise<any>;
@@ -246,35 +250,64 @@ export declare class MasterDataService {
         id: string;
         message: string;
     }>;
-    listDepartments(tenantId?: string, plantId?: string): Promise<DepartmentEntity[] | {
-        id: any;
-        departmentId: any;
+    listDepartments(tenantId?: string, plantId?: string): Promise<any>;
+    createDepartment(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        departmentId: string;
         plantId: any;
-        code: any;
-        name: any;
+        code: string;
+        name: string;
         deptHead: any;
         managerName: any;
         costCenter: any;
         operatingShifts: any;
         status: any;
-    }[]>;
-    createDepartment(tenantId: string | undefined, input: any): Promise<DepartmentEntity>;
+    }>;
     updateDepartment(tenantId: string | undefined, id: string, input: any): Promise<any>;
-    deleteDepartment(tenantId: string | undefined, id: string): Promise<DepartmentEntity | {
+    deleteDepartment(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
-    listLines(tenantId: string | undefined, plantId?: string): Promise<LineEntity[]>;
-    createLine(tenantId: string | undefined, input: any): Promise<LineEntity>;
-    updateLine(tenantId: string | undefined, id: string, input: any): Promise<LineEntity>;
-    deleteLine(tenantId: string | undefined, id: string): Promise<LineEntity | {
+    listLines(tenantId: string | undefined, plantId?: string): Promise<any>;
+    createLine(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        lineId: string;
+        code: any;
+        lineCode: any;
+        name: string;
+        lineType: any;
+        type: any;
+        ratedSpeed: any;
+        ratedSpeedBPH: number;
+        status: any;
+        plantId: any;
+        plantName: any;
+        supervisorName: any;
+        supervisorId: any;
+        ratedOEE: any;
+        currentRunningSku: any;
+        healthScore: number;
+    }>;
+    updateLine(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteLine(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
     listWorkCenters(tenantId: string | undefined, plantId?: string): Promise<any>;
-    createWorkCenter(tenantId: string | undefined, input: any): Promise<WorkCenterEntity>;
-    updateWorkCenter(tenantId: string | undefined, id: string, input: any): Promise<WorkCenterEntity>;
-    deleteWorkCenter(tenantId: string | undefined, id: string): Promise<WorkCenterEntity | {
+    createWorkCenter(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        workCenterId: string;
+        code: string;
+        name: string;
+        category: any;
+        capacity: any;
+        lineId: any;
+        lineName: any;
+        plantId: any;
+        status: any;
+    }>;
+    updateWorkCenter(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteWorkCenter(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
@@ -471,56 +504,121 @@ export declare class MasterDataService {
     deleteSku(tenantId: string | undefined, id: string): Promise<any>;
     listBoms(tenantId?: string): Promise<any>;
     getBomById(tenantId: string, id: string): Promise<any>;
-    createBom(tenantId: string | undefined, input: any): Promise<any>;
+    createBom(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        bomId: string;
+        bomNumber: string;
+        finishedSkuId: string;
+        finishedSkuName: string;
+        finishedSkuCode: any;
+        revision: any;
+        batchSize: string;
+        yieldTarget: string;
+        status: any;
+        approvalStatus: any;
+        components: any;
+        createdBy: any;
+        lastUpdated: string;
+        revisionHistory: {
+            revision: any;
+            status: any;
+            createdBy: any;
+            date: string;
+            changes: string;
+            approvedBy: string;
+        }[];
+    }>;
     updateBom(tenantId: string | undefined, id: string, input: any): Promise<any>;
     deleteBom(tenantId: string | undefined, id: string): Promise<{
         id: string;
         message: string;
     }>;
-    listAssets(tenantId: string | undefined, plantId?: string): Promise<{
-        status: string | null;
+    listAssetTypes(tenantId?: string): Promise<any>;
+    createAssetType(tenantId: string | undefined, input: any): Promise<{
         id: string;
+        name: any;
+        code: any;
+        description: any;
+        createdAt: any;
+    }>;
+    deleteAssetType(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
+    listCriticalityLevels(tenantId?: string): Promise<any>;
+    createCriticalityLevel(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        name: any;
+        code: any;
+        description: any;
+        createdAt: any;
+    }>;
+    deleteCriticalityLevel(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
+    listAssets(tenantId: string | undefined, plantId?: string): Promise<any>;
+    createAsset(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        assetId: any;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
-        tenantId: string;
-        plantId: string;
-        lineId: string | null;
-        assetCode: string;
-        modelNumber: string | null;
-        manufacturer: string | null;
-        criticalLevel: string | null;
-        healthPercent: number | null;
-        mtbfHours: string | null;
-        mttrHours: string | null;
-        installDate: Date | null;
-        lastServiceDate: Date | null;
-    }[]>;
-    listStaff(tenantId: string | undefined, plantId?: string): Promise<{
+        type: any;
+        lineId: any;
+        plantId: any;
+        criticality: any;
+        status: any;
+        manufacturer: any;
+        healthScore: number;
+    }>;
+    updateAsset(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteAsset(tenantId: string | undefined, id: string): Promise<{
         id: string;
+        message: string;
+    }>;
+    listStaff(tenantId: string | undefined, plantId?: string): Promise<any>;
+    createStaff(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        employeeId: any;
         name: string;
-        createdAt: Date;
-        tenantId: string;
-        phone: string | null;
-        plantId: string;
-        employeeCode: string;
-        designation: string;
-        shiftCode: string | null;
-        isAvailable: boolean;
-        certifications: unknown;
-    }[]>;
-    listQualitySpecs(tenantId?: string): Promise<{
+        role: any;
+        designation: any;
+        department: any;
+        skillLevel: any;
+        skills: any;
+        certifications: any;
+        email: any;
+        phone: any;
+        plantId: any;
+        status: any;
+    }>;
+    updateStaff(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteStaff(tenantId: string | undefined, id: string): Promise<{
         id: string;
-        createdAt: Date;
-        tenantId: string;
-        uom: string;
+        message: string;
+    }>;
+    listQualitySpecs(tenantId?: string, skuIdFilter?: string): Promise<any>;
+    createQualitySpec(tenantId: string | undefined, input: any): Promise<{
+        id: string;
+        specId: string;
         skuId: string;
-        parameterName: string;
-        targetValue: string;
-        minTolerance: string;
-        maxTolerance: string;
+        parameter: string;
+        specificationTitle: string;
+        target: string;
+        min: string;
+        max: string;
+        uom: string;
+        criticality: string;
         isCCP: boolean;
-    }[]>;
+        testMethod: any;
+        status: string;
+        approvalStatus: string;
+        createdAt: any;
+    }>;
+    updateQualitySpec(tenantId: string | undefined, id: string, input: any): Promise<any>;
+    deleteQualitySpec(tenantId: string | undefined, id: string): Promise<{
+        id: string;
+        message: string;
+    }>;
     listLabourStandards(tenantId?: string): Promise<LabourStandardEntity[]>;
     createLabourStandard(tenantId: string | undefined, input: any): Promise<LabourStandardEntity>;
     updateLabourStandard(tenantId: string | undefined, id: string, input: any): Promise<any>;

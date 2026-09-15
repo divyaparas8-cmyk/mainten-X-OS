@@ -4,6 +4,9 @@ exports.warehouseService = exports.WarehouseService = void 0;
 const database_js_1 = require("../../config/database.js");
 const warehouse_js_1 = require("../../db/schema/warehouse.js");
 const traceability_js_1 = require("../../db/schema/traceability.js");
+const masterData_js_1 = require("../../db/schema/masterData.js");
+const production_js_1 = require("../../db/schema/production.js");
+const quality_js_1 = require("../../db/schema/quality.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
 const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
@@ -90,93 +93,7 @@ let purchaseOrdersStore = [
         ]
     }
 ];
-let suppliersStore = [
-    {
-        id: "SUP-001",
-        supplierCode: "VND-CVF-01",
-        name: "Citrus Valley Farms Co.",
-        category: "Raw Material Concentrate",
-        materialsSupplied: "Valencia Orange Concentrate 65° Brix, Lime Puree, Essential Citrus Oils",
-        status: "Active",
-        otifScore: 98.2,
-        qualityAcceptanceRate: 99.6,
-        avgLeadTimeDays: 4.5,
-        riskRating: "Low Risk",
-        contactEmail: "orders@citrusvalleyfarms.com",
-        contactPhone: "+1 (555) 349-8821",
-        lastOrder: "2026-08-28 (PO-441)",
-        openOrdersCount: 2,
-        activeContractsCount: 3
-    },
-    {
-        id: "SUP-002",
-        supplierCode: "VND-AMC-03",
-        name: "Amcor Rigid Packaging",
-        category: "Packaging Containers",
-        materialsSupplied: "500ml PET Bottles, 28mm Oxygen Barrier Caps, Shrink Bundling Films",
-        status: "Active",
-        otifScore: 96.5,
-        qualityAcceptanceRate: 99.1,
-        avgLeadTimeDays: 3.2,
-        riskRating: "Low Risk",
-        contactEmail: "orders@amcor.com",
-        contactPhone: "+1 (555) 812-4409",
-        lastOrder: "2026-08-22 (PO-429)",
-        openOrdersCount: 1,
-        activeContractsCount: 2
-    },
-    {
-        id: "SUP-003",
-        supplierCode: "VND-BEI-06",
-        name: "Botanical Extracts International",
-        category: "Specialty Flavors & Extracts",
-        materialsSupplied: "Organic Yuzu Terpenes, Blood Orange Distillate, Ginger Root Oleoresin",
-        status: "Active",
-        otifScore: 88.0,
-        qualityAcceptanceRate: 97.4,
-        avgLeadTimeDays: 8.0,
-        riskRating: "Medium Risk",
-        contactEmail: "supply@botanicalextracts.com",
-        contactPhone: "+1 (555) 902-1144",
-        lastOrder: "2026-08-10 (PO-398)",
-        openOrdersCount: 1,
-        activeContractsCount: 1
-    },
-    {
-        id: "SUP-004",
-        supplierCode: "VND-BLL-04",
-        name: "Ball Metal Beverage Packaging",
-        category: "Packaging Cans",
-        materialsSupplied: "330ml Sleek Cans (BPA-NI), 202 Dia CDL Can Ends w/ Gold Tab",
-        status: "Active",
-        otifScore: 99.1,
-        qualityAcceptanceRate: 99.8,
-        avgLeadTimeDays: 2.8,
-        riskRating: "Low Risk",
-        contactEmail: "orders@ballmetal.com",
-        contactPhone: "+1 (555) 671-3302",
-        lastOrder: "2026-08-18 (PO-422)",
-        openOrdersCount: 1,
-        activeContractsCount: 4
-    },
-    {
-        id: "SUP-005",
-        supplierCode: "VND-SVR-05",
-        name: "Sugar Valley Refining Ltd.",
-        category: "Sweeteners & Sugars",
-        materialsSupplied: "Non-GMO Liquid Cane Sugar 67.5° Brix, Granulated Sucrose Grade A",
-        status: "Active",
-        otifScore: 97.5,
-        qualityAcceptanceRate: 99.4,
-        avgLeadTimeDays: 3.5,
-        riskRating: "Low Risk",
-        contactEmail: "dispatch@sugarvalley.com",
-        contactPhone: "+1 (555) 438-7719",
-        lastOrder: "2026-08-15 (PO-415)",
-        openOrdersCount: 0,
-        activeContractsCount: 2
-    }
-];
+let suppliersStore = [];
 let wmsReceivingStore = [
     { id: "RCV-2026-901", poNumber: "PO-SUP-2026-441", supplier: "Citrus Valley Farms Co.", item: "Valencia Orange Concentrate", qty: "6,000 kg", dock: "Dock Bay 01", status: "Dock Arrived", tempCheck: "3.4°C" },
     { id: "RCV-2026-902", poNumber: "PO-SUP-2026-438", supplier: "Alfa Laval Parts Global", item: "High-Temp Gasket Pack", qty: "5 packs", dock: "Dock Bay 03", status: "Inspected", tempCheck: "Ambient" },
@@ -407,6 +324,7 @@ let scannerLogsStore = [
         scannedAt: new Date(Date.now() - 1000 * 60 * 15).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 ];
+<<<<<<< HEAD
 let finishedGoodsStore = [
     {
         id: "FG-001",
@@ -564,6 +482,205 @@ let shipmentOrdersStore = [
     }
 ];
 // Traceability data is now read from real DB (inventory_lots + lot_genealogies tables)
+=======
+let finishedGoodsStore = [];
+let shipmentOrdersStore = [];
+let traceabilityStore = {
+    "LOT-RM-ORG-4402": {
+        lotNumber: "LOT-RM-ORG-4402",
+        materialName: "Valencia Organic Orange Juice Concentrate 65° Brix",
+        materialCode: "RM-ORG-CONC",
+        category: "Raw Material",
+        type: "Raw Ingredient",
+        quantity: "3,800 kg (19 Aseptic Drums)",
+        supplier: "Citrus Valley Farms Co.",
+        supplierLot: "CVF-2026-VAL-104",
+        poNumber: "PO-2026-0881",
+        receivedDate: "2026-09-03 08:45 AM",
+        receivedLocation: "Dock 01 - Inbound Staging STG-01",
+        currentLocation: "Cold Storage Zone A - Rack R04-B2",
+        expiryDate: "2027-03-15",
+        qaStatus: "Approved / Released",
+        qaCert: "COA-9812-PASS",
+        tempLog: "3.4°C (Target: 2.0°C - 4.0°C • Compliant)",
+        integrityScore: "100%",
+        barcode: "8902810044025",
+        productionOrders: ["PO-OR-8821", "PO-OR-8824"],
+        batches: [
+            {
+                batchId: "BAT-2026-0885",
+                product: "Sparkling Organic Orange Soda 330ml Can",
+                sku: "SKU-CAN-330ML-ORG",
+                line: "High-Speed Packaging Line 1 (Rotary 580 BPM)",
+                date: "2026-09-03 10:15 AM",
+                quantityProduced: "36,000 Cans (1,500 Cases)",
+                status: "Completed & Released",
+                ccpStatus: "CCP-1 Pasteurized (72.4°C / 16s) • CCP-2 Metal Checked (Pass)",
+                finishedLot: "LOT-FG-2026-0885",
+                pallets: [
+                    { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
+                    { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
+                ]
+            },
+            {
+                batchId: "BAT-2026-0886",
+                product: "Organic Citrus Blast 500ml Bottle",
+                sku: "SKU-BOT-500ML-CIT",
+                line: "Bottling Line 2 (Aseptic Filler)",
+                date: "2026-09-03 14:00 PM",
+                quantityProduced: "24,000 Bottles (1,000 Cases)",
+                status: "In Staging / Final QA Review",
+                ccpStatus: "CCP-1 Passed • In-line Brix Validated (11.4°)",
+                finishedLot: "LOT-FG-2026-0886",
+                pallets: [
+                    { palletId: "PLT-0886-01", cases: 50, lpn: "GS1-128-LPN-9920", dest: "Central Market Hub (Dallas, TX)" }
+                ]
+            }
+        ],
+        recallImpact: {
+            affectedBatches: 2,
+            finishedCases: 2500,
+            palletsCount: 35,
+            customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Warehouse", "Central Market Hub"],
+            quarantineStatus: "Cleared • Low Risk"
+        }
+    },
+    "LOT-ORG-442": {
+        lotNumber: "LOT-ORG-442",
+        materialName: "Valencia Organic Orange Juice Concentrate 65° Brix",
+        materialCode: "RM-ORG-CONC",
+        category: "Raw Material",
+        type: "Raw Ingredient",
+        quantity: "3,800 kg (19 Aseptic Drums)",
+        supplier: "Citrus Valley Farms Co.",
+        supplierLot: "CVF-2026-VAL-104",
+        poNumber: "PO-2026-0881",
+        receivedDate: "2026-09-03 08:45 AM",
+        receivedLocation: "Dock 01 - Inbound Staging STG-01",
+        currentLocation: "Cold Storage Zone A - Rack R04-B2",
+        expiryDate: "2027-03-15",
+        qaStatus: "Approved / Released",
+        qaCert: "COA-9812-PASS",
+        tempLog: "3.4°C (Target: 2.0°C - 4.0°C • Compliant)",
+        integrityScore: "100%",
+        barcode: "8902810044025",
+        productionOrders: ["PO-OR-8821", "PO-OR-8824"],
+        batches: [
+            {
+                batchId: "BAT-2026-0885",
+                product: "Sparkling Organic Orange Soda 330ml Can",
+                sku: "SKU-CAN-330ML-ORG",
+                line: "High-Speed Packaging Line 1 (Rotary 580 BPM)",
+                date: "2026-09-03 10:15 AM",
+                quantityProduced: "36,000 Cans (1,500 Cases)",
+                status: "Completed & Released",
+                ccpStatus: "CCP-1 Pasteurized (72.4°C / 16s) • CCP-2 Metal Checked (Pass)",
+                finishedLot: "LOT-FG-2026-0885",
+                pallets: [
+                    { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
+                    { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
+                ]
+            }
+        ],
+        recallImpact: {
+            affectedBatches: 1,
+            finishedCases: 1500,
+            palletsCount: 20,
+            customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Distribution"],
+            quarantineStatus: "Cleared • Low Risk"
+        }
+    },
+    "LOT-PKG-CAN-9140": {
+        lotNumber: "LOT-PKG-CAN-9140",
+        materialName: "330ml Sleek Aluminum Cans w/ Matte Varnish (BPA-NI)",
+        materialCode: "PKG-CAN-330",
+        category: "Packaging",
+        type: "Direct Food Contact Packaging",
+        quantity: "120,000 units (12 Pallets)",
+        supplier: "Ball Metal Beverage Packaging",
+        supplierLot: "BLL-SLK330-8910",
+        poNumber: "PO-2026-0902",
+        receivedDate: "2026-09-03 10:30 AM",
+        receivedLocation: "Dock 03 - Dry Goods Staging STG-03",
+        currentLocation: "Packaging High-Bay 3 - Racks P01-P06",
+        expiryDate: "2028-09-03",
+        qaStatus: "Approved / Released",
+        qaCert: "COA-BLL-901-PASS",
+        tempLog: "Ambient Dry (21°C • RH 44%)",
+        integrityScore: "100%",
+        barcode: "8902810091404",
+        productionOrders: ["PO-OR-8821"],
+        batches: [
+            {
+                batchId: "BAT-2026-0885",
+                product: "Sparkling Organic Orange Soda 330ml Can",
+                sku: "SKU-CAN-330ML-ORG",
+                line: "High-Speed Packaging Line 1",
+                date: "2026-09-03 10:15 AM",
+                quantityProduced: "36,000 Cans Ingested",
+                status: "Completed & Released",
+                ccpStatus: "Pre-Rinse Verified • Can Flange Vision Checked (Zero Defect)",
+                finishedLot: "LOT-FG-2026-0885",
+                pallets: [
+                    { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" }
+                ]
+            }
+        ],
+        recallImpact: {
+            affectedBatches: 1,
+            finishedCases: 1500,
+            palletsCount: 20,
+            customersExposed: ["Whole Foods Market DC 04"],
+            quarantineStatus: "Cleared • Zero Leakage"
+        }
+    },
+    "LOT-FG-2026-0885": {
+        lotNumber: "LOT-FG-2026-0885",
+        materialName: "Sparkling Yuzu & Orange Soda 330ml Can (Finished Good)",
+        materialCode: "SKU-CAN-330ML-ORG",
+        category: "Finished Goods",
+        type: "Commercial Finished Product",
+        quantity: "36,000 Cans (1,500 Cases • 20 Pallets)",
+        supplier: "Internal Plant 2 - High-Speed Line 1",
+        supplierLot: "BAT-2026-0885",
+        poNumber: "PROD-WO-2026-441",
+        receivedDate: "2026-09-03 11:30 AM",
+        receivedLocation: "Packaging Discharge Conveyor 01",
+        currentLocation: "Finished Goods High-Bay FG-44",
+        expiryDate: "2027-09-03",
+        qaStatus: "Approved / Released",
+        qaCert: "QA-REL-2026-0885-SIGNED",
+        tempLog: "Ambient Controlled Warehouse (18.5°C)",
+        integrityScore: "100%",
+        barcode: "8902810033019",
+        productionOrders: ["PO-OR-8821"],
+        batches: [
+            {
+                batchId: "BAT-2026-0885",
+                product: "Sparkling Yuzu & Orange Soda 330ml Can",
+                sku: "SKU-CAN-330ML-ORG",
+                line: "High-Speed Packaging Line 1",
+                date: "2026-09-03 10:15 AM",
+                quantityProduced: "1,500 Cases",
+                status: "Released to Shipping",
+                ccpStatus: "FDA 21 CFR Sign-Off by Dr. Maya Lin (QA Lead)",
+                finishedLot: "LOT-FG-2026-0885",
+                pallets: [
+                    { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
+                    { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
+                ]
+            }
+        ],
+        recallImpact: {
+            affectedBatches: 1,
+            finishedCases: 1500,
+            palletsCount: 20,
+            customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Distribution"],
+            quarantineStatus: "Approved for Commerce"
+        }
+    }
+};
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 let rawMaterialsStore = [
     {
         id: "RM-LOT-001",
@@ -809,20 +926,38 @@ let palletsContainersStore = [
 class WarehouseService {
     async listLots(tenantId, plantId) {
         try {
-            const results = await database_js_1.db.query.inventoryLots.findMany({
-                where: (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId),
-                with: {
-                    sku: true,
-                },
-                orderBy: [(0, drizzle_orm_1.desc)(warehouse_js_1.inventoryLots.createdAt)],
-            });
+            const condition = (0, tenantContext_js_1.isValidUuid)(tenantId)
+                ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.isNull)(warehouse_js_1.inventoryLots.tenantId))
+                : undefined;
+            let results = condition
+                ? await database_js_1.db.query.inventoryLots.findMany({
+                    where: condition,
+                    with: {
+                        sku: true,
+                    },
+                    orderBy: [(0, drizzle_orm_1.desc)(warehouse_js_1.inventoryLots.createdAt)],
+                })
+                : await database_js_1.db.query.inventoryLots.findMany({
+                    with: {
+                        sku: true,
+                    },
+                    orderBy: [(0, drizzle_orm_1.desc)(warehouse_js_1.inventoryLots.createdAt)],
+                });
+            if (!results || results.length === 0) {
+                results = await database_js_1.db.query.inventoryLots.findMany({
+                    with: {
+                        sku: true,
+                    },
+                    orderBy: [(0, drizzle_orm_1.desc)(warehouse_js_1.inventoryLots.createdAt)],
+                });
+            }
             if (results && results.length > 0)
                 return results;
-            return await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId));
+            return await database_js_1.db.select().from(warehouse_js_1.inventoryLots);
         }
         catch (err) {
             console.warn("listLots query fallback:", err);
-            return await database_js_1.db.select().from(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId));
+            return await database_js_1.db.select().from(warehouse_js_1.inventoryLots);
         }
     }
     async listTransactions(tenantId, plantId) {
@@ -848,12 +983,38 @@ class WarehouseService {
         }
     }
     async createLot(tenantId, plantId, input) {
+        let effectiveSkuId = input.skuId;
+        try {
+            if (!(0, tenantContext_js_1.isValidUuid)(effectiveSkuId)) {
+                const [foundSku] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId)).limit(1);
+                if (foundSku)
+                    effectiveSkuId = foundSku.id;
+                else {
+                    const [anySku] = await database_js_1.db.select().from(masterData_js_1.skus).limit(1);
+                    if (anySku)
+                        effectiveSkuId = anySku.id;
+                }
+            }
+            else {
+                const [found] = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.id, effectiveSkuId)).limit(1);
+                if (!found) {
+                    const [anySku] = await database_js_1.db.select().from(masterData_js_1.skus).limit(1);
+                    if (anySku)
+                        effectiveSkuId = anySku.id;
+                }
+            }
+        }
+        catch {
+            // Fallback
+        }
+        const effectivePlantId = (0, tenantContext_js_1.isValidUuid)(plantId) ? plantId : ((0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "bead41e2-b735-41b8-bd00-bdba1682fb6a");
+        const effectiveTenantId = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
         const [lot] = await database_js_1.db
             .insert(warehouse_js_1.inventoryLots)
             .values({
-            tenantId,
-            plantId,
-            skuId: input.skuId,
+            tenantId: effectiveTenantId,
+            plantId: effectivePlantId,
+            skuId: effectiveSkuId,
             lotNumber: input.lotNumber,
             lotType: input.lotType,
             supplierName: input.supplierName,
@@ -861,24 +1022,39 @@ class WarehouseService {
             initialQuantity: input.initialQuantity.toString(),
             currentQuantity: input.initialQuantity.toString(),
             uom: input.uom,
-            locationBinId: input.locationBinId,
+            locationBinId: (0, tenantContext_js_1.isValidUuid)(input.locationBinId) ? input.locationBinId : null,
             expiryDate: input.expiryDate ? new Date(input.expiryDate) : null,
         })
             .returning();
         // Auto-create initial receipt transaction
-        await database_js_1.db.insert(warehouse_js_1.inventoryTransactions).values({
-            tenantId,
-            plantId: lot.plantId,
-            lotId: lot.id,
-            type: "RECEIPT",
-            quantity: input.initialQuantity.toString(),
-            uom: input.uom,
-            toBinId: input.locationBinId,
-            referenceType: "INITIAL_INBOUND_RECEIPT",
-            referenceId: lot.lotNumber,
-            notes: "Initial receipt into warehouse inventory",
-        });
+        try {
+            await database_js_1.db.insert(warehouse_js_1.inventoryTransactions).values({
+                tenantId: effectiveTenantId,
+                plantId: lot.plantId,
+                lotId: lot.id,
+                type: "RECEIPT",
+                quantity: input.initialQuantity.toString(),
+                uom: input.uom,
+                toBinId: (0, tenantContext_js_1.isValidUuid)(input.locationBinId) ? input.locationBinId : null,
+                referenceType: "INITIAL_INBOUND_RECEIPT",
+                referenceId: lot.lotNumber,
+                notes: "Initial receipt into warehouse inventory",
+            });
+        }
+        catch { }
         return lot;
+    }
+    async deleteLot(tenantId, idOrLotNumber) {
+        const [lot] = await database_js_1.db
+            .select()
+            .from(warehouse_js_1.inventoryLots)
+            .where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.id, idOrLotNumber), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.lotNumber, idOrLotNumber)))
+            .limit(1);
+        if (!lot) {
+            throw new AppError_js_1.NotFoundError(`Inventory Lot ${idOrLotNumber}`);
+        }
+        await database_js_1.db.delete(warehouse_js_1.inventoryLots).where((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.id, lot.id));
+        return { success: true, message: `Inventory Lot ${lot.lotNumber} deleted successfully` };
     }
     async recordTransaction(tenantId, plantId, input, userId) {
         const txType = input.type || input.transactionType || "RECEIPT";
@@ -1217,11 +1393,34 @@ class WarehouseService {
         return { success: true, id, bufferStatus: "OK", message: "Buffer replenished" };
     }
     async getDispatchSummary(tenantId) {
+        let rows = [];
+        try {
+            rows = await database_js_1.db
+                .select()
+                .from(warehouse_js_1.shipmentOrders)
+                .where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "Staged"), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "Scheduled"), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "Loading Complete")))
+                .orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.shipmentOrders.createdAt));
+        }
+        catch (e) {
+            console.warn("Could not query shipment orders for dispatch:", e);
+        }
+        const dispatches = rows.map(r => ({
+            id: r.shipmentNumber || r.id,
+            realId: r.id,
+            dest: r.destination || "Target regional hub",
+            cargo: r.quantity || "12 Pallets",
+            status: r.status || "Staged",
+            carrier: r.carrier || "DHL Supply Chain",
+            trailerNo: r.trailerNo || "TR-5510",
+            bolNumber: r.bolNumber || `BOL-${r.shipmentNumber || r.id}`
+        }));
         return {
-            shipmentOrdersCount: 2,
-            freightStatus: "Carrier allocated",
-            carrier: "DHL Supply Chain",
-            scheduledDeparture: "14:00 Today"
+            dispatches,
+            count: dispatches.length,
+            shipmentOrdersCount: dispatches.length,
+            freightStatus: dispatches.length > 0 ? "Carrier allocated" : "No freight pending dispatch",
+            carrier: dispatches[0]?.carrier || "DHL Supply Chain",
+            scheduledDeparture: dispatches.length > 0 ? "14:00 Today" : "None"
         };
     }
     // ==========================================
@@ -1243,7 +1442,12 @@ class WarehouseService {
     }
     async createPurchaseOrder(tenantId, input) {
         const poNumber = input.poNumber || `PO-SUP-2026-${Math.floor(600 + Math.random() * 400)}`;
-        const matchedSup = suppliersStore.find((s) => s.name === input.supplierName);
+        let matchedSup = null;
+        try {
+            const sups = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.name, input.supplierName || "")).limit(1);
+            matchedSup = sups[0];
+        }
+        catch { }
         const newPO = {
             poNumber,
             supplierName: input.supplierName || "Citrus Valley Farms Co.",
@@ -1319,12 +1523,26 @@ class WarehouseService {
     // SUPPLIERS & VENDOR SLA SCORECARDS
     // ==========================================
     async listSuppliers(tenantId) {
-        const activeVendors = suppliersStore.filter(s => s.status === "Active").length;
-        const meanOtif = (suppliersStore.reduce((sum, s) => sum + (s.otifScore || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
-        const avgLead = (suppliersStore.reduce((sum, s) => sum + (s.avgLeadTimeDays || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
-        const meanQuality = (suppliersStore.reduce((sum, s) => sum + (s.qualityAcceptanceRate || 0), 0) / (suppliersStore.length || 1)).toFixed(1);
+        let dbSuppliers = [];
+        try {
+            const condition = (0, tenantContext_js_1.isValidUuid)(tenantId)
+                ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.tenantId, tenantId), (0, drizzle_orm_1.isNull)(warehouse_js_1.suppliers.tenantId))
+                : undefined;
+            dbSuppliers = condition
+                ? await database_js_1.db.select().from(warehouse_js_1.suppliers).where(condition).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.suppliers.createdAt))
+                : await database_js_1.db.select().from(warehouse_js_1.suppliers).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.suppliers.createdAt));
+        }
+        catch (e) {
+            console.warn("Could not query suppliers table, falling back to empty:", e);
+            dbSuppliers = [];
+        }
+        const activeVendors = dbSuppliers.filter(s => s.status === "Active").length;
+        const count = dbSuppliers.length;
+        const meanOtif = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.otifScore) || 0), 0) / count).toFixed(1) : "0.0";
+        const avgLead = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.avgLeadTimeDays) || 0), 0) / count).toFixed(1) : "0.0";
+        const meanQuality = count > 0 ? (dbSuppliers.reduce((sum, s) => sum + (parseFloat(s.qualityAcceptanceRate) || 0), 0) / count).toFixed(1) : "0.0";
         return {
-            suppliers: suppliersStore,
+            suppliers: dbSuppliers,
             metrics: {
                 activeVendors,
                 meanOtif: `${meanOtif}%`,
@@ -1334,66 +1552,106 @@ class WarehouseService {
         };
     }
     async createSupplier(tenantId, input) {
+        const supId = input.id || `SUP-${Math.floor(100 + Math.random() * 900)}`;
         const supCode = input.supplierCode || `VND-${(input.name || "SUP").substring(0, 3).toUpperCase()}-${Math.floor(10 + Math.random() * 90)}`;
-        const newSupplier = {
-            id: `SUP-${Math.floor(100 + Math.random() * 900)}`,
+        const newRecord = {
+            id: supId,
+            tenantId: (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null,
             supplierCode: supCode,
             name: input.name,
             category: input.category || "Raw Material Concentrate",
             materialsSupplied: input.materialsSupplied || "Packaging & Ingredients",
-            status: "Active",
-            otifScore: 98.0,
-            qualityAcceptanceRate: 99.5,
-            avgLeadTimeDays: parseFloat(input.avgLeadTimeDays) || 4.0,
+            status: input.status || "Active",
+            otifScore: input.otifScore ? String(input.otifScore) : "98.00",
+            qualityAcceptanceRate: input.qualityAcceptanceRate ? String(input.qualityAcceptanceRate) : "99.50",
+            avgLeadTimeDays: input.avgLeadTimeDays ? String(input.avgLeadTimeDays) : "4.00",
             riskRating: input.riskRating || "Low Risk",
             contactEmail: input.contactEmail || "procurement@vendor.com",
             contactPhone: input.contactPhone || "+1 (555) 000-0000",
-            lastOrder: "Pending Initial PO",
-            openOrdersCount: 0,
-            activeContractsCount: 1
+            lastOrder: input.lastOrder || "Pending Initial PO",
+            openOrdersCount: input.openOrdersCount || 0,
+            activeContractsCount: input.activeContractsCount || 1,
         };
-        suppliersStore = [newSupplier, ...suppliersStore];
-        return newSupplier;
+        await database_js_1.db.insert(warehouse_js_1.suppliers).values(newRecord);
+        return newRecord;
     }
     async updateSupplier(tenantId, id, input) {
-        const index = suppliersStore.findIndex(s => s.id === id);
-        if (index === -1)
+        const [existing] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        if (!existing)
             throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
-        suppliersStore[index] = {
-            ...suppliersStore[index],
-            ...input,
-            avgLeadTimeDays: input.avgLeadTimeDays !== undefined ? parseFloat(input.avgLeadTimeDays) : suppliersStore[index].avgLeadTimeDays
-        };
-        return suppliersStore[index];
+        const updates = { updatedAt: new Date() };
+        if (input.name !== undefined)
+            updates.name = input.name;
+        if (input.supplierCode !== undefined)
+            updates.supplierCode = input.supplierCode;
+        if (input.category !== undefined)
+            updates.category = input.category;
+        if (input.materialsSupplied !== undefined)
+            updates.materialsSupplied = input.materialsSupplied;
+        if (input.status !== undefined)
+            updates.status = input.status;
+        if (input.riskRating !== undefined)
+            updates.riskRating = input.riskRating;
+        if (input.contactEmail !== undefined)
+            updates.contactEmail = input.contactEmail;
+        if (input.contactPhone !== undefined)
+            updates.contactPhone = input.contactPhone;
+        if (input.avgLeadTimeDays !== undefined)
+            updates.avgLeadTimeDays = String(input.avgLeadTimeDays);
+        if (input.otifScore !== undefined)
+            updates.otifScore = String(input.otifScore);
+        if (input.qualityAcceptanceRate !== undefined)
+            updates.qualityAcceptanceRate = String(input.qualityAcceptanceRate);
+        await database_js_1.db.update(warehouse_js_1.suppliers).set(updates).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        const [updated] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return updated || { id, ...input };
     }
     async toggleSupplierStatus(tenantId, id) {
-        const sup = suppliersStore.find(s => s.id === id);
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
         if (!sup)
             throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
-        sup.status = sup.status === "Active" ? "Inactive" : "Active";
-        return sup;
+        const nextStatus = sup.status === "Active" ? "Inactive" : "Active";
+        await database_js_1.db.update(warehouse_js_1.suppliers).set({ status: nextStatus, updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return { ...sup, status: nextStatus };
+    }
+    async deleteSupplier(tenantId, id) {
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        if (!sup)
+            throw new AppError_js_1.NotFoundError(`Supplier ${id}`);
+        await database_js_1.db.delete(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        return { success: true, message: `Supplier ${id} deleted successfully` };
     }
     async getSupplierScorecard(tenantId, id) {
-        const sup = suppliersStore.find(s => s.id === id || s.supplierCode === id || s.name === id) || {
-            id,
-            name: id || "Supplier Partner",
-            supplierCode: "VND-GEN"
-        };
+        const [sup] = await database_js_1.db.select().from(warehouse_js_1.suppliers).where((0, drizzle_orm_1.eq)(warehouse_js_1.suppliers.id, id));
+        const finalSup = sup || { id, name: id || "Supplier Partner", supplierCode: "VND-GEN" };
         return {
             success: true,
-            supplierId: sup.id || id,
-            supplierName: sup.name,
-            scorecardUrl: `/api/v1/warehouse/suppliers/${sup.id || id}/scorecard.pdf`,
+            supplierId: finalSup.id,
+            supplierName: finalSup.name,
+            scorecardUrl: `/api/v1/warehouse/suppliers/${finalSup.id}/scorecard.pdf`,
             downloadedAt: new Date().toISOString(),
-            message: `Vendor SLA scorecard exported for ${sup.name}`
+            message: `Vendor SLA scorecard exported for ${finalSup.name}`
         };
     }
     // ==========================================
     // WMS OPERATIONS (RECEIVING, PUTAWAY, MOVEMENTS, TRANSFERS, PICKING, STAGING, DISPATCH)
     // ==========================================
     async getWmsOperations(tenantId) {
+        let receivingTasks = [];
+        try {
+            const condition = (0, tenantContext_js_1.isValidUuid)(tenantId)
+                ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.wmsReceiving.tenantId, tenantId), (0, drizzle_orm_1.isNull)(warehouse_js_1.wmsReceiving.tenantId))
+                : undefined;
+            receivingTasks = condition
+                ? await database_js_1.db.select().from(warehouse_js_1.wmsReceiving).where(condition).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.wmsReceiving.createdAt))
+                : await database_js_1.db.select().from(warehouse_js_1.wmsReceiving).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.wmsReceiving.createdAt));
+        }
+        catch (e) {
+            console.warn("Could not query wmsReceiving table:", e);
+            receivingTasks = [];
+        }
         return {
-            receivingTasks: wmsReceivingStore,
+            receivingTasks,
             putAwayTasks: wmsPutAwayStore,
             movementLogs: wmsMovementStore,
             transfers: wmsTransfersStore,
@@ -1401,7 +1659,7 @@ class WarehouseService {
             stagingBays: wmsStagingStore,
             dispatchOrders: wmsDispatchStore,
             metrics: {
-                inboundDocks: wmsReceivingStore.length,
+                inboundDocks: receivingTasks.length,
                 putAwayBacklog: wmsPutAwayStore.length,
                 activePickingWaves: wmsPickOrdersStore.filter(p => p.status.includes("Pick")).length,
                 readyForDispatch: wmsDispatchStore.filter(d => d.status.includes("Loading") || d.status.includes("Complete")).length
@@ -1409,9 +1667,10 @@ class WarehouseService {
         };
     }
     async dockCheckIn(tenantId, input) {
-        const newId = input.id || `RCV-2026-${Math.floor(904 + wmsReceivingStore.length)}`;
+        const newId = input.id || `RCV-2026-${Math.floor(904 + Math.random() * 900)}`;
         const newTask = {
             id: newId,
+            tenantId: (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null,
             poNumber: input.poNumber || `PO-SUP-2026-${Math.floor(400 + Math.random() * 100)}`,
             supplier: input.supplier || "Citrus Valley Farms Co.",
             item: input.item || "Valencia Orange Concentrate",
@@ -1423,11 +1682,62 @@ class WarehouseService {
             bolNumber: input.bolNumber || `BOL-${Math.floor(10000 + Math.random() * 90000)}`,
             status: input.status || "Dock Arrived"
         };
+        try {
+            await database_js_1.db.insert(warehouse_js_1.wmsReceiving).values(newTask);
+        }
+        catch (dbErr) {
+            console.warn("Could not insert into wmsReceiving table:", dbErr);
+        }
         wmsReceivingStore = [newTask, ...wmsReceivingStore];
         return newTask;
     }
+    async updateWmsReceiving(tenantId, id, input) {
+        const updates = { updatedAt: new Date() };
+        if (input.poNumber !== undefined)
+            updates.poNumber = input.poNumber;
+        if (input.supplier !== undefined)
+            updates.supplier = input.supplier;
+        if (input.item !== undefined)
+            updates.item = input.item;
+        if (input.qty !== undefined)
+            updates.qty = input.qty;
+        if (input.dock !== undefined)
+            updates.dock = input.dock;
+        if (input.carrier !== undefined)
+            updates.carrier = input.carrier;
+        if (input.trailerNo !== undefined)
+            updates.trailerNo = input.trailerNo;
+        if (input.tempCheck !== undefined)
+            updates.tempCheck = input.tempCheck;
+        if (input.status !== undefined)
+            updates.status = input.status;
+        try {
+            await database_js_1.db.update(warehouse_js_1.wmsReceiving).set(updates).where((0, drizzle_orm_1.eq)(warehouse_js_1.wmsReceiving.id, id));
+        }
+        catch (dbErr) {
+            console.warn("Could not update wmsReceiving table:", dbErr);
+        }
+        wmsReceivingStore = wmsReceivingStore.map(t => t.id === id ? { ...t, ...updates } : t);
+        return { id, ...input };
+    }
+    async deleteWmsReceiving(tenantId, id) {
+        try {
+            await database_js_1.db.delete(warehouse_js_1.wmsReceiving).where((0, drizzle_orm_1.eq)(warehouse_js_1.wmsReceiving.id, id));
+        }
+        catch (dbErr) {
+            console.warn("Could not delete from wmsReceiving table:", dbErr);
+        }
+        wmsReceivingStore = wmsReceivingStore.filter(t => t.id !== id);
+        return { success: true, message: `Receiving record ${id} deleted successfully` };
+    }
     async inspectAndAccept(tenantId, input) {
         const taskId = input.taskId || input.id;
+        try {
+            await database_js_1.db.update(warehouse_js_1.wmsReceiving).set({ status: "Inspected", updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(warehouse_js_1.wmsReceiving.id, taskId));
+        }
+        catch (dbErr) {
+            console.warn("Could not update wmsReceiving inspect status:", dbErr);
+        }
         const task = wmsReceivingStore.find(t => t.id === taskId);
         if (task) {
             task.status = "Inspected";
@@ -1513,18 +1823,150 @@ class WarehouseService {
     // WAREHOUSE PHYSICAL HIERARCHY & LOCATIONS
     // ==========================================
     async listLocationsHierarchy(tenantId) {
+        let locs = [];
+        try {
+            const condition = (0, tenantContext_js_1.isValidUuid)(tenantId)
+                ? (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.tenantId, tenantId), (0, drizzle_orm_1.isNull)(warehouse_js_1.warehouseLocations.tenantId))
+                : undefined;
+            locs = condition
+                ? await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where(condition).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.warehouseLocations.createdAt))
+                : await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.warehouseLocations.createdAt));
+        }
+        catch (e) {
+            console.warn("Could not query warehouseLocations table:", e);
+            locs = [];
+        }
+        const uniqueWarehouses = new Set(locs.map(l => l.warehouse)).size;
+        const totalCap = locs.reduce((sum, l) => sum + (Number(l.capacityPallets) || 0), 0);
+        const totalOcc = locs.reduce((sum, l) => sum + (Number(l.occupiedPallets) || 0), 0);
+        const globalOccupancy = totalCap > 0 ? `${((totalOcc / totalCap) * 100).toFixed(1)}%` : "0.0%";
+        const availableBins = locs.filter(l => (Number(l.occupiedPallets) || 0) === 0).length;
         return {
-            locations: locationsHierarchyStore,
+            locations: locs,
             metrics: {
-                activeWarehouses: "2 Facilities (WH-01 & WH-02)",
-                globalRackOccupancy: "76.4%",
-                coldZoneTempSla: "3.6°C Stable",
-                availableEmptyBins: locationsHierarchyStore.filter(l => l.occupiedPallets === 0).length
+                activeWarehouses: `${uniqueWarehouses} Facilities`,
+                globalRackOccupancy: globalOccupancy,
+                coldZoneTempSla: locs.length > 0 ? "3.6°C Stable" : "N/A",
+                availableEmptyBins: availableBins
             }
         };
     }
     async listLocations(tenantId) {
         return this.listLocationsHierarchy(tenantId);
+    }
+    async createLocation(tenantId, input) {
+        const locId = input.id || `LOC-WH-${Math.floor(100 + Math.random() * 900)}`;
+        const wh = input.warehouse || "Main Plant WH-01";
+        const zone = input.zone || "Zone A (Cold Storage +4°C)";
+        const rack = input.rack || "Rack R01";
+        const binName = input.location || `Bin ${Math.floor(10 + Math.random() * 90)}`;
+        const fullHierarchy = input.fullHierarchy || `${wh} > ${zone} > ${rack} > ${binName}`;
+        const cap = Number(input.capacityPallets) || 40;
+        const occ = Number(input.occupiedPallets) || 0;
+        const isEmp = occ === 0;
+        const record = {
+            id: locId,
+            tenantId: (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null,
+            warehouse: wh,
+            zone: zone,
+            rack: rack,
+            location: binName,
+            fullHierarchy: fullHierarchy,
+            capacityPallets: cap,
+            occupiedPallets: occ,
+            material: input.material || (isEmp ? "Unoccupied Available Staging Bay" : "General Raw Material"),
+            materialCode: input.materialCode || (isEmp ? "BIN-EMPTY" : "RM-MAT"),
+            batchLot: input.batchLot || (isEmp ? "N/A" : `LOT-RM-${Math.floor(1000 + Math.random() * 9000)}`),
+            quantity: input.quantity || (isEmp ? "0 units" : `${occ * 100} kg`),
+            status: input.status || (isEmp ? "Available" : (occ / cap > 0.85 ? "Near Capacity" : "Optimal")),
+            temp: input.temp || "20.0°C"
+        };
+        await database_js_1.db.insert(warehouse_js_1.warehouseLocations).values(record);
+        try {
+            const defaultTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : 'aa3183d2-709b-42a8-add1-b2e4b2d873b0';
+            const defaultPlant = 'bead41e2-b735-41b8-bd00-bdba1682fb6a';
+            await database_js_1.db.insert(warehouse_js_1.warehouses).values({
+                tenantId: defaultTenant,
+                plantId: defaultPlant,
+                code: binName.substring(0, 50),
+                name: `${wh} - ${rack} (${input.material || 'General Staging'})`.substring(0, 255),
+                type: zone.substring(0, 100),
+                isActive: true
+            });
+        }
+        catch (whErr) {
+            console.warn("Could not sync to warehouses table:", whErr);
+        }
+        return record;
+    }
+    async updateLocation(tenantId, id, input) {
+        const [existing] = await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, id));
+        if (!existing)
+            throw new AppError_js_1.NotFoundError(`Location bin ${id}`);
+        const updates = { updatedAt: new Date() };
+        if (input.warehouse !== undefined)
+            updates.warehouse = input.warehouse;
+        if (input.zone !== undefined)
+            updates.zone = input.zone;
+        if (input.rack !== undefined)
+            updates.rack = input.rack;
+        if (input.location !== undefined)
+            updates.location = input.location;
+        if (input.fullHierarchy !== undefined)
+            updates.fullHierarchy = input.fullHierarchy;
+        if (input.capacityPallets !== undefined)
+            updates.capacityPallets = Number(input.capacityPallets);
+        if (input.occupiedPallets !== undefined)
+            updates.occupiedPallets = Number(input.occupiedPallets);
+        if (input.material !== undefined)
+            updates.material = input.material;
+        if (input.materialCode !== undefined)
+            updates.materialCode = input.materialCode;
+        if (input.batchLot !== undefined)
+            updates.batchLot = input.batchLot;
+        if (input.quantity !== undefined)
+            updates.quantity = input.quantity;
+        if (input.status !== undefined)
+            updates.status = input.status;
+        if (input.temp !== undefined)
+            updates.temp = input.temp;
+        if (updates.warehouse || updates.zone || updates.rack || updates.location) {
+            const w = updates.warehouse || existing.warehouse;
+            const z = updates.zone || existing.zone;
+            const r = updates.rack || existing.rack;
+            const l = updates.location || existing.location;
+            updates.fullHierarchy = `${w} > ${z} > ${r} > ${l}`;
+        }
+        await database_js_1.db.update(warehouse_js_1.warehouseLocations).set(updates).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, id));
+        try {
+            if (existing?.location) {
+                await database_js_1.db.update(warehouse_js_1.warehouses).set({
+                    code: (updates.location || existing.location).substring(0, 50),
+                    name: `${updates.warehouse || existing.warehouse} - ${updates.rack || existing.rack} (${updates.material || existing.material || 'General'})`.substring(0, 255),
+                    type: (updates.zone || existing.zone).substring(0, 100)
+                }).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouses.code, existing.location));
+            }
+        }
+        catch (whErr) {
+            console.warn("Could not sync update to warehouses table:", whErr);
+        }
+        const [updated] = await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, id));
+        return updated || { id, ...input };
+    }
+    async deleteLocation(tenantId, id) {
+        const [existing] = await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, id));
+        if (!existing)
+            throw new AppError_js_1.NotFoundError(`Location bin ${id}`);
+        await database_js_1.db.delete(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, id));
+        try {
+            if (existing?.location) {
+                await database_js_1.db.delete(warehouse_js_1.warehouses).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouses.code, existing.location));
+            }
+        }
+        catch (whErr) {
+            console.warn("Could not sync delete to warehouses table:", whErr);
+        }
+        return { success: true, message: `Location bin ${id} deleted successfully` };
     }
     async getBinsLocations(tenantId) {
         return {
@@ -1634,6 +2076,33 @@ class WarehouseService {
             source.quantity = "0 units";
             source.status = "Available";
         }
+        try {
+            const [dbSrc] = await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, sourceLocationId), (0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.location, sourceLocationId)));
+            const [dbTgt] = await database_js_1.db.select().from(warehouse_js_1.warehouseLocations).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, targetLocationId), (0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.location, targetLocationId)));
+            if (dbSrc && dbTgt) {
+                await database_js_1.db.update(warehouse_js_1.warehouseLocations).set({
+                    occupiedPallets: dbSrc.occupiedPallets,
+                    material: dbSrc.material,
+                    materialCode: dbSrc.materialCode,
+                    batchLot: dbSrc.batchLot,
+                    quantity: dbSrc.quantity,
+                    status: "Optimal",
+                    updatedAt: new Date()
+                }).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, dbTgt.id));
+                await database_js_1.db.update(warehouse_js_1.warehouseLocations).set({
+                    occupiedPallets: 0,
+                    material: "Unoccupied Available Staging Bay",
+                    materialCode: "BIN-EMPTY",
+                    batchLot: "N/A",
+                    quantity: "0 units",
+                    status: "Available",
+                    updatedAt: new Date()
+                }).where((0, drizzle_orm_1.eq)(warehouse_js_1.warehouseLocations.id, dbSrc.id));
+            }
+        }
+        catch (dbErr) {
+            console.warn("Could not sync relocate to DB table:", dbErr);
+        }
         return {
             success: true,
             sourceLocationId,
@@ -1733,6 +2202,7 @@ class WarehouseService {
             message: `Inventory stock adjusted for SKU ${sku} by ${qtyChange} units.`
         };
     }
+<<<<<<< HEAD
     // 360° Supply Lot Traceability API — reads from real inventory_lots DB table
     async getTraceability(tenantId, lotNumber) {
         if (!lotNumber || !lotNumber.trim())
@@ -1788,6 +2258,48 @@ class WarehouseService {
                     if (skuLotRows && skuLotRows.length > 0) {
                         lot = skuLotRows[0];
                     }
+=======
+    // 360° Supply Lot Traceability API (Connected directly to PostgreSQL `batches` and `skus`)
+    async getTraceability(tenantId, lotNumber) {
+        let dbBatches = [];
+        try {
+            dbBatches = await database_js_1.db
+                .select({
+                id: production_js_1.batches.id,
+                batchNumber: production_js_1.batches.batchNumber,
+                targetVolume: production_js_1.batches.targetVolume,
+                actualVolume: production_js_1.batches.actualVolume,
+                uom: production_js_1.batches.uom,
+                tankNumber: production_js_1.batches.tankNumber,
+                recipeVersion: production_js_1.batches.recipeVersion,
+                currentStep: production_js_1.batches.currentStep,
+                progressPercent: production_js_1.batches.progressPercent,
+                status: production_js_1.batches.status,
+                createdAt: production_js_1.batches.createdAt,
+                updatedAt: production_js_1.batches.updatedAt,
+                skuId: production_js_1.batches.skuId,
+                skuCode: masterData_js_1.skus.skuCode,
+                skuName: masterData_js_1.skus.name
+            })
+                .from(production_js_1.batches)
+                .leftJoin(masterData_js_1.skus, (0, drizzle_orm_1.eq)(production_js_1.batches.skuId, masterData_js_1.skus.id))
+                .orderBy((0, drizzle_orm_1.desc)(production_js_1.batches.createdAt));
+        }
+        catch (err) {
+            console.warn("Could not query batches table:", err);
+            dbBatches = [];
+        }
+        // If tables are empty, return clean empty result with zero dummy data!
+        if (!dbBatches || dbBatches.length === 0) {
+            return {
+                batches: [],
+                activeLot: null,
+                metrics: {
+                    traceIntegrityScore: "0%",
+                    linkedBatches: 0,
+                    finishedGoodsOutput: "0 Cases",
+                    customerDispatchDestinations: 0
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                 }
             }
             if (!lot)
@@ -1969,10 +2481,138 @@ class WarehouseService {
                 allLots: [lot]
             };
         }
+<<<<<<< HEAD
         catch (err) {
             console.error('[getTraceability] DB error:', err?.message);
             return null;
         }
+=======
+        const searchKey = (lotNumber || "").trim().toUpperCase();
+        let selectedBatch = dbBatches[0];
+        if (searchKey) {
+            const matched = dbBatches.find(b => (b.batchNumber && b.batchNumber.toUpperCase().includes(searchKey)) ||
+                (b.skuCode && b.skuCode.toUpperCase().includes(searchKey)) ||
+                (b.skuName && b.skuName.toUpperCase().includes(searchKey)));
+            if (matched)
+                selectedBatch = matched;
+        }
+        const activeLot = {
+            lotNumber: selectedBatch.batchNumber,
+            materialName: selectedBatch.skuName || "Manufactured Product",
+            materialCode: selectedBatch.skuCode || "PROD-BATCH",
+            category: "Production Batch",
+            type: "Finished Product / Batch",
+            quantity: `${selectedBatch.targetVolume} ${selectedBatch.uom || "Liters"}`,
+            supplier: "Internal Manufacturing Line",
+            tankNumber: selectedBatch.tankNumber || "T-01",
+            currentLocation: selectedBatch.tankNumber ? `Tank / WorkCenter ${selectedBatch.tankNumber}` : "Packaging Station",
+            receivedDate: selectedBatch.createdAt ? new Date(selectedBatch.createdAt).toLocaleString() : new Date().toLocaleString(),
+            qaStatus: selectedBatch.status === "Released" ? "Approved / Released" : selectedBatch.status,
+            qaCert: "COA-VALIDATED",
+            tempLog: "Compliant & Verified",
+            integrityScore: "100%",
+            batches: [
+                {
+                    batchId: selectedBatch.batchNumber,
+                    product: selectedBatch.skuName || "Production Output",
+                    sku: selectedBatch.skuCode || "SKU-PROD",
+                    line: selectedBatch.tankNumber || "Line 1",
+                    date: selectedBatch.createdAt ? new Date(selectedBatch.createdAt).toLocaleString() : new Date().toLocaleString(),
+                    quantityProduced: `${selectedBatch.targetVolume} ${selectedBatch.uom || "Liters"}`,
+                    status: selectedBatch.status,
+                    ccpStatus: "CCP Validated (Pass)",
+                    pallets: [
+                        { palletId: `PLT-${String(selectedBatch.batchNumber).replace(/\D/g, '').slice(-4) || '01'}`, cases: 50, lpn: `LPN-${selectedBatch.batchNumber}`, dest: "Central Warehouse Hub" }
+                    ]
+                }
+            ],
+            recallImpact: {
+                affectedBatches: 1,
+                finishedCases: Math.floor(parseFloat(selectedBatch.targetVolume) || 100),
+                palletsCount: 1,
+                customersExposed: ["Central Warehouse Hub"],
+                quarantineStatus: selectedBatch.status === "Held" ? "Quarantined" : "Cleared • Low Risk"
+            }
+        };
+        return {
+            batches: dbBatches,
+            activeLot,
+            metrics: {
+                traceIntegrityScore: "100%",
+                linkedBatches: dbBatches.length,
+                finishedGoodsOutput: `${dbBatches.reduce((sum, b) => sum + (parseFloat(b.targetVolume) || 0), 0).toLocaleString()} ${dbBatches[0]?.uom || "Units"}`,
+                customerDispatchDestinations: dbBatches.length > 0 ? 1 : 0
+            }
+        };
+    }
+    async createTraceabilityBatch(tenantId, input) {
+        let resolvedTenantId = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null;
+        let resolvedPlantId = input.plantId;
+        let resolvedOrderId = input.productionOrderId;
+        let resolvedSkuId = input.skuId;
+        if (!resolvedTenantId || !resolvedPlantId || !resolvedOrderId || !resolvedSkuId) {
+            const firstPo = (await database_js_1.db.select().from(production_js_1.productionOrders).limit(1))[0];
+            if (firstPo) {
+                if (!resolvedTenantId)
+                    resolvedTenantId = firstPo.tenantId;
+                if (!resolvedPlantId)
+                    resolvedPlantId = firstPo.plantId;
+                if (!resolvedOrderId)
+                    resolvedOrderId = firstPo.id;
+            }
+            if (!resolvedSkuId) {
+                const firstSku = (await database_js_1.db.select().from(masterData_js_1.skus).limit(1))[0];
+                if (firstSku)
+                    resolvedSkuId = firstSku.id;
+            }
+        }
+        const newBatchNumber = input.batchNumber?.trim() || `BAT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+        const [created] = await database_js_1.db.insert(production_js_1.batches).values({
+            tenantId: resolvedTenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
+            plantId: resolvedPlantId || "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+            productionOrderId: resolvedOrderId || null,
+            skuId: resolvedSkuId || "aa3183d2-709b-42a8-add1-b2e4b2d873b1",
+            batchNumber: newBatchNumber,
+            targetVolume: String(input.targetVolume || input.quantity || 10000),
+            actualVolume: String(input.actualVolume || 0),
+            uom: input.uom || "Liters",
+            tankNumber: input.tankNumber || "T-01 (Blender)",
+            recipeVersion: input.recipeVersion || "v1.0",
+            status: input.status || "Released",
+            currentStep: 1,
+            progressPercent: 100
+        }).returning();
+        return created;
+    }
+    async updateTraceabilityBatch(tenantId, idOrBatch, input) {
+        const updateData = { updatedAt: new Date() };
+        if (input.batchNumber)
+            updateData.batchNumber = input.batchNumber;
+        if (input.targetVolume)
+            updateData.targetVolume = String(input.targetVolume);
+        if (input.actualVolume)
+            updateData.actualVolume = String(input.actualVolume);
+        if (input.uom)
+            updateData.uom = input.uom;
+        if (input.tankNumber)
+            updateData.tankNumber = input.tankNumber;
+        if (input.recipeVersion)
+            updateData.recipeVersion = input.recipeVersion;
+        if (input.status)
+            updateData.status = input.status;
+        if (input.notes !== undefined)
+            updateData.notes = input.notes;
+        const res = await database_js_1.db.update(production_js_1.batches).set(updateData).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.sql) `id::text = ${idOrBatch}`, (0, drizzle_orm_1.eq)(production_js_1.batches.batchNumber, idOrBatch))).returning();
+        return res[0];
+    }
+    async deleteTraceabilityBatch(tenantId, idOrBatch) {
+        await database_js_1.db.delete(production_js_1.batchSteps).where((0, drizzle_orm_1.sql) `batch_id IN (SELECT id FROM batches WHERE id::text = ${idOrBatch} OR batch_number = ${idOrBatch})`).catch(() => null);
+        await database_js_1.db.delete(quality_js_1.ccpChecks).where((0, drizzle_orm_1.sql) `batch_id IN (SELECT id FROM batches WHERE id::text = ${idOrBatch} OR batch_number = ${idOrBatch})`).catch(() => null);
+        await database_js_1.db.delete(quality_js_1.qaReleases).where((0, drizzle_orm_1.sql) `batch_id IN (SELECT id FROM batches WHERE id::text = ${idOrBatch} OR batch_number = ${idOrBatch})`).catch(() => null);
+        await database_js_1.db.delete(quality_js_1.qualityHolds).where((0, drizzle_orm_1.sql) `batch_id IN (SELECT id FROM batches WHERE id::text = ${idOrBatch} OR batch_number = ${idOrBatch})`).catch(() => null);
+        const res = await database_js_1.db.delete(production_js_1.batches).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.sql) `id::text = ${idOrBatch}`, (0, drizzle_orm_1.eq)(production_js_1.batches.batchNumber, idOrBatch))).returning();
+        return { success: true, deleted: res };
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     async simulateRecall(tenantId, input, userId) {
         const lotNumber = input.lotNumber || 'LOT-RM-ORG-4402';
@@ -2011,107 +2651,323 @@ class WarehouseService {
             message: `CRITICAL HOLD: Automated WMS Lock placed on Lot ${lotNumber}. Reason: ${reason}`
         };
     }
-    // Finished Goods Inventory API
+    // Finished Goods Inventory API (Connected directly to PostgreSQL `finished_goods` table)
     async getFinishedGoods(tenantId, query) {
+        let rows = [];
         try {
-            if ((0, tenantContext_js_1.isValidUuid)(tenantId)) {
-                const dbLots = await database_js_1.db.query.inventoryLots.findMany({
-                    where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.lotType, "FINISHED_GOOD")),
-                    with: { sku: true },
-                    orderBy: [(0, drizzle_orm_1.desc)(warehouse_js_1.inventoryLots.createdAt)]
-                }).catch(() => []);
-                if (dbLots && dbLots.length > 0) {
-                    // Merge with finished goods store
-                }
-            }
+            rows = await database_js_1.db
+                .select()
+                .from(warehouse_js_1.finishedGoods)
+                .orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.finishedGoods.createdAt));
         }
-        catch (e) {
-            // fallback
+        catch (err) {
+            console.warn("Could not query finished_goods table:", err);
+            rows = [];
         }
+        let filtered = [...rows];
+        const search = (query?.search || "").trim().toLowerCase();
+        if (search) {
+            filtered = filtered.filter(g => (g.sku && g.sku.toLowerCase().includes(search)) ||
+                (g.finishedLot && g.finishedLot.toLowerCase().includes(search)) ||
+                (g.batchNumber && g.batchNumber.toLowerCase().includes(search)) ||
+                (g.productName && g.productName.toLowerCase().includes(search)) ||
+                (g.storageLocation && g.storageLocation.toLowerCase().includes(search)));
+        }
+        const status = (query?.status || "").trim();
+        if (status && status !== "ALL") {
+            filtered = filtered.filter(g => g.shipmentStatus === status);
+        }
+        const formatted = filtered.map(r => ({
+            id: r.id,
+            sku: r.sku,
+            productName: r.productName,
+            finishedLot: r.finishedLot,
+            batch: r.batchNumber,
+            batchNumber: r.batchNumber,
+            quantity: r.quantity,
+            location: r.storageLocation,
+            storageLocation: r.storageLocation,
+            productionDate: r.productionDate ? (typeof r.productionDate === 'string' ? r.productionDate.substring(0, 10) : new Date(r.productionDate).toISOString().substring(0, 10)) : "",
+            expiryDate: r.expiryDate ? (typeof r.expiryDate === 'string' ? r.expiryDate.substring(0, 10) : new Date(r.expiryDate).toISOString().substring(0, 10)) : "",
+            status: r.qaStatus || "QA Released",
+            qaStatus: r.qaStatus || "QA Released",
+            pallet: r.palletSerial || "1 Pallet",
+            palletSerial: r.palletSerial || "1 Pallet",
+            shipmentStatus: r.shipmentStatus || "Ready to Ship",
+            destination: r.destination || "Commercial Logistics Hub",
+            tempCheck: r.tempCheck || "Ambient Controlled",
+            notes: r.notes || "",
+            createdAt: r.createdAt
+        }));
+        const totalPalletsCount = rows.reduce((acc, item) => {
+            const match = (item.palletSerial || "").match(/(\d+)/);
+            return acc + (match ? parseInt(match[1]) : 1);
+        }, 0);
+        const readyCount = rows.filter(g => g.shipmentStatus === "Ready to Ship" || g.shipmentStatus === "Allocated").length;
+        const qaReleasedCount = rows.filter(g => g.qaStatus === "QA Released").length;
+        const qaRate = rows.length > 0 ? `${Math.round((qaReleasedCount / rows.length) * 100)}%` : "0%";
         return {
-            finishedGoods: finishedGoodsStore,
+            finishedGoods: formatted,
             metrics: {
-                totalFinishedPallets: `${finishedGoodsStore.reduce((acc, item) => acc + (parseInt(item.pallet) || 15), 0)} Pallets`,
-                readyForDispatch: `${finishedGoodsStore.filter(g => g.shipmentStatus === "Ready to Ship" || g.shipmentStatus === "Allocated").reduce((acc, item) => acc + (parseInt(item.pallet) || 12), 0)} Pallets`,
-                qaReleaseRate: "97.8%",
-                highBayOccupancy: "68.5%"
+                totalFinishedPallets: `${totalPalletsCount} Pallets`,
+                readyForDispatch: `${readyCount} Pallets`,
+                qaReleaseRate: qaRate,
+                highBayOccupancy: `${Math.min(95, rows.length * 15)}%`
             }
         };
     }
-    // Outbound Shipping Orders & Logistics API
-    async listShipmentOrders(tenantId) {
-        try {
-            if ((0, tenantContext_js_1.isValidUuid)(tenantId)) {
-                const dbShipments = await database_js_1.db.select().from(warehouse_js_1.shipmentOrders).where((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.tenantId, tenantId)).catch(() => []);
-                if (dbShipments && dbShipments.length > 0) {
-                    // Can merge with in-memory store
-                }
+    async createFinishedGood(tenantId, input) {
+        let resolvedTenantId = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null;
+        let resolvedPlantId = input.plantId || null;
+        if (!resolvedTenantId || !resolvedPlantId) {
+            const firstPo = (await database_js_1.db.select().from(production_js_1.productionOrders).limit(1))[0];
+            if (firstPo) {
+                if (!resolvedTenantId)
+                    resolvedTenantId = firstPo.tenantId;
+                if (!resolvedPlantId)
+                    resolvedPlantId = firstPo.plantId;
             }
         }
-        catch (e) {
-            // fallback
+        const [created] = await database_js_1.db.insert(warehouse_js_1.finishedGoods).values({
+            tenantId: resolvedTenantId,
+            plantId: resolvedPlantId,
+            sku: input.sku?.trim() || `SKU-CAN-330ML-${Math.floor(100 + Math.random() * 900)}`,
+            productName: input.productName?.trim() || "Finished Commercial Beverage",
+            finishedLot: input.finishedLot?.trim() || `LOT-FG-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+            batchNumber: input.batchNumber?.trim() || input.batch?.trim() || `BAT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+            quantity: input.quantity?.trim() || "24,000 cans (1,000 Cases)",
+            storageLocation: input.storageLocation?.trim() || input.location?.trim() || "Finished Goods High-Bay - Bin FG-01",
+            productionDate: input.productionDate || new Date().toISOString().substring(0, 10),
+            expiryDate: input.expiryDate || new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().substring(0, 10),
+            qaStatus: input.qaStatus || input.status || "QA Released",
+            palletSerial: input.palletSerial || input.pallet || "15 Pallets",
+            shipmentStatus: input.shipmentStatus || "Ready to Ship",
+            destination: input.destination?.trim() || "Regional Distribution Center",
+            tempCheck: input.tempCheck?.trim() || "18.5°C Controlled",
+            notes: input.notes?.trim() || null
+        }).returning();
+        return created;
+    }
+    async updateFinishedGood(tenantId, id, input) {
+        const updateData = { updatedAt: new Date() };
+        if (input.sku)
+            updateData.sku = input.sku.trim();
+        if (input.productName)
+            updateData.productName = input.productName.trim();
+        if (input.finishedLot)
+            updateData.finishedLot = input.finishedLot.trim();
+        if (input.batchNumber || input.batch)
+            updateData.batchNumber = (input.batchNumber || input.batch).trim();
+        if (input.quantity)
+            updateData.quantity = input.quantity.trim();
+        if (input.storageLocation || input.location)
+            updateData.storageLocation = (input.storageLocation || input.location).trim();
+        if (input.productionDate)
+            updateData.productionDate = input.productionDate;
+        if (input.expiryDate)
+            updateData.expiryDate = input.expiryDate;
+        if (input.qaStatus || input.status)
+            updateData.qaStatus = input.qaStatus || input.status;
+        if (input.palletSerial || input.pallet)
+            updateData.palletSerial = (input.palletSerial || input.pallet).trim();
+        if (input.shipmentStatus)
+            updateData.shipmentStatus = input.shipmentStatus;
+        if (input.destination)
+            updateData.destination = input.destination.trim();
+        if (input.tempCheck)
+            updateData.tempCheck = input.tempCheck.trim();
+        if (input.notes !== undefined)
+            updateData.notes = input.notes ? input.notes.trim() : null;
+        const [updated] = await database_js_1.db
+            .update(warehouse_js_1.finishedGoods)
+            .set(updateData)
+            .where((0, drizzle_orm_1.sql) `id::text = ${id}`)
+            .returning();
+        return updated;
+    }
+    async deleteFinishedGood(tenantId, id) {
+        const [deleted] = await database_js_1.db
+            .delete(warehouse_js_1.finishedGoods)
+            .where((0, drizzle_orm_1.sql) `id::text = ${id}`)
+            .returning();
+        return deleted;
+    }
+    // Outbound Shipping Orders & Logistics API (Connected directly to PostgreSQL `shipment_orders` table)
+    async listShipmentOrders(tenantId) {
+        let rows = [];
+        try {
+            rows = await database_js_1.db
+                .select()
+                .from(warehouse_js_1.shipmentOrders)
+                .orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.shipmentOrders.createdAt));
         }
-        const totalPallets = shipmentOrdersStore.reduce((sum, s) => {
-            const match = s.quantity.match(/(\d+)\s*Pallet/i);
+        catch (err) {
+            console.warn("Could not query shipment_orders table:", err);
+            rows = [];
+        }
+        const formatted = rows.map(s => {
+            const defaultMilestones = [
+                { step: "Order Allocated", time: "Completed", done: true },
+                { step: "Staging Bay Loaded", time: s.status !== "Scheduled" ? "Completed" : "Pending", done: s.status !== "Scheduled" },
+                { step: "Trailer Sealed & Inspected", time: s.status === "Dispatched" || s.status === "Delivered" ? "Completed" : "Pending", done: s.status === "Dispatched" || s.status === "Delivered" },
+                { step: "En Route to Hub", time: s.status === "Dispatched" ? "In Transit" : s.status === "Delivered" ? "Completed" : "Pending", done: s.status === "Dispatched" || s.status === "Delivered" },
+                { step: "Customer Dock Delivery", time: s.status === "Delivered" ? "Delivered" : "Pending", done: s.status === "Delivered" }
+            ];
+            return {
+                id: s.id,
+                shipmentNumber: s.shipmentNumber || s.orderNumber || `SHP-${s.id.substring(0, 6)}`,
+                customer: s.customerName,
+                customerName: s.customerName,
+                orderNumber: s.orderNumber || s.shipmentNumber || "ORD-0000",
+                finishedGoods: s.finishedGoods || "Finished Goods Consignment",
+                batchLot: s.batchLot || "LOT-FG",
+                quantity: s.quantity || "20 Pallets",
+                carrier: s.carrier || "Challenger Freight Lines",
+                shipDate: s.dispatchDate ? (typeof s.dispatchDate === 'string' ? s.dispatchDate.substring(0, 10) : new Date(s.dispatchDate).toISOString().substring(0, 10)) : "",
+                destination: s.destination || "Logistics Depot",
+                status: s.status || "Scheduled",
+                trailerNo: s.trailerNo || "TR-0000",
+                sealNo: s.sealNo || "SL-0000",
+                bolNumber: s.bolNumber || "BOL-0000",
+                trackingMilestones: Array.isArray(s.trackingMilestones) && s.trackingMilestones.length > 0 ? s.trackingMilestones : defaultMilestones,
+                createdAt: s.createdAt
+            };
+        });
+        const totalPallets = rows.reduce((sum, s) => {
+            const match = (s.quantity || "").match(/(\d+)/);
             return sum + (match ? parseInt(match[1]) : 20);
         }, 0);
+        const dispatchedCount = rows.filter(s => s.status === "Dispatched" || s.status === "Delivered").length;
+        const deliveredCount = rows.filter(s => s.status === "Delivered").length;
+        const slaPercent = rows.length > 0 ? `${Math.round((deliveredCount / rows.length) * 100 || 98.5)}%` : "100%";
         return {
-            shipmentOrders: shipmentOrdersStore,
+            shipmentOrders: formatted,
             metrics: {
-                activeShipmentsToday: shipmentOrdersStore.length,
+                activeShipmentsToday: rows.length,
                 totalOutboundPallets: `${totalPallets} Pallets`,
-                carrierOtif: "98.5%",
-                dispatchedTrailers: shipmentOrdersStore.filter(s => s.status === "Dispatched" || s.status === "Delivered").length
+                carrierOtif: rows.length > 0 ? "98.5%" : "0%",
+                dispatchedTrailers: dispatchedCount
             }
         };
     }
     async createShipmentOrder(tenantId, input) {
-        const newId = input.id || `SHP-2026-${Math.floor(890 + Math.random() * 100)}`;
-        const created = {
-            id: newId,
-            customer: input.customer || "Commercial Distribution Hub",
+        let resolvedTenantId = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null;
+        let resolvedPlantId = input.plantId || null;
+        if (!resolvedTenantId || !resolvedPlantId) {
+            const firstPo = (await database_js_1.db.select().from(production_js_1.productionOrders).limit(1))[0];
+            if (firstPo) {
+                if (!resolvedTenantId)
+                    resolvedTenantId = firstPo.tenantId;
+                if (!resolvedPlantId)
+                    resolvedPlantId = firstPo.plantId;
+            }
+        }
+        const shipNum = input.shipmentNumber || input.orderNumber || `SHP-2026-${Math.floor(880 + Math.random() * 120)}`;
+        const defaultMilestones = [
+            { step: "Order Allocated", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), done: true },
+            { step: "Staging Bay Loaded", time: "Pending", done: false },
+            { step: "Trailer Sealed & Inspected", time: "Pending", done: false },
+            { step: "En Route to Hub", time: "Pending", done: false },
+            { step: "Customer Dock Delivery", time: "Pending", done: false }
+        ];
+        const [created] = await database_js_1.db.insert(warehouse_js_1.shipmentOrders).values({
+            tenantId: resolvedTenantId,
+            plantId: resolvedPlantId,
+            shipmentNumber: shipNum,
+            customerName: input.customer || input.customerName || "Commercial Retail Depot",
             orderNumber: input.orderNumber || `ORD-${Math.floor(88000 + Math.random() * 1000)}`,
-            finishedGoods: input.finishedGoods || "Sparkling Beverage Cans 330ml",
+            finishedGoods: input.finishedGoods || "Sparkling Beverages 330ml Can",
             batchLot: input.batchLot || "LOT-FG-2026-0885",
-            quantity: input.quantity || "20 Pallets",
+            quantity: input.quantity || "20 Pallets (30,000 cans)",
             carrier: input.carrier || "Challenger Freight Lines",
-            shipDate: input.shipDate || new Date().toISOString().substring(0, 10),
             destination: input.destination || "Regional Distribution Depot",
             status: input.status || "Scheduled",
             trailerNo: input.trailerNo || `TR-${Math.floor(5000 + Math.random() * 4000)}`,
             sealNo: input.sealNo || `SL-${Math.floor(90000 + Math.random() * 9000)}`,
-            bolNumber: input.bolNumber || `BOL-2026-${Math.floor(890 + Math.random() * 100)}`,
-            trackingMilestones: input.trackingMilestones || [
-                { step: "Order Allocated", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), done: true },
-                { step: "Staging Bay Loaded", time: "Pending", done: false },
-                { step: "Trailer Sealed & Inspected", time: "Pending", done: false },
-                { step: "En Route to Hub", time: "Pending", done: false },
-                { step: "Customer Dock Delivery", time: "Pending", done: false }
-            ]
+            bolNumber: input.bolNumber || `BOL-2026-${Math.floor(800 + Math.random() * 200)}`,
+            trackingNumber: input.trackingNumber || `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
+            trackingMilestones: input.trackingMilestones || defaultMilestones,
+            dispatchDate: input.shipDate ? new Date(input.shipDate) : new Date()
+        }).returning();
+        return {
+            id: created.id,
+            shipmentNumber: created.shipmentNumber,
+            customer: created.customerName,
+            customerName: created.customerName,
+            orderNumber: created.orderNumber,
+            finishedGoods: created.finishedGoods,
+            batchLot: created.batchLot,
+            quantity: created.quantity,
+            carrier: created.carrier,
+            shipDate: created.dispatchDate ? (typeof created.dispatchDate === 'string' ? created.dispatchDate.substring(0, 10) : new Date(created.dispatchDate).toISOString().substring(0, 10)) : "",
+            destination: created.destination,
+            status: created.status,
+            trailerNo: created.trailerNo,
+            sealNo: created.sealNo,
+            bolNumber: created.bolNumber,
+            trackingMilestones: created.trackingMilestones
         };
-        shipmentOrdersStore = [created, ...shipmentOrdersStore];
-        return created;
     }
     async updateShipmentOrder(tenantId, id, input) {
-        const idx = shipmentOrdersStore.findIndex(s => s.id === id);
-        if (idx !== -1) {
-            shipmentOrdersStore[idx] = { ...shipmentOrdersStore[idx], ...input };
-            return shipmentOrdersStore[idx];
-        }
-        return input;
+        const updateData = { updatedAt: new Date() };
+        if (input.customer || input.customerName)
+            updateData.customerName = (input.customer || input.customerName).trim();
+        if (input.orderNumber)
+            updateData.orderNumber = input.orderNumber.trim();
+        if (input.finishedGoods)
+            updateData.finishedGoods = input.finishedGoods.trim();
+        if (input.batchLot)
+            updateData.batchLot = input.batchLot.trim();
+        if (input.quantity)
+            updateData.quantity = input.quantity.trim();
+        if (input.carrier)
+            updateData.carrier = input.carrier.trim();
+        if (input.destination)
+            updateData.destination = input.destination.trim();
+        if (input.status)
+            updateData.status = input.status;
+        if (input.trailerNo)
+            updateData.trailerNo = input.trailerNo.trim();
+        if (input.sealNo)
+            updateData.sealNo = input.sealNo.trim();
+        if (input.bolNumber)
+            updateData.bolNumber = input.bolNumber.trim();
+        if (input.shipDate)
+            updateData.dispatchDate = new Date(input.shipDate);
+        if (input.trackingMilestones)
+            updateData.trackingMilestones = input.trackingMilestones;
+        const [updated] = await database_js_1.db
+            .update(warehouse_js_1.shipmentOrders)
+            .set(updateData)
+            .where((0, drizzle_orm_1.sql) `id::text = ${id} OR shipment_number = ${id}`)
+            .returning();
+        return updated;
+    }
+    async deleteShipmentOrder(tenantId, id) {
+        const [deleted] = await database_js_1.db
+            .delete(warehouse_js_1.shipmentOrders)
+            .where((0, drizzle_orm_1.sql) `id::text = ${id} OR shipment_number = ${id}`)
+            .returning();
+        return deleted;
     }
     async dispatchShipmentOrder(tenantId, id) {
-        const shipment = shipmentOrdersStore.find(s => s.id === id);
-        if (shipment) {
-            shipment.status = "Dispatched";
-            shipment.trackingMilestones = shipment.trackingMilestones.map((m, idx) => {
-                if (idx <= 3)
-                    return { ...m, done: true, time: m.time === "Pending" ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : m.time };
-                return m;
-            });
-            return shipment;
-        }
-        return { id, status: "Dispatched" };
+        const defaultMilestones = [
+            { step: "Order Allocated", time: "08:00 AM", done: true },
+            { step: "Staging Bay Loaded", time: "10:30 AM", done: true },
+            { step: "Trailer Sealed & Inspected", time: "11:45 AM", done: true },
+            { step: "En Route to Hub", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), done: true },
+            { step: "Customer Dock Delivery", time: "Pending", done: false }
+        ];
+        const [updated] = await database_js_1.db
+            .update(warehouse_js_1.shipmentOrders)
+            .set({
+            status: "Dispatched",
+            trackingMilestones: defaultMilestones,
+            updatedAt: new Date()
+        })
+            .where((0, drizzle_orm_1.sql) `id::text = ${id} OR shipment_number = ${id}`)
+            .returning();
+        return updated || { id, status: "Dispatched" };
     }
     // ==========================================
     // RAW MATERIAL INVENTORY API
@@ -2306,37 +3162,59 @@ class WarehouseService {
     // SHIPMENT TRACKING
     // ==========================================
     async getShipmentTracking(tenantId) {
+        let rows = [];
+        try {
+            rows = await database_js_1.db
+                .select()
+                .from(warehouse_js_1.shipmentOrders)
+                .where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "Dispatched"), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "In Transit"), (0, drizzle_orm_1.eq)(warehouse_js_1.shipmentOrders.status, "Delivered")))
+                .orderBy((0, drizzle_orm_1.desc)(warehouse_js_1.shipmentOrders.updatedAt));
+        }
+        catch (e) {
+            console.warn("Could not query shipment orders for tracking:", e);
+        }
+        const trackingList = rows.map(r => ({
+            id: r.shipmentNumber || r.id,
+            realId: r.id,
+            trackingNumber: r.trackingNumber || `TRK-${r.shipmentNumber || r.id}`,
+            dest: r.destination || "Logistics Hub",
+            status: r.status || "In Transit",
+            carrier: r.carrier || "Freight Logistics",
+            trailerNo: r.trailerNo || "TR-0000",
+            eta: r.status === "Delivered"
+                ? `Delivered ${r.dispatchDate ? new Date(r.dispatchDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10)}`
+                : `${r.dispatchDate ? new Date(r.dispatchDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10)} 14:00`,
+            milestones: r.trackingMilestones || []
+        }));
         return {
-            trackingList: shipmentTrackingStore,
-            activeShipments: shipmentTrackingStore,
-            count: shipmentTrackingStore.length,
+            trackingList,
+            activeShipments: trackingList,
+            count: trackingList.length,
             metrics: {
-                totalTracked: shipmentTrackingStore.length,
-                inTransit: shipmentTrackingStore.filter(s => s.status.toLowerCase().includes("transit")).length,
-                delivered: shipmentTrackingStore.filter(s => s.status.toLowerCase().includes("delivered")).length
+                totalTracked: trackingList.length,
+                inTransit: trackingList.filter(s => s.status.toLowerCase().includes("transit") || s.status.toLowerCase().includes("dispatched")).length,
+                delivered: trackingList.filter(s => s.status.toLowerCase().includes("delivered")).length
             }
         };
     }
     async toggleShipmentTrackingStatus(tenantId, id, newStatus) {
-        const shipment = shipmentTrackingStore.find(s => s.id === id);
-        if (shipment) {
-            if (newStatus) {
-                shipment.status = newStatus;
-            }
-            else {
-                shipment.status = shipment.status === "Delivered" ? "In Transit" : "Delivered";
-            }
-            return {
-                success: true,
-                shipment,
-                message: `Shipment ${id} status updated to ${shipment.status}.`
-            };
+        let nextStatus = newStatus;
+        if (!nextStatus) {
+            const existing = (await database_js_1.db.select().from(warehouse_js_1.shipmentOrders).where((0, drizzle_orm_1.sql) `id::text = ${id} OR shipment_number = ${id} OR tracking_number = ${id}`).limit(1))[0];
+            nextStatus = existing?.status === "Delivered" ? "In Transit" : "Delivered";
         }
+        const [updated] = await database_js_1.db
+            .update(warehouse_js_1.shipmentOrders)
+            .set({
+            status: nextStatus,
+            updatedAt: new Date()
+        })
+            .where((0, drizzle_orm_1.sql) `id::text = ${id} OR shipment_number = ${id} OR tracking_number = ${id}`)
+            .returning();
         return {
             success: true,
-            id,
-            status: newStatus || "In Transit",
-            message: `Shipment ${id} status updated.`
+            shipment: updated || { id, status: nextStatus },
+            message: `Shipment ${id} status updated to ${nextStatus}.`
         };
     }
     // ==========================================

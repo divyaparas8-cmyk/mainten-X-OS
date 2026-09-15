@@ -28,7 +28,8 @@ export class ProductionService {
         SELECT po.id, po.order_number as "orderNumber", s.name as "productName", 
                s.sku_code as "skuCode", pl.name as "line", po.target_quantity as "targetQuantity",
                po.produced_quantity as "producedQuantity", po.scrap_quantity as "scrapQuantity",
-               po.status, po.priority, po.planned_start as "plannedStart", po.planned_end as "plannedEnd"
+               po.status, po.priority, po.planned_start as "plannedStart", po.planned_end as "plannedEnd",
+               po.notes
         FROM production_orders po
         LEFT JOIN skus s ON po.sku_id = s.id
         LEFT JOIN production_lines pl ON po.line_id = pl.id

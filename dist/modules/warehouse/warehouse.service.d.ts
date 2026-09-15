@@ -56,6 +56,10 @@ export declare class WarehouseService {
         mfgDate: Date | null;
         expiryDate: Date | null;
     }>;
+    deleteLot(tenantId: string, idOrLotNumber: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     recordTransaction(tenantId: string, plantId: string, input: CreateTransactionInput, userId?: string): Promise<{
         type: string;
         id: string;
@@ -95,13 +99,13 @@ export declare class WarehouseService {
     }[]>;
     listBins(warehouseId?: string): Promise<{
         id: string;
+        zone: string | null;
         warehouseId: string;
         binCode: string;
         aisle: string | null;
         rack: string | null;
         shelf: string | null;
         bin: string | null;
-        zone: string | null;
         isOccupied: boolean;
     }[]>;
     getDashboardStats(tenantId: string, plantId?: string): Promise<{
@@ -214,9 +218,20 @@ export declare class WarehouseService {
         item?: undefined;
     }>;
     getDispatchSummary(tenantId: string): Promise<{
+        dispatches: {
+            id: any;
+            realId: any;
+            dest: any;
+            cargo: any;
+            status: any;
+            carrier: any;
+            trailerNo: any;
+            bolNumber: any;
+        }[];
+        count: number;
         shipmentOrdersCount: number;
         freightStatus: string;
-        carrier: string;
+        carrier: any;
         scheduledDeparture: string;
     }>;
     listPurchaseOrders(tenantId: string): Promise<{
@@ -263,28 +278,71 @@ export declare class WarehouseService {
         };
     }>;
     createSupplier(tenantId: string, input: any): Promise<{
-        id: string;
+        id: any;
+        tenantId: string | null;
         supplierCode: any;
         name: any;
         category: any;
         materialsSupplied: any;
-        status: string;
-        otifScore: number;
-        qualityAcceptanceRate: number;
-        avgLeadTimeDays: number;
+        status: any;
+        otifScore: string;
+        qualityAcceptanceRate: string;
+        avgLeadTimeDays: string;
         riskRating: any;
         contactEmail: any;
         contactPhone: any;
-        lastOrder: string;
-        openOrdersCount: number;
-        activeContractsCount: number;
+        lastOrder: any;
+        openOrdersCount: any;
+        activeContractsCount: any;
     }>;
-    updateSupplier(tenantId: string, id: string, input: any): Promise<any>;
-    toggleSupplierStatus(tenantId: string, id: string): Promise<any>;
+    updateSupplier(tenantId: string, id: string, input: any): Promise<{
+        status: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        category: string | null;
+        supplierCode: string;
+        materialsSupplied: string | null;
+        otifScore: string | null;
+        qualityAcceptanceRate: string | null;
+        avgLeadTimeDays: string | null;
+        riskRating: string | null;
+        contactEmail: string | null;
+        contactPhone: string | null;
+        lastOrder: string | null;
+        openOrdersCount: number | null;
+        activeContractsCount: number | null;
+    }>;
+    toggleSupplierStatus(tenantId: string, id: string): Promise<{
+        status: string;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        category: string | null;
+        supplierCode: string;
+        materialsSupplied: string | null;
+        otifScore: string | null;
+        qualityAcceptanceRate: string | null;
+        avgLeadTimeDays: string | null;
+        riskRating: string | null;
+        contactEmail: string | null;
+        contactPhone: string | null;
+        lastOrder: string | null;
+        openOrdersCount: number | null;
+        activeContractsCount: number | null;
+    }>;
+    deleteSupplier(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     getSupplierScorecard(tenantId: string, id: string): Promise<{
         success: boolean;
-        supplierId: any;
-        supplierName: any;
+        supplierId: string;
+        supplierName: string;
         scorecardUrl: string;
         downloadedAt: string;
         message: string;
@@ -306,6 +364,7 @@ export declare class WarehouseService {
     }>;
     dockCheckIn(tenantId: string, input: any): Promise<{
         id: any;
+        tenantId: string | null;
         poNumber: any;
         supplier: any;
         item: any;
@@ -316,6 +375,11 @@ export declare class WarehouseService {
         tempCheck: any;
         bolNumber: any;
         status: any;
+    }>;
+    updateWmsReceiving(tenantId: string, id: string, input: any): Promise<any>;
+    deleteWmsReceiving(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
     inspectAndAccept(tenantId: string, input: any): Promise<{
         task: any;
@@ -376,6 +440,46 @@ export declare class WarehouseService {
             coldZoneTempSla: string;
             availableEmptyBins: number;
         };
+    }>;
+    createLocation(tenantId: string, input: any): Promise<{
+        id: any;
+        tenantId: string | null;
+        warehouse: any;
+        zone: any;
+        rack: any;
+        location: any;
+        fullHierarchy: any;
+        capacityPallets: number;
+        occupiedPallets: number;
+        material: any;
+        materialCode: any;
+        batchLot: any;
+        quantity: any;
+        status: any;
+        temp: any;
+    }>;
+    updateLocation(tenantId: string, id: string, input: any): Promise<{
+        status: string | null;
+        location: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        quantity: string | null;
+        zone: string;
+        rack: string;
+        batchLot: string | null;
+        warehouse: string;
+        fullHierarchy: string | null;
+        capacityPallets: number;
+        occupiedPallets: number;
+        material: string | null;
+        materialCode: string | null;
+        temp: string | null;
+    }>;
+    deleteLocation(tenantId: string, id: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
     getBinsLocations(tenantId: string): Promise<{
         bins: {
@@ -524,6 +628,7 @@ export declare class WarehouseService {
         message: string;
     }>;
     getTraceability(tenantId: string, lotNumber?: string): Promise<{
+<<<<<<< HEAD
         lotNumber: any;
         lotType: any;
         category: any;
@@ -574,6 +679,127 @@ export declare class WarehouseService {
         };
         allLots: any[];
     } | null>;
+=======
+        batches: never[];
+        activeLot: null;
+        metrics: {
+            traceIntegrityScore: string;
+            linkedBatches: number;
+            finishedGoodsOutput: string;
+            customerDispatchDestinations: number;
+        };
+    } | {
+        batches: any[];
+        activeLot: {
+            lotNumber: any;
+            materialName: any;
+            materialCode: any;
+            category: string;
+            type: string;
+            quantity: string;
+            supplier: string;
+            tankNumber: any;
+            currentLocation: string;
+            receivedDate: string;
+            qaStatus: any;
+            qaCert: string;
+            tempLog: string;
+            integrityScore: string;
+            batches: {
+                batchId: any;
+                product: any;
+                sku: any;
+                line: any;
+                date: string;
+                quantityProduced: string;
+                status: any;
+                ccpStatus: string;
+                pallets: {
+                    palletId: string;
+                    cases: number;
+                    lpn: string;
+                    dest: string;
+                }[];
+            }[];
+            recallImpact: {
+                affectedBatches: number;
+                finishedCases: number;
+                palletsCount: number;
+                customersExposed: string[];
+                quarantineStatus: string;
+            };
+        };
+        metrics: {
+            traceIntegrityScore: string;
+            linkedBatches: number;
+            finishedGoodsOutput: string;
+            customerDispatchDestinations: number;
+        };
+    }>;
+    createTraceabilityBatch(tenantId: string, input: any): Promise<{
+        status: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        skuId: string;
+        productionOrderId: string;
+        batchNumber: string;
+        recipeVersion: string;
+        tankNumber: string | null;
+        targetVolume: string;
+        actualVolume: string | null;
+        currentStep: number;
+        progressPercent: number;
+        startedAt: Date | null;
+        completedAt: Date | null;
+    }>;
+    updateTraceabilityBatch(tenantId: string, idOrBatch: string, input: any): Promise<{
+        id: string;
+        tenantId: string;
+        plantId: string;
+        productionOrderId: string;
+        batchNumber: string;
+        skuId: string;
+        recipeVersion: string;
+        tankNumber: string | null;
+        targetVolume: string;
+        actualVolume: string | null;
+        uom: string;
+        currentStep: number;
+        progressPercent: number;
+        status: string;
+        startedAt: Date | null;
+        completedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteTraceabilityBatch(tenantId: string, idOrBatch: string): Promise<{
+        success: boolean;
+        deleted: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            skuId: string;
+            productionOrderId: string;
+            batchNumber: string;
+            recipeVersion: string;
+            tankNumber: string | null;
+            targetVolume: string;
+            actualVolume: string | null;
+            currentStep: number;
+            progressPercent: number;
+            startedAt: Date | null;
+            completedAt: Date | null;
+        }[];
+    }>;
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     simulateRecall(tenantId: string, input: any, userId?: string): Promise<{
         success: boolean;
         recallCode: string;
@@ -587,8 +813,29 @@ export declare class WarehouseService {
         };
         message: string;
     }>;
-    getFinishedGoods(tenantId: string, query?: any): Promise<{
-        finishedGoods: any[];
+    getFinishedGoods(tenantId?: string, query?: any): Promise<{
+        finishedGoods: {
+            id: any;
+            sku: any;
+            productName: any;
+            finishedLot: any;
+            batch: any;
+            batchNumber: any;
+            quantity: any;
+            location: any;
+            storageLocation: any;
+            productionDate: any;
+            expiryDate: any;
+            status: any;
+            qaStatus: any;
+            pallet: any;
+            palletSerial: any;
+            shipmentStatus: any;
+            destination: any;
+            tempCheck: any;
+            notes: any;
+            createdAt: any;
+        }[];
         metrics: {
             totalFinishedPallets: string;
             readyForDispatch: string;
@@ -596,8 +843,89 @@ export declare class WarehouseService {
             highBayOccupancy: string;
         };
     }>;
-    listShipmentOrders(tenantId: string): Promise<{
-        shipmentOrders: any[];
+    createFinishedGood(tenantId: string, input: any): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        plantId: string | null;
+        quantity: string;
+        notes: string | null;
+        batchNumber: string;
+        expiryDate: string | null;
+        destination: string | null;
+        tempCheck: string | null;
+        sku: string;
+        productName: string;
+        finishedLot: string;
+        storageLocation: string;
+        productionDate: string | null;
+        qaStatus: string | null;
+        palletSerial: string | null;
+        shipmentStatus: string | null;
+    }>;
+    updateFinishedGood(tenantId: string, id: string, input: any): Promise<{
+        id: string;
+        tenantId: string | null;
+        plantId: string | null;
+        sku: string;
+        productName: string;
+        finishedLot: string;
+        batchNumber: string;
+        quantity: string;
+        storageLocation: string;
+        productionDate: string | null;
+        expiryDate: string | null;
+        qaStatus: string | null;
+        palletSerial: string | null;
+        shipmentStatus: string | null;
+        destination: string | null;
+        tempCheck: string | null;
+        notes: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteFinishedGood(tenantId: string, id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        plantId: string | null;
+        quantity: string;
+        notes: string | null;
+        batchNumber: string;
+        expiryDate: string | null;
+        destination: string | null;
+        tempCheck: string | null;
+        sku: string;
+        productName: string;
+        finishedLot: string;
+        storageLocation: string;
+        productionDate: string | null;
+        qaStatus: string | null;
+        palletSerial: string | null;
+        shipmentStatus: string | null;
+    }>;
+    listShipmentOrders(tenantId?: string): Promise<{
+        shipmentOrders: {
+            id: any;
+            shipmentNumber: any;
+            customer: any;
+            customerName: any;
+            orderNumber: any;
+            finishedGoods: any;
+            batchLot: any;
+            quantity: any;
+            carrier: any;
+            shipDate: any;
+            destination: any;
+            status: any;
+            trailerNo: any;
+            sealNo: any;
+            bolNumber: any;
+            trackingMilestones: any;
+            createdAt: any;
+        }[];
         metrics: {
             activeShipmentsToday: number;
             totalOutboundPallets: string;
@@ -606,23 +934,92 @@ export declare class WarehouseService {
         };
     }>;
     createShipmentOrder(tenantId: string, input: any): Promise<{
-        id: any;
-        customer: any;
-        orderNumber: any;
-        finishedGoods: any;
-        batchLot: any;
-        quantity: any;
+        id: string;
+        shipmentNumber: string | null;
+        customer: string;
+        customerName: string;
+        orderNumber: string | null;
+        finishedGoods: string | null;
+        batchLot: string | null;
+        quantity: string | null;
         carrier: any;
         shipDate: any;
         destination: any;
-        status: any;
-        trailerNo: any;
-        sealNo: any;
-        bolNumber: any;
-        trackingMilestones: any;
+        status: string;
+        trailerNo: string | null;
+        sealNo: string | null;
+        bolNumber: string | null;
+        trackingMilestones: unknown;
     }>;
-    updateShipmentOrder(tenantId: string, id: string, input: any): Promise<any>;
-    dispatchShipmentOrder(tenantId: string, id: string): Promise<any>;
+    updateShipmentOrder(tenantId: string, id: string, input: any): Promise<{
+        id: string;
+        tenantId: string | null;
+        plantId: string | null;
+        shipmentNumber: string | null;
+        customerName: string;
+        carrier: string | null;
+        trackingNumber: string | null;
+        status: string;
+        dispatchDate: Date | null;
+        shippedLots: unknown;
+        orderNumber: string | null;
+        finishedGoods: string | null;
+        batchLot: string | null;
+        quantity: string | null;
+        destination: string | null;
+        trailerNo: string | null;
+        sealNo: string | null;
+        bolNumber: string | null;
+        trackingMilestones: unknown;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
+    deleteShipmentOrder(tenantId: string, id: string): Promise<{
+        status: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string | null;
+        plantId: string | null;
+        quantity: string | null;
+        orderNumber: string | null;
+        customerName: string;
+        shipmentNumber: string | null;
+        carrier: string | null;
+        trackingNumber: string | null;
+        dispatchDate: Date | null;
+        shippedLots: unknown;
+        finishedGoods: string | null;
+        batchLot: string | null;
+        destination: string | null;
+        trailerNo: string | null;
+        sealNo: string | null;
+        bolNumber: string | null;
+        trackingMilestones: unknown;
+    }>;
+    dispatchShipmentOrder(tenantId: string, id: string): Promise<{
+        id: string;
+        tenantId: string | null;
+        plantId: string | null;
+        shipmentNumber: string | null;
+        customerName: string;
+        carrier: string | null;
+        trackingNumber: string | null;
+        status: string;
+        dispatchDate: Date | null;
+        shippedLots: unknown;
+        orderNumber: string | null;
+        finishedGoods: string | null;
+        batchLot: string | null;
+        quantity: string | null;
+        destination: string | null;
+        trailerNo: string | null;
+        sealNo: string | null;
+        bolNumber: string | null;
+        trackingMilestones: unknown;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     getRawMaterials(tenantId: string, query?: any): Promise<{
         materials: any[];
         metrics: {
@@ -719,24 +1116,26 @@ export declare class WarehouseService {
     }>;
     getShipmentTracking(tenantId: string): Promise<{
         trackingList: {
-            id: string;
-            orderId: string;
-            dest: string;
-            destination: string;
-            status: string;
+            id: any;
+            realId: any;
+            trackingNumber: any;
+            dest: any;
+            status: any;
+            carrier: any;
+            trailerNo: any;
             eta: string;
-            carrier: string;
-            trailerNo: string;
+            milestones: any;
         }[];
         activeShipments: {
-            id: string;
-            orderId: string;
-            dest: string;
-            destination: string;
-            status: string;
+            id: any;
+            realId: any;
+            trackingNumber: any;
+            dest: any;
+            status: any;
+            carrier: any;
+            trailerNo: any;
             eta: string;
-            carrier: string;
-            trailerNo: string;
+            milestones: any;
         }[];
         count: number;
         metrics: {
@@ -749,23 +1148,28 @@ export declare class WarehouseService {
         success: boolean;
         shipment: {
             id: string;
-            orderId: string;
-            dest: string;
-            destination: string;
+            tenantId: string | null;
+            plantId: string | null;
+            shipmentNumber: string | null;
+            customerName: string;
+            carrier: string | null;
+            trackingNumber: string | null;
             status: string;
-            eta: string;
-            carrier: string;
-            trailerNo: string;
+            dispatchDate: Date | null;
+            shippedLots: unknown;
+            orderNumber: string | null;
+            finishedGoods: string | null;
+            batchLot: string | null;
+            quantity: string | null;
+            destination: string | null;
+            trailerNo: string | null;
+            sealNo: string | null;
+            bolNumber: string | null;
+            trackingMilestones: unknown;
+            createdAt: Date;
+            updatedAt: Date;
         };
         message: string;
-        id?: undefined;
-        status?: undefined;
-    } | {
-        success: boolean;
-        id: string;
-        status: string;
-        message: string;
-        shipment?: undefined;
     }>;
     getWarehouseReports(tenantId: string): Promise<{
         reports: {

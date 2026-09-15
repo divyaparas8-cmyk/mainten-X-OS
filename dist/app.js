@@ -69,6 +69,7 @@ async function buildApp() {
             timestamp: new Date().toISOString(),
         };
     });
+<<<<<<< HEAD
     // 4. API v1 Domain Routes
     await app.register(auth_routes_js_1.authRoutes, { prefix: "/api/v1/auth" });
     await app.register(admin_routes_js_1.adminRoutes, { prefix: "/api/v1/admin" });
@@ -93,6 +94,35 @@ async function buildApp() {
     await app.register(billing_routes_js_1.billingRoutes, { prefix: "/api/v1/billing" });
     await app.register(iot_routes_js_1.iotRoutes, { prefix: "/api/v1/iot" });
     await app.register(master_routes_js_1.masterRoutes, { prefix: "/api/v1/master" });
+=======
+    // 4. API Domain Routes (Supporting both /api/v1 and /api prefixes)
+    const apiPrefixes = ["/api/v1", "/api"];
+    for (const prefix of apiPrefixes) {
+        await app.register(auth_routes_js_1.authRoutes, { prefix: `${prefix}/auth` });
+        await app.register(admin_routes_js_1.adminRoutes, { prefix: `${prefix}/admin` });
+        await app.register(masterData_routes_js_1.masterDataRoutes, { prefix: `${prefix}/master-data` });
+        await app.register(planning_routes_js_1.planningRoutes, { prefix: `${prefix}/planning` });
+        await app.register(planning_routes_js_1.planningRoutes, { prefix: `${prefix}/planner` });
+        await app.register(planning_routes_js_1.planningRoutes, { prefix: `${prefix}` });
+        await app.register(production_routes_js_1.productionRoutes, { prefix: `${prefix}/production` });
+        await app.register(quality_routes_js_1.qualityRoutes, { prefix: `${prefix}/quality` });
+        await app.register(warehouse_routes_js_1.warehouseRoutes, { prefix: `${prefix}/warehouse` });
+        await app.register(traceability_routes_js_1.traceabilityRoutes, { prefix: `${prefix}/traceability` });
+        await app.register(maintenance_routes_js_1.maintenanceRoutes, { prefix: `${prefix}/maintenance` });
+        await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: `${prefix}/dashboards` });
+        await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: `${prefix}/plant-manager` });
+        await app.register(executive_routes_js_1.executiveRoutes, { prefix: `${prefix}/executive` });
+        await app.register(executive_routes_js_1.executiveRoutes, { prefix: `${prefix}/dashboards/executive` });
+        await app.register(notifications_routes_js_1.notificationsRoutes, { prefix: `${prefix}/notifications` });
+        await app.register(search_routes_js_1.searchRoutes, { prefix: `${prefix}/search` });
+        await app.register(ci_routes_js_1.ciRoutes, { prefix: `${prefix}/ci` });
+        await app.register(exceptions_routes_js_1.exceptionsRoutes, { prefix: `${prefix}/exceptions` });
+        await app.register(ai_routes_js_1.aiRoutes, { prefix: `${prefix}/ai` });
+        await app.register(billing_routes_js_1.billingRoutes, { prefix: `${prefix}/billing` });
+        await app.register(iot_routes_js_1.iotRoutes, { prefix: `${prefix}/iot` });
+        await app.register(master_routes_js_1.masterRoutes, { prefix: `${prefix}/master` });
+    }
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return app;
 }
 //# sourceMappingURL=app.js.map

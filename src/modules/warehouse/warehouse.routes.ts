@@ -7,6 +7,7 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
 
   fastify.get("/lots", { schema: { tags: ["Warehouse & WMS"], summary: "List Inventory Lots (Raw, Packaging, Finished Goods)" } }, warehouseController.getLots.bind(warehouseController));
   fastify.post("/lots", { schema: { tags: ["Warehouse & WMS"], summary: "Create / Receive New Lot" } }, warehouseController.createLot.bind(warehouseController));
+  fastify.delete("/lots/:id", { schema: { tags: ["Warehouse & WMS"], summary: "Delete Inventory Lot" } }, warehouseController.deleteLot.bind(warehouseController));
   fastify.get("/transactions", { schema: { tags: ["Warehouse & WMS"], summary: "List Auditable Stock Movements / Transactions" } }, warehouseController.getTransactions.bind(warehouseController));
   fastify.post("/transactions", { schema: { tags: ["Warehouse & WMS"], summary: "Log Auditable Stock Movement / Adjustment" } }, warehouseController.recordTransaction.bind(warehouseController));
 
@@ -28,6 +29,9 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
   fastify.post("/inventory/status/replenish", { schema: { tags: ["Warehouse & WMS"], summary: "Replenish Buffer Stock" } }, warehouseController.replenishInventoryBuffer.bind(warehouseController));
   fastify.post("/inventory/status/:id/replenish", { schema: { tags: ["Warehouse & WMS"], summary: "Replenish Specific Buffer Stock" } }, warehouseController.replenishInventoryBuffer.bind(warehouseController));
   fastify.get("/shipping/dispatch", { schema: { tags: ["Warehouse & WMS"], summary: "Inspect Outbound Dispatch Details" } }, warehouseController.getDispatchSummary.bind(warehouseController));
+  fastify.post("/shipping/dispatch", { schema: { tags: ["Warehouse & WMS"], summary: "Dispatch Outbound Cargo" } }, warehouseController.dispatchShipmentOrder.bind(warehouseController));
+  fastify.post("/shipping/dispatch/:id", { schema: { tags: ["Warehouse & WMS"], summary: "Dispatch Specific Outbound Cargo" } }, warehouseController.dispatchShipmentOrder.bind(warehouseController));
+  fastify.delete("/shipping/dispatch/:id", { schema: { tags: ["Warehouse & WMS"], summary: "Delete Outbound Dispatch" } }, warehouseController.deleteShipmentOrder.bind(warehouseController));
 
   // Purchasing & Purchase Orders
   fastify.get("/purchase-orders", { schema: { tags: ["Warehouse & Purchasing"], summary: "List Purchase Orders & Metrics" } }, warehouseController.listPurchaseOrders.bind(warehouseController));
@@ -42,12 +46,15 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
   fastify.get("/suppliers", { schema: { tags: ["Warehouse & Purchasing"], summary: "List Approved Suppliers & Metrics" } }, warehouseController.listSuppliers.bind(warehouseController));
   fastify.post("/suppliers", { schema: { tags: ["Warehouse & Purchasing"], summary: "Register Approved Supplier" } }, warehouseController.createSupplier.bind(warehouseController));
   fastify.put("/suppliers/:id", { schema: { tags: ["Warehouse & Purchasing"], summary: "Update Supplier Profile" } }, warehouseController.updateSupplier.bind(warehouseController));
+  fastify.delete("/suppliers/:id", { schema: { tags: ["Warehouse & Purchasing"], summary: "Delete Supplier" } }, warehouseController.deleteSupplier.bind(warehouseController));
   fastify.post("/suppliers/:id/toggle-status", { schema: { tags: ["Warehouse & Purchasing"], summary: "Toggle Supplier Status" } }, warehouseController.toggleSupplierStatus.bind(warehouseController));
   fastify.get("/suppliers/:id/scorecard", { schema: { tags: ["Warehouse & Purchasing"], summary: "Export Supplier Scorecard PDF" } }, warehouseController.getSupplierScorecard.bind(warehouseController));
 
   // WMS Operations Engine (Receiving, Put Away, Movement, Transfer, Picking, Staging, Dispatch)
   fastify.get("/wms/operations", { schema: { tags: ["Warehouse & WMS"], summary: "Get Full WMS Operations Queue & Active Tasks" } }, warehouseController.getWmsOperations.bind(warehouseController));
   fastify.post("/wms/dock-checkin", { schema: { tags: ["Warehouse & WMS"], summary: "Inbound Trailer Dock Check-In" } }, warehouseController.dockCheckIn.bind(warehouseController));
+  fastify.put("/wms/receiving/:id", { schema: { tags: ["Warehouse & WMS"], summary: "Update Inbound Receiving Record" } }, warehouseController.updateWmsReceiving.bind(warehouseController));
+  fastify.delete("/wms/receiving/:id", { schema: { tags: ["Warehouse & WMS"], summary: "Delete Inbound Receiving Record" } }, warehouseController.deleteWmsReceiving.bind(warehouseController));
   fastify.post("/wms/inspect-accept", { schema: { tags: ["Warehouse & WMS"], summary: "Inbound Material Inspection & Acceptance" } }, warehouseController.inspectAndAccept.bind(warehouseController));
   fastify.post("/wms/putaway/complete", { schema: { tags: ["Warehouse & WMS"], summary: "Complete Put-Away to Target Bin" } }, warehouseController.completePutAway.bind(warehouseController));
   fastify.post("/wms/movement", { schema: { tags: ["Warehouse & WMS"], summary: "Record Internal Stock Movement" } }, warehouseController.recordStockMovementTask.bind(warehouseController));
@@ -58,6 +65,9 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
 
   // Warehouse Physical Hierarchy & Locations
   fastify.get("/locations/list", { schema: { tags: ["Warehouse & Locations"], summary: "List Warehouse Locations & Hierarchy" } }, warehouseController.listLocations.bind(warehouseController));
+  fastify.post("/locations", { schema: { tags: ["Warehouse & Locations"], summary: "Create Warehouse Location Bin" } }, warehouseController.createLocation.bind(warehouseController));
+  fastify.put("/locations/:id", { schema: { tags: ["Warehouse & Locations"], summary: "Update Warehouse Location Bin" } }, warehouseController.updateLocation.bind(warehouseController));
+  fastify.delete("/locations/:id", { schema: { tags: ["Warehouse & Locations"], summary: "Delete Warehouse Location Bin" } }, warehouseController.deleteLocation.bind(warehouseController));
   fastify.get("/locations/warehouses", { schema: { tags: ["Warehouse & Locations"], summary: "List Warehouses Hierarchy (Alias)" } }, warehouseController.listLocations.bind(warehouseController));
   fastify.get("/locations/hierarchy", { schema: { tags: ["Warehouse & Locations"], summary: "List Full Physical Hierarchy (Warehouse > Zone > Rack > Bin)" } }, warehouseController.listLocationsHierarchy.bind(warehouseController));
   fastify.get("/locations/bins", { schema: { tags: ["Warehouse & Locations"], summary: "List Bins & Storage Racks Put-Away Queue" } }, warehouseController.getBinsLocations.bind(warehouseController));
@@ -82,6 +92,9 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
   // 360° Supply Lot Traceability & FDA 21 CFR
   fastify.get("/traceability", { schema: { tags: ["Warehouse & Traceability"], summary: "Get 360° Lot Traceability Data" } }, warehouseController.getTraceability.bind(warehouseController));
   fastify.get("/traceability/:lotNumber", { schema: { tags: ["Warehouse & Traceability"], summary: "Get 360° Lot Traceability by Lot Number" } }, warehouseController.getTraceability.bind(warehouseController));
+  fastify.post("/traceability/batch", { schema: { tags: ["Warehouse & Traceability"], summary: "Create / Register Traceability Batch" } }, warehouseController.createTraceabilityBatch.bind(warehouseController));
+  fastify.put("/traceability/batch/:id", { schema: { tags: ["Warehouse & Traceability"], summary: "Update Traceability Batch" } }, warehouseController.updateTraceabilityBatch.bind(warehouseController));
+  fastify.delete("/traceability/batch/:id", { schema: { tags: ["Warehouse & Traceability"], summary: "Delete Traceability Batch" } }, warehouseController.deleteTraceabilityBatch.bind(warehouseController));
   fastify.post("/traceability/recall", { schema: { tags: ["Warehouse & Traceability"], summary: "Initiate Mock Recall / Quarantine Hold" } }, warehouseController.simulateRecall.bind(warehouseController));
 
   // Raw Materials Inventory
@@ -99,12 +112,17 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
   // Finished Goods Inventory
   fastify.get("/inventory/finished-goods", { schema: { tags: ["Warehouse & Inventory"], summary: "List Finished Goods Inventory & Staging" } }, warehouseController.getFinishedGoods.bind(warehouseController));
   fastify.get("/finished-goods", { schema: { tags: ["Warehouse & Inventory"], summary: "List Finished Goods Inventory (Alias)" } }, warehouseController.getFinishedGoods.bind(warehouseController));
+  fastify.post("/inventory/finished-goods", { schema: { tags: ["Warehouse & Inventory"], summary: "Create Finished Good Record" } }, warehouseController.createFinishedGood.bind(warehouseController));
+  fastify.put("/inventory/finished-goods/:id", { schema: { tags: ["Warehouse & Inventory"], summary: "Update Finished Good Record" } }, warehouseController.updateFinishedGood.bind(warehouseController));
+  fastify.delete("/inventory/finished-goods/:id", { schema: { tags: ["Warehouse & Inventory"], summary: "Delete Finished Good Record" } }, warehouseController.deleteFinishedGood.bind(warehouseController));
 
   // Outbound Shipping Orders & Logistics
   fastify.get("/shipping/orders", { schema: { tags: ["Warehouse & Shipping"], summary: "List Outbound Shipping Orders & Logistics Manifest" } }, warehouseController.listShipmentOrders.bind(warehouseController));
   fastify.get("/shipping", { schema: { tags: ["Warehouse & Shipping"], summary: "List Outbound Shipping Orders (Alias)" } }, warehouseController.listShipmentOrders.bind(warehouseController));
   fastify.post("/shipping/orders", { schema: { tags: ["Warehouse & Shipping"], summary: "Create Outbound Shipment Order" } }, warehouseController.createShipmentOrder.bind(warehouseController));
   fastify.put("/shipping/orders/:id", { schema: { tags: ["Warehouse & Shipping"], summary: "Update Outbound Shipment Order" } }, warehouseController.updateShipmentOrder.bind(warehouseController));
+  fastify.delete("/shipping/orders/:id", { schema: { tags: ["Warehouse & Shipping"], summary: "Delete Outbound Shipment Order" } }, warehouseController.deleteShipmentOrder.bind(warehouseController));
+  fastify.delete("/shipping/:id", { schema: { tags: ["Warehouse & Shipping"], summary: "Delete Outbound Shipment Order (Alias)" } }, warehouseController.deleteShipmentOrder.bind(warehouseController));
   fastify.post("/shipping/orders/:id/dispatch", { schema: { tags: ["Warehouse & Shipping"], summary: "Dispatch Outbound Shipment" } }, warehouseController.dispatchShipmentOrder.bind(warehouseController));
 
   // Warehouse Picking Lists & Execution

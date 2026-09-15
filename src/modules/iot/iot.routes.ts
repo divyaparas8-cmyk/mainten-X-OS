@@ -27,6 +27,18 @@ export async function iotRoutes(fastify: FastifyInstance) {
     iotController.stream.bind(iotController)
   );
 
+  fastify.options(
+    "/telemetry/stream",
+    async (request, reply) => {
+      const origin = (request.headers.origin as string) || "*";
+      reply.header("Access-Control-Allow-Origin", origin);
+      reply.header("Access-Control-Allow-Credentials", "true");
+      reply.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+      reply.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+      return reply.status(204).send();
+    }
+  );
+
   // 3. Latest Telemetry Snapshot
   fastify.get(
     "/telemetry/latest",

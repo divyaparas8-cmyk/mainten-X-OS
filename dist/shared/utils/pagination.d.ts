@@ -10,7 +10,7 @@ export declare const paginationQuerySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     limit: number;
     page: number;
-    sortOrder: "asc" | "desc";
+    sortOrder: "desc" | "asc";
     status?: string | undefined;
     search?: string | undefined;
     plantId?: string | undefined;
@@ -22,7 +22,7 @@ export declare const paginationQuerySchema: z.ZodObject<{
     limit?: number | undefined;
     page?: number | undefined;
     sortBy?: string | undefined;
-    sortOrder?: "asc" | "desc" | undefined;
+    sortOrder?: "desc" | "asc" | undefined;
 }>;
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 export declare function getPaginationOffset(page: number, limit: number): number;

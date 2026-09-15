@@ -1061,6 +1061,44 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
         }, {}, {
             length: 255;
         }>;
+        type: import("drizzle-orm/pg-core").PgColumn<{
+            name: "type";
+            tableName: "pm_recovery_plans";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 100;
+        }>;
+        status: import("drizzle-orm/pg-core").PgColumn<{
+            name: "status";
+            tableName: "pm_recovery_plans";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 50;
+        }>;
         speedBoostPercent: import("drizzle-orm/pg-core").PgColumn<{
             name: "speed_boost_percent";
             tableName: "pm_recovery_plans";
@@ -1068,8 +1106,8 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgNumeric";
             data: string;
             driverParam: string;
-            notNull: true;
-            hasDefault: false;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1085,8 +1123,8 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgNumeric";
             data: string;
             driverParam: string;
-            notNull: true;
-            hasDefault: false;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1102,8 +1140,8 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgInteger";
             data: number;
             driverParam: string | number;
-            notNull: true;
-            hasDefault: false;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1119,8 +1157,8 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgNumeric";
             data: string;
             driverParam: string;
-            notNull: true;
-            hasDefault: false;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1136,8 +1174,8 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgNumeric";
             data: string;
             driverParam: string;
-            notNull: true;
-            hasDefault: false;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1153,7 +1191,24 @@ export declare const pmRecoveryPlans: import("drizzle-orm/pg-core").PgTableWithC
             columnType: "PgTimestamp";
             data: Date;
             driverParam: string;
-            notNull: true;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "created_at";
+            tableName: "pm_recovery_plans";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: false;
             hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;

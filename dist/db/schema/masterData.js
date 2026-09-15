@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+<<<<<<< HEAD
 exports.labourAllocations = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.departments = exports.companies = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+=======
+exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -114,18 +118,30 @@ exports.criticalityLevels = (0, pg_core_1.pgTable)("criticality_levels", {
 });
 exports.assets = (0, pg_core_1.pgTable)("assets", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }).notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
     lineId: (0, pg_core_1.uuid)("line_id").references(() => exports.productionLines.id, { onDelete: "set null" }),
-    assetCode: (0, pg_core_1.varchar)("asset_code", { length: 100 }).notNull(), // "FM-001"
+    assetId: (0, pg_core_1.varchar)("asset_id", { length: 50 }),
+    assetCode: (0, pg_core_1.varchar)("asset_code", { length: 100 }), // "FM-001"
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(), // "Rotary Filling Machine"
+    type: (0, pg_core_1.varchar)("type", { length: 100 }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 255 }),
+    criticality: (0, pg_core_1.varchar)("criticality", { length: 100 }),
+    criticalLevel: (0, pg_core_1.varchar)("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
     modelNumber: (0, pg_core_1.varchar)("model_number", { length: 100 }),
     manufacturer: (0, pg_core_1.varchar)("manufacturer", { length: 100 }),
-    criticalLevel: (0, pg_core_1.varchar)("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("OPERATIONAL"), // "OPERATIONAL", "BREAKDOWN", "MAINTENANCE"
+    healthScore: (0, pg_core_1.integer)("health_score").default(95),
     healthPercent: (0, pg_core_1.integer)("health_percent").default(92),
+    ratedSpeed: (0, pg_core_1.varchar)("rated_speed", { length: 100 }),
     mtbfHours: (0, pg_core_1.numeric)("mtbf_hours", { precision: 10, scale: 2 }).default("412.5"),
     mttrHours: (0, pg_core_1.numeric)("mttr_hours", { precision: 10, scale: 2 }).default("1.8"),
+    serialNumber: (0, pg_core_1.varchar)("serial_number", { length: 100 }),
+    nameplatePower: (0, pg_core_1.varchar)("nameplate_power", { length: 50 }),
+    warrantyExpiry: (0, pg_core_1.varchar)("warranty_expiry", { length: 50 }),
+    operatingHours: (0, pg_core_1.integer)("operating_hours"),
+    location: (0, pg_core_1.varchar)("location", { length: 100 }),
     installDate: (0, pg_core_1.timestamp)("install_date"),
     lastServiceDate: (0, pg_core_1.timestamp)("last_service_date"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
@@ -146,15 +162,30 @@ exports.staff = (0, pg_core_1.pgTable)("staff", {
 });
 exports.qualitySpecs = (0, pg_core_1.pgTable)("quality_specs", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
-    skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }).notNull(),
-    parameterName: (0, pg_core_1.varchar)("parameter_name", { length: 150 }).notNull(), // "Pasteurization Temperature"
-    targetValue: (0, pg_core_1.numeric)("target_value", { precision: 10, scale: 3 }).notNull(),
-    minTolerance: (0, pg_core_1.numeric)("min_tolerance", { precision: 10, scale: 3 }).notNull(),
-    maxTolerance: (0, pg_core_1.numeric)("max_tolerance", { precision: 10, scale: 3 }).notNull(),
-    uom: (0, pg_core_1.varchar)("uom", { length: 50 }).notNull(), // "°C", "pH", "Brix", "mm"
-    isCCP: (0, pg_core_1.boolean)("is_ccp").default(false).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    skuId: (0, pg_core_1.uuid)("sku_id").references(() => exports.skus.id, { onDelete: "cascade" }),
+    specId: (0, pg_core_1.varchar)("spec_id", { length: 50 }).unique(),
+    specificationTitle: (0, pg_core_1.varchar)("specification_title", { length: 255 }),
+    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 50 }),
+    skuName: (0, pg_core_1.varchar)("sku_name", { length: 255 }),
+    parameter: (0, pg_core_1.varchar)("parameter", { length: 255 }),
+    parameterName: (0, pg_core_1.varchar)("parameter_name", { length: 150 }),
+    target: (0, pg_core_1.varchar)("target", { length: 50 }),
+    targetValue: (0, pg_core_1.numeric)("target_value", { precision: 10, scale: 3 }),
+    min: (0, pg_core_1.varchar)("min", { length: 50 }),
+    minTolerance: (0, pg_core_1.numeric)("min_tolerance", { precision: 10, scale: 3 }),
+    max: (0, pg_core_1.varchar)("max", { length: 50 }),
+    maxTolerance: (0, pg_core_1.numeric)("max_tolerance", { precision: 10, scale: 3 }),
+    uom: (0, pg_core_1.varchar)("uom", { length: 50 }),
+    criticality: (0, pg_core_1.varchar)("criticality", { length: 100 }),
+    isCCP: (0, pg_core_1.boolean)("is_ccp").default(false),
+    criticalLimit: (0, pg_core_1.varchar)("critical_limit", { length: 255 }),
+    testMethod: (0, pg_core_1.varchar)("test_method", { length: 255 }),
+    approvalStatus: (0, pg_core_1.varchar)("approval_status", { length: 50 }).default("Draft"),
+    revision: (0, pg_core_1.varchar)("revision", { length: 50 }).default("Rev 1.0"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
 exports.routings = (0, pg_core_1.pgTable)("routings", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
@@ -206,6 +237,7 @@ exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
+<<<<<<< HEAD
 exports.companies = (0, pg_core_1.pgTable)("companies", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
@@ -224,6 +256,8 @@ exports.departments = (0, pg_core_1.pgTable)("departments", {
     isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 exports.operations = (0, pg_core_1.pgTable)("operations", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     operationCode: (0, pg_core_1.varchar)("operation_code", { length: 50 }).notNull(),
@@ -316,6 +350,7 @@ exports.uoms = (0, pg_core_1.pgTable)("uoms", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
+<<<<<<< HEAD
 exports.labourAllocations = (0, pg_core_1.pgTable)("labour_allocations", {
     id: (0, pg_core_1.varchar)("id", { length: 64 }).primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id"),
@@ -331,5 +366,67 @@ exports.labourAllocations = (0, pg_core_1.pgTable)("labour_allocations", {
     notes: (0, pg_core_1.text)("notes"),
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow(),
+=======
+exports.labourStandards = (0, pg_core_1.pgTable)("labour_standards", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    standardId: (0, pg_core_1.varchar)("standard_id", { length: 50 }),
+    lineId: (0, pg_core_1.varchar)("line_id", { length: 50 }),
+    lineName: (0, pg_core_1.varchar)("line_name", { length: 255 }),
+    standardCrew: (0, pg_core_1.integer)("standard_crew").default(8),
+    stdLaborHoursPer1kUnits: (0, pg_core_1.numeric)("std_labor_hours_per_1k_units", { precision: 10, scale: 2 }).default("2.00"),
+    directCostPerHour: (0, pg_core_1.varchar)("direct_cost_per_hour", { length: 50 }).default("$25.00"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.employeeSkills = (0, pg_core_1.pgTable)("employee_skills", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    employeeId: (0, pg_core_1.varchar)("employee_id", { length: 50 }).notNull().unique(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    email: (0, pg_core_1.varchar)("email", { length: 255 }),
+    department: (0, pg_core_1.varchar)("department", { length: 150 }).default("Production Operations").notNull(),
+    departmentId: (0, pg_core_1.varchar)("department_id", { length: 50 }),
+    role: (0, pg_core_1.varchar)("role", { length: 150 }).default("Line Operator").notNull(),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 150 }).default("Indore Plant"),
+    skillLevel: (0, pg_core_1.varchar)("skill_level", { length: 100 }).default("Level 2 (Certified Operator)").notNull(),
+    skills: (0, pg_core_1.jsonb)("skills").default([]).notNull(),
+    certifications: (0, pg_core_1.jsonb)("certifications").default([]).notNull(),
+    assignedLineIds: (0, pg_core_1.jsonb)("assigned_line_ids").default([]).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.ccpLimits = (0, pg_core_1.pgTable)("ccp_limits", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    ccpNumber: (0, pg_core_1.varchar)("ccp_number", { length: 50 }).notNull().unique(),
+    processStep: (0, pg_core_1.varchar)("process_step", { length: 255 }).notNull(),
+    hazard: (0, pg_core_1.varchar)("hazard", { length: 255 }).notNull(),
+    criticalLimit: (0, pg_core_1.varchar)("critical_limit", { length: 255 }).notNull(),
+    autoDivertAction: (0, pg_core_1.varchar)("auto_divert_action", { length: 255 }).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Critical Mandatory").notNull(),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+});
+exports.storageResources = (0, pg_core_1.pgTable)("storage_resources", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    resourceId: (0, pg_core_1.varchar)("resource_id", { length: 50 }).unique(),
+    resourceCode: (0, pg_core_1.varchar)("resource_code", { length: 50 }).notNull().unique(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    resourceType: (0, pg_core_1.varchar)("resource_type", { length: 100 }).default("Selective Pallet Rack").notNull(),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 50 }).default("PLT-01"),
+    plantName: (0, pg_core_1.varchar)("plant_name", { length: 150 }).default("Indore Plant"),
+    zone: (0, pg_core_1.varchar)("zone", { length: 100 }).default("General Staging"),
+    capacityUnit: (0, pg_core_1.varchar)("capacity_unit", { length: 50 }).default("Pallet Positions"),
+    totalCapacity: (0, pg_core_1.integer)("total_capacity").default(500),
+    capacity: (0, pg_core_1.varchar)("capacity", { length: 100 }).default("500 Pallet Positions"),
+    currentOccupancy: (0, pg_core_1.varchar)("current_occupancy", { length: 100 }).default("0 Pallets (0%)"),
+    temperatureZone: (0, pg_core_1.varchar)("temperature_zone", { length: 100 }).default("Ambient (18°C - 24°C)"),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(),
+    effectiveFrom: (0, pg_core_1.varchar)("effective_from", { length: 50 }).default("2025-01-01"),
+    effectiveTo: (0, pg_core_1.varchar)("effective_to", { length: 50 }).default("2030-12-31"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 });
 //# sourceMappingURL=masterData.js.map

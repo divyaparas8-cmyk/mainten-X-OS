@@ -60,3 +60,28 @@ export const userRoles = pgTable(
     primaryKey({ columns: [table.userId, table.roleId] }),
   ]
 );
+
+export const userInvitations = pgTable("user_invitations", {
+  id: varchar("id", { length: 50 }).primaryKey(), // e.g. "INV-101"
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 255 }).notNull(),
+  role: varchar("role", { length: 255 }).notNull().default("Quality Analyst"),
+  department: varchar("department", { length: 255 }).default("Quality"),
+  invitedBy: varchar("invited_by", { length: 255 }).default("Alexander Vance"),
+  sentDate: varchar("sent_date", { length: 20 }).notNull(), // ISO date string YYYY-MM-DD
+  status: varchar("status", { length: 50 }).default("Pending").notNull(), // "Pending" | "Accepted" | "Revoked"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const approvalRules = pgTable("approval_rules", {
+  id: varchar("id", { length: 50 }).primaryKey(), // e.g. "APR-01"
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  event: varchar("event", { length: 255 }).notNull(),
+  tier: varchar("tier", { length: 100 }).notNull(),
+  authorizedRoles: varchar("authorized_roles", { length: 255 }).notNull(),
+  compliance: varchar("compliance", { length: 150 }),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

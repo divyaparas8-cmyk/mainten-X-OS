@@ -2,6 +2,22 @@ import { FastifyReply, FastifyRequest } from "fastify";
 export declare class MaintenanceController {
     getWorkOrders(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getBreakdowns(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    reportBreakdown(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    resolveBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteBreakdown(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getHistory(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportHistory(request: FastifyRequest<{
         Params: {
@@ -23,16 +39,48 @@ export declare class MaintenanceController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    updateWorkOrder(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteWorkOrder(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getPMSchedules(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createPMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updatePMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deletePMSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     executePMChecklist(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     savePMChecklistDraft(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getPM(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getCalendar(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    markNotificationRead(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    markAllNotificationsRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    clearNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSpareParts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSparePart(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSparePart(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteSparePart(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCalibrations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCalibration(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getReliabilityMetrics(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getRCAInvestigations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createRCAInvestigation(request: FastifyRequest, reply: FastifyReply): Promise<never>;

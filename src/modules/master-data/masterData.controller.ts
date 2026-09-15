@@ -83,7 +83,8 @@ export class MasterDataController {
   // PRODUCTION LINES
   // ==========================================
   async getLines(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
-    const data = await masterDataService.listLines(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+    const filterPlantId = request.query.plantId && request.query.plantId !== "ALL" && request.query.plantId !== "undefined" ? request.query.plantId : undefined;
+    const data = await masterDataService.listLines(request.user?.tenantId, filterPlantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -108,7 +109,8 @@ export class MasterDataController {
   // WORK CENTERS
   // ==========================================
   async getWorkCenters(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
-    const data = await masterDataService.listWorkCenters(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+    const filterPlantId = request.query.plantId && request.query.plantId !== "ALL" && request.query.plantId !== "undefined" ? request.query.plantId : undefined;
+    const data = await masterDataService.listWorkCenters(request.user?.tenantId, filterPlantId);
     return reply.send(formatSuccess(data));
   }
 
@@ -456,12 +458,22 @@ export class MasterDataController {
   }
 
   async updateAsset(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
+<<<<<<< HEAD
     const data = await masterDataService.updateAsset(request.user?.tenantId, request.params.id, request.body);
+=======
+    const id = request.params.id;
+    const data = await masterDataService.updateAsset(request.user?.tenantId, id, request.body);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, "Machine asset updated successfully"));
   }
 
   async deleteAsset(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+<<<<<<< HEAD
     const data = await masterDataService.deleteAsset(request.user?.tenantId, request.params.id);
+=======
+    const id = request.params.id;
+    const data = await masterDataService.deleteAsset(request.user?.tenantId, id);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, "Machine asset deleted successfully"));
   }
 
@@ -486,12 +498,17 @@ export class MasterDataController {
   }
 
   async getQualitySpecs(request: FastifyRequest<{ Querystring: { skuId?: string } }>, reply: FastifyReply) {
+<<<<<<< HEAD
     const data = await masterDataService.listQualitySpecs(request.user?.tenantId, request.query?.skuId);
+=======
+    const data = await masterDataService.listQualitySpecs(request.user?.tenantId);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data));
   }
 
   async createQualitySpec(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
     const data = await masterDataService.createQualitySpec(request.user?.tenantId, request.body);
+<<<<<<< HEAD
     return reply.status(201).send(formatSuccess(data, "Quality specification created successfully"));
   }
 
@@ -503,6 +520,21 @@ export class MasterDataController {
   async deleteQualitySpec(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
     return reply.send(formatSuccess(data, "Quality specification deleted successfully"));
+=======
+    return reply.status(201).send(formatSuccess(data, "Quality parameter specification created successfully"));
+  }
+
+  async updateQualitySpec(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
+    const id = request.params.id;
+    const data = await masterDataService.updateQualitySpec(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Quality parameter specification updated successfully"));
+  }
+
+  async deleteQualitySpec(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const id = request.params.id;
+    const data = await masterDataService.deleteQualitySpec(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Quality parameter specification deleted successfully"));
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   }
 
   // ==========================================
@@ -528,6 +560,81 @@ export class MasterDataController {
     const { id } = request.params;
     const data = await masterDataService.deleteLabourStandard(request.user?.tenantId, id);
     return reply.send(formatSuccess(data, "Labour standard deleted successfully"));
+  }
+
+  // ==========================================
+  // 17. EMPLOYEE SKILLS & QUALIFICATIONS
+  // ==========================================
+  async getEmployeeSkills(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
+    const data = await masterDataService.listEmployeeSkills(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createEmployeeSkill(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createEmployeeSkill(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Employee skill record created successfully"));
+  }
+
+  async updateEmployeeSkill(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateEmployeeSkill(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Employee skill record updated successfully"));
+  }
+
+  async deleteEmployeeSkill(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteEmployeeSkill(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Employee skill record deleted successfully"));
+  }
+
+  // ==========================================
+  // 18. HACCP CCP LIMITS
+  // ==========================================
+  async getCCPLimits(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.listCCPLimits(request.user?.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createCCPLimit(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createCCPLimit(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Critical Control Point limit created successfully"));
+  }
+
+  async updateCCPLimit(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateCCPLimit(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Critical Control Point limit updated successfully"));
+  }
+
+  async deleteCCPLimit(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteCCPLimit(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Critical Control Point limit deleted successfully"));
+  }
+
+  // ==========================================
+  // 19. STORAGE RESOURCES
+  // ==========================================
+  async getStorageResources(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
+    const data = await masterDataService.listStorageResources(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createStorageResource(request: FastifyRequest, reply: FastifyReply) {
+    const data = await masterDataService.createStorageResource(request.user?.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Storage resource created successfully"));
+  }
+
+  async updateStorageResource(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.updateStorageResource(request.user?.tenantId, id, request.body);
+    return reply.send(formatSuccess(data, "Storage resource updated successfully"));
+  }
+
+  async deleteStorageResource(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const { id } = request.params;
+    const data = await masterDataService.deleteStorageResource(request.user?.tenantId, id);
+    return reply.send(formatSuccess(data, "Storage resource deleted successfully"));
   }
 }
 

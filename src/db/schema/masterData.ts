@@ -121,18 +121,30 @@ export const criticalityLevels = pgTable("criticality_levels", {
 
 export const assets = pgTable("assets", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
-  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }).notNull(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }),
   lineId: uuid("line_id").references(() => productionLines.id, { onDelete: "set null" }),
-  assetCode: varchar("asset_code", { length: 100 }).notNull(), // "FM-001"
-  name: varchar("name", { length: 255 }).notNull(),            // "Rotary Filling Machine"
+  assetId: varchar("asset_id", { length: 50 }),
+  assetCode: varchar("asset_code", { length: 100 }), // "FM-001"
+  name: varchar("name", { length: 255 }).notNull(),  // "Rotary Filling Machine"
+  type: varchar("type", { length: 100 }),
+  lineName: varchar("line_name", { length: 255 }),
+  plantName: varchar("plant_name", { length: 255 }),
+  criticality: varchar("criticality", { length: 100 }),
+  criticalLevel: varchar("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
   modelNumber: varchar("model_number", { length: 100 }),
   manufacturer: varchar("manufacturer", { length: 100 }),
-  criticalLevel: varchar("critical_level", { length: 50 }).default("CRITICAL_P1"), // "CRITICAL_P1", "IMPORTANT_P2", "NORMAL_P3"
   status: varchar("status", { length: 50 }).default("OPERATIONAL"),               // "OPERATIONAL", "BREAKDOWN", "MAINTENANCE"
+  healthScore: integer("health_score").default(95),
   healthPercent: integer("health_percent").default(92),
+  ratedSpeed: varchar("rated_speed", { length: 100 }),
   mtbfHours: numeric("mtbf_hours", { precision: 10, scale: 2 }).default("412.5"),
   mttrHours: numeric("mttr_hours", { precision: 10, scale: 2 }).default("1.8"),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  nameplatePower: varchar("nameplate_power", { length: 50 }),
+  warrantyExpiry: varchar("warranty_expiry", { length: 50 }),
+  operatingHours: integer("operating_hours"),
+  location: varchar("location", { length: 100 }),
   installDate: timestamp("install_date"),
   lastServiceDate: timestamp("last_service_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -155,15 +167,30 @@ export const staff = pgTable("staff", {
 
 export const qualitySpecs = pgTable("quality_specs", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
-  skuId: uuid("sku_id").references(() => skus.id, { onDelete: "cascade" }).notNull(),
-  parameterName: varchar("parameter_name", { length: 150 }).notNull(), // "Pasteurization Temperature"
-  targetValue: numeric("target_value", { precision: 10, scale: 3 }).notNull(),
-  minTolerance: numeric("min_tolerance", { precision: 10, scale: 3 }).notNull(),
-  maxTolerance: numeric("max_tolerance", { precision: 10, scale: 3 }).notNull(),
-  uom: varchar("uom", { length: 50 }).notNull(), // "°C", "pH", "Brix", "mm"
-  isCCP: boolean("is_ccp").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  skuId: uuid("sku_id").references(() => skus.id, { onDelete: "cascade" }),
+  specId: varchar("spec_id", { length: 50 }).unique(),
+  specificationTitle: varchar("specification_title", { length: 255 }),
+  skuCode: varchar("sku_code", { length: 50 }),
+  skuName: varchar("sku_name", { length: 255 }),
+  parameter: varchar("parameter", { length: 255 }),
+  parameterName: varchar("parameter_name", { length: 150 }),
+  target: varchar("target", { length: 50 }),
+  targetValue: numeric("target_value", { precision: 10, scale: 3 }),
+  min: varchar("min", { length: 50 }),
+  minTolerance: numeric("min_tolerance", { precision: 10, scale: 3 }),
+  max: varchar("max", { length: 50 }),
+  maxTolerance: numeric("max_tolerance", { precision: 10, scale: 3 }),
+  uom: varchar("uom", { length: 50 }),
+  criticality: varchar("criticality", { length: 100 }),
+  isCCP: boolean("is_ccp").default(false),
+  criticalLimit: varchar("critical_limit", { length: 255 }),
+  testMethod: varchar("test_method", { length: 255 }),
+  approvalStatus: varchar("approval_status", { length: 50 }).default("Draft"),
+  revision: varchar("revision", { length: 50 }).default("Rev 1.0"),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const routings = pgTable("routings", {
@@ -219,26 +246,6 @@ export const changeoverRules = pgTable("changeover_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const companies = pgTable("companies", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 50 }),
-  industry: varchar("industry", { length: 100 }),
-  status: varchar("status", { length: 50 }).default("Active"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const departments = pgTable("departments", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  code: varchar("code", { length: 50 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  managerName: varchar("manager_name", { length: 255 }),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const operations = pgTable("operations", {
   id: uuid("id").defaultRandom().primaryKey(),
   operationCode: varchar("operation_code", { length: 50 }).notNull(),
@@ -270,7 +277,6 @@ export const lineTargets = pgTable("line_targets", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
 export const packaging = pgTable("packaging", {
   id: uuid("id").defaultRandom().primaryKey(),
   packCode: varchar("pack_code", { length: 50 }).notNull(),
@@ -337,6 +343,7 @@ export const uoms = pgTable("uoms", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+<<<<<<< HEAD
 export const labourAllocations = pgTable("labour_allocations", {
   id: varchar("id", { length: 64 }).primaryKey(),
   tenantId: uuid("tenant_id"),
@@ -355,4 +362,70 @@ export const labourAllocations = pgTable("labour_allocations", {
 });
 
 
+=======
+export const labourStandards = pgTable("labour_standards", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  standardId: varchar("standard_id", { length: 50 }),
+  lineId: varchar("line_id", { length: 50 }),
+  lineName: varchar("line_name", { length: 255 }),
+  standardCrew: integer("standard_crew").default(8),
+  stdLaborHoursPer1kUnits: numeric("std_labor_hours_per_1k_units", { precision: 10, scale: 2 }).default("2.00"),
+  directCostPerHour: varchar("direct_cost_per_hour", { length: 50 }).default("$25.00"),
+  status: varchar("status", { length: 50 }).default("Active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const employeeSkills = pgTable("employee_skills", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  employeeId: varchar("employee_id", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }),
+  department: varchar("department", { length: 150 }).default("Production Operations").notNull(),
+  departmentId: varchar("department_id", { length: 50 }),
+  role: varchar("role", { length: 150 }).default("Line Operator").notNull(),
+  plantId: varchar("plant_id", { length: 50 }).default("PLT-01"),
+  plantName: varchar("plant_name", { length: 150 }).default("Indore Plant"),
+  skillLevel: varchar("skill_level", { length: 100 }).default("Level 2 (Certified Operator)").notNull(),
+  skills: jsonb("skills").default([]).notNull(),
+  certifications: jsonb("certifications").default([]).notNull(),
+  assignedLineIds: jsonb("assigned_line_ids").default([]).notNull(),
+  status: varchar("status", { length: 50 }).default("Active").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const ccpLimits = pgTable("ccp_limits", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ccpNumber: varchar("ccp_number", { length: 50 }).notNull().unique(),
+  processStep: varchar("process_step", { length: 255 }).notNull(),
+  hazard: varchar("hazard", { length: 255 }).notNull(),
+  criticalLimit: varchar("critical_limit", { length: 255 }).notNull(),
+  autoDivertAction: varchar("auto_divert_action", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).default("Critical Mandatory").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const storageResources = pgTable("storage_resources", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  resourceId: varchar("resource_id", { length: 50 }).unique(),
+  resourceCode: varchar("resource_code", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  resourceType: varchar("resource_type", { length: 100 }).default("Selective Pallet Rack").notNull(),
+  plantId: varchar("plant_id", { length: 50 }).default("PLT-01"),
+  plantName: varchar("plant_name", { length: 150 }).default("Indore Plant"),
+  zone: varchar("zone", { length: 100 }).default("General Staging"),
+  capacityUnit: varchar("capacity_unit", { length: 50 }).default("Pallet Positions"),
+  totalCapacity: integer("total_capacity").default(500),
+  capacity: varchar("capacity", { length: 100 }).default("500 Pallet Positions"),
+  currentOccupancy: varchar("current_occupancy", { length: 100 }).default("0 Pallets (0%)"),
+  temperatureZone: varchar("temperature_zone", { length: 100 }).default("Ambient (18°C - 24°C)"),
+  status: varchar("status", { length: 50 }).default("Active").notNull(),
+  effectiveFrom: varchar("effective_from", { length: 50 }).default("2025-01-01"),
+  effectiveTo: varchar("effective_to", { length: 50 }).default("2030-12-31"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 

@@ -72,7 +72,8 @@ class MasterDataController {
     // PRODUCTION LINES
     // ==========================================
     async getLines(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.listLines(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+        const filterPlantId = request.query.plantId && request.query.plantId !== "ALL" && request.query.plantId !== "undefined" ? request.query.plantId : undefined;
+        const data = await masterData_service_js_1.masterDataService.listLines(request.user?.tenantId, filterPlantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createLine(request, reply) {
@@ -93,7 +94,8 @@ class MasterDataController {
     // WORK CENTERS
     // ==========================================
     async getWorkCenters(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.listWorkCenters(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+        const filterPlantId = request.query.plantId && request.query.plantId !== "ALL" && request.query.plantId !== "undefined" ? request.query.plantId : undefined;
+        const data = await masterData_service_js_1.masterDataService.listWorkCenters(request.user?.tenantId, filterPlantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createWorkCenter(request, reply) {
@@ -382,11 +384,21 @@ class MasterDataController {
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset created successfully"));
     }
     async updateAsset(request, reply) {
+<<<<<<< HEAD
         const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, request.params.id, request.body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset updated successfully"));
     }
     async deleteAsset(request, reply) {
         const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, request.params.id);
+=======
+        const id = request.params.id;
+        const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset updated successfully"));
+    }
+    async deleteAsset(request, reply) {
+        const id = request.params.id;
+        const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, id);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset deleted successfully"));
     }
     async getStaff(request, reply) {
@@ -411,6 +423,7 @@ class MasterDataController {
     }
     async createQualitySpec(request, reply) {
         const data = await masterData_service_js_1.masterDataService.createQualitySpec(request.user?.tenantId, request.body);
+<<<<<<< HEAD
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification created successfully"));
     }
     async updateQualitySpec(request, reply) {
@@ -420,6 +433,19 @@ class MasterDataController {
     async deleteQualitySpec(request, reply) {
         const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification deleted successfully"));
+=======
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification created successfully"));
+    }
+    async updateQualitySpec(request, reply) {
+        const id = request.params.id;
+        const data = await masterData_service_js_1.masterDataService.updateQualitySpec(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification updated successfully"));
+    }
+    async deleteQualitySpec(request, reply) {
+        const id = request.params.id;
+        const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification deleted successfully"));
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     // ==========================================
     // 15. LABOUR STANDARDS
@@ -441,6 +467,69 @@ class MasterDataController {
         const { id } = request.params;
         const data = await masterData_service_js_1.masterDataService.deleteLabourStandard(request.user?.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Labour standard deleted successfully"));
+    }
+    // ==========================================
+    // 17. EMPLOYEE SKILLS & QUALIFICATIONS
+    // ==========================================
+    async getEmployeeSkills(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listEmployeeSkills(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createEmployeeSkill(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createEmployeeSkill(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Employee skill record created successfully"));
+    }
+    async updateEmployeeSkill(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateEmployeeSkill(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Employee skill record updated successfully"));
+    }
+    async deleteEmployeeSkill(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteEmployeeSkill(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Employee skill record deleted successfully"));
+    }
+    // ==========================================
+    // 18. HACCP CCP LIMITS
+    // ==========================================
+    async getCCPLimits(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listCCPLimits(request.user?.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createCCPLimit(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createCCPLimit(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Critical Control Point limit created successfully"));
+    }
+    async updateCCPLimit(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateCCPLimit(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Critical Control Point limit updated successfully"));
+    }
+    async deleteCCPLimit(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteCCPLimit(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Critical Control Point limit deleted successfully"));
+    }
+    // ==========================================
+    // 19. STORAGE RESOURCES
+    // ==========================================
+    async getStorageResources(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.listStorageResources(request.user?.tenantId, request.query.plantId || request.user?.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createStorageResource(request, reply) {
+        const data = await masterData_service_js_1.masterDataService.createStorageResource(request.user?.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Storage resource created successfully"));
+    }
+    async updateStorageResource(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.updateStorageResource(request.user?.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Storage resource updated successfully"));
+    }
+    async deleteStorageResource(request, reply) {
+        const { id } = request.params;
+        const data = await masterData_service_js_1.masterDataService.deleteStorageResource(request.user?.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Storage resource deleted successfully"));
     }
 }
 exports.MasterDataController = MasterDataController;

@@ -111,16 +111,16 @@ export declare const logDowntimeSchema: z.ZodObject<{
     reasonCode: string;
     durationMinutes: number;
     comments?: string | undefined;
-    orderId?: string | undefined;
     assetId?: string | undefined;
+    orderId?: string | undefined;
 }, {
     lineId: string;
     reasonCode: string;
     durationMinutes: number;
     comments?: string | undefined;
     category?: string | undefined;
-    orderId?: string | undefined;
     assetId?: string | undefined;
+    orderId?: string | undefined;
 }>;
 export type LogDowntimeInput = z.infer<typeof logDowntimeSchema>;
 //# sourceMappingURL=production.schema.d.ts.map

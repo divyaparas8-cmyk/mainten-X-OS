@@ -34,6 +34,7 @@ export declare class QualityService {
         criticalLimitMax: string | null;
         checkedAt: Date;
     }>;
+<<<<<<< HEAD
     listQaReleaseQueue(tenantId: string): Promise<any[]>;
     getQaReleaseMetrics(tenantId: string): Promise<{
         pendingBatchesCount: number;
@@ -45,6 +46,88 @@ export declare class QualityService {
             badge: string;
             subtitle: string;
         };
+=======
+    listQaReleaseQueue(tenantId: string): Promise<{
+        status: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        tenantId: string;
+        plantId: string;
+        uom: string;
+        skuId: string;
+        productionOrderId: string;
+        batchNumber: string;
+        recipeVersion: string;
+        tankNumber: string | null;
+        targetVolume: string;
+        actualVolume: string | null;
+        currentStep: number;
+        progressPercent: number;
+        startedAt: Date | null;
+        completedAt: Date | null;
+        sku: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            isActive: boolean;
+            plantId: string | null;
+            skuCode: string;
+            category: string;
+            familyId: string | null;
+            uom: string;
+            barcode: string | null;
+            standardCost: string | null;
+            shelfLifeDays: number | null;
+            minStockLevel: string | null;
+            maxStockLevel: string | null;
+        };
+        steps: {
+            status: string;
+            parameters: unknown;
+            id: string;
+            notes: string | null;
+            startedAt: Date | null;
+            completedAt: Date | null;
+            batchId: string;
+            stepNumber: number;
+            stepName: string;
+            operatorId: string | null;
+            verifiedBy: string | null;
+        }[];
+        ccpChecks: {
+            status: string;
+            id: string;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            lineId: string;
+            targetValue: string;
+            notes: string | null;
+            batchId: string;
+            operatorId: string;
+            verifiedBy: string | null;
+            ccpCode: string;
+            ccpName: string;
+            actualValue: string;
+            criticalLimitMin: string | null;
+            criticalLimitMax: string | null;
+            checkedAt: Date;
+        }[];
+    }[]>;
+    getQaReleaseMetrics(tenantId: string): Promise<{
+        pendingBatchesCount: number;
+        ccpClearances: {
+            rate: string;
+            rawRate: number;
+            passedCount: number;
+            totalCount: number;
+            badge: string;
+            subtitle: string;
+        };
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         qaCycleTime: {
             time: string;
             badge: string;
@@ -58,7 +141,7 @@ export declare class QualityService {
         comments: string | null;
         batchId: string;
         disposition: string;
-        dispositionBy: string;
+        dispositionBy: string | null;
         digitalSignaturePinUsed: boolean;
         certificateOfAnalysisUrl: string | null;
         coaMetadata: unknown;
@@ -964,12 +1047,21 @@ export declare class QualityService {
             plantId: string | null;
             category: string;
             lineId: string | null;
+<<<<<<< HEAD
             notes: string | null;
             lineName: string | null;
             batchNumber: string | null;
             batchId: string | null;
             spec: string;
             criticality: string;
+=======
+            lineName: string | null;
+            criticality: string;
+            notes: string | null;
+            batchNumber: string | null;
+            batchId: string | null;
+            spec: string;
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
             passed: boolean | null;
             inspectorName: string | null;
         };

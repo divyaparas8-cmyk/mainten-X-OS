@@ -1,12 +1,20 @@
 import { buildApp } from "./app.js";
 import { env } from "./config/env.js";
 import { checkDatabaseConnection } from "./config/database.js";
+import { migrateIntegrations } from "./migrate-integrations.js";
 
 async function start() {
   const app = await buildApp();
 
   // Check database connection
   await checkDatabaseConnection();
+
+  // Ensure third-party & IoT schema migrations (e.g. machine_telemetry, iot_gateways) are applied
+  try {
+    await migrateIntegrations();
+  } catch (err: any) {
+    console.warn("⚠️ Integrations auto-migration check warning:", err.message);
+  }
 
   try {
     const address = await app.listen({

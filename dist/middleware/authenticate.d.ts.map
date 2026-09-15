@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"version":3,"file":"authenticate.d.ts","sourceRoot":"","sources":["../../src/middleware/authenticate.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,SAAS,CAAC;AAKvD,wBAAsB,YAAY,CAAC,OAAO,EAAE,cAAc,EAAE,MAAM,EAAE,YAAY,iBA2E/E"}
+=======
+{"version":3,"file":"authenticate.d.ts","sourceRoot":"","sources":["../../src/middleware/authenticate.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,SAAS,CAAC;AAKvD,wBAAsB,YAAY,CAAC,OAAO,EAAE,cAAc,EAAE,MAAM,EAAE,YAAY,iBAyG/E"}
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2

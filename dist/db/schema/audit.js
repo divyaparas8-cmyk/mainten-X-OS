@@ -22,7 +22,7 @@ exports.digitalSignatures = (0, pg_core_1.pgTable)("digital_signatures", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
     plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "set null" }),
-    userId: (0, pg_core_1.uuid)("user_id").references(() => users_1.users.id, { onDelete: "restrict" }).notNull(),
+    userId: (0, pg_core_1.uuid)("user_id").references(() => users_1.users.id, { onDelete: "cascade" }).notNull(),
     entityType: (0, pg_core_1.varchar)("entity_type", { length: 100 }).notNull(),
     entityId: (0, pg_core_1.varchar)("entity_id", { length: 255 }).notNull(),
     meaning: (0, pg_core_1.varchar)("meaning", { length: 255 }).notNull(), // "Author of Batch Record", "QA Release Disposition"

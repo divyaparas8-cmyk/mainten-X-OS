@@ -73,6 +73,12 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async deleteHbRecord(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteHbRecord(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async recalculateCatchUp(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
     const data = await dashboardsService.recalculateCatchUp(request.user.tenantId, body);
@@ -108,6 +114,18 @@ export class DashboardsController {
     const body = (request.body as any) || {};
     const data = await dashboardsService.dispatchTech(request.user.tenantId, id, body);
     return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async resolveDowntime(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.resolveDowntime(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async deleteDowntimeLog(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteDowntimeLog(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
   }
 
   // ─── Changeover Control ───────────────────────────────────────────────────────
@@ -508,6 +526,11 @@ export class DashboardsController {
     return reply.send(formatSuccess(data));
   }
 
+  async createSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply) {
+    const data = await dashboardsService.createSupervisorDeptSchedule(request.user.tenantId, request.body);
+    return reply.code(201).send(formatSuccess(data, "Production Run Schedule saved to PostgreSQL database"));
+  }
+
   async resequenceSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.resequenceSupervisorDeptSchedule(request.user.tenantId);
     return reply.send(formatSuccess(data, data.message));
@@ -561,6 +584,12 @@ export class DashboardsController {
     const { id } = request.params as { id: string };
     const body = (request.body as any) || {};
     const data = await dashboardsService.assignSupervisorWorkforceTraining(request.user.tenantId, id, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async deleteSupervisorWorkforceEmployee(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteSupervisorWorkforceEmployee(request.user.tenantId, id);
     return reply.send(formatSuccess(data, data.message));
   }
 
@@ -684,6 +713,12 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async deleteSupervisorStaffing(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteSupervisorStaffing(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   // ─── Operations Supervisor Production Performance ──────────────────────────
   async setSupervisorProductionSpeedLimit(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
@@ -696,10 +731,22 @@ export class DashboardsController {
     return reply.send(formatSuccess(data));
   }
 
+  async updateSupervisorProductionRun(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.updateSupervisorProductionRun(request.user.tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   // ─── Operations Supervisor Quality Quarantine Holds ─────────────────────────
   async getSupervisorHolds(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getSupervisorHolds(request.user.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  async createSupervisorHold(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.createSupervisorHold(request.user.tenantId, body);
+    return reply.code(201).send(formatSuccess(data, data.message));
   }
 
   async addSupervisorHoldNote(request: FastifyRequest, reply: FastifyReply) {
@@ -746,6 +793,18 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async createSupervisorRecoveryCountermeasure(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.createSupervisorRecoveryCountermeasure(request.user.tenantId, body);
+    return reply.status(201).send(formatSuccess(data.data, data.message));
+  }
+
+  async deleteSupervisorRecoveryCountermeasure(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteSupervisorRecoveryCountermeasure(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   // ─── Operations Supervisor Pending Shift Approvals ─────────────────────────
   async getSupervisorApprovals(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getSupervisorApprovals(request.user.tenantId);
@@ -776,10 +835,32 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async createSupervisorApproval(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.createSupervisorApproval(request.user.tenantId, body);
+    return reply.status(201).send(formatSuccess(data.data, data.message));
+  }
+
+  async deleteSupervisorApproval(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteSupervisorApproval(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   // ─── Operations Supervisor Reports ─────────────────────────────────────────
   async getSupervisorReportsList(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getSupervisorReportsList(request.user.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  async createSupervisorReport(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.createSupervisorReport(
+      request.user.tenantId,
+      request.user.userId,
+      body
+    );
+    return reply.code(201).send(formatSuccess(data.report, data.message));
   }
 
   async printSupervisorReport(request: FastifyRequest, reply: FastifyReply) {
@@ -816,14 +897,21 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async createSupervisorNotification(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.createSupervisorNotification(request.user.tenantId, body);
+    return reply.status(201).send(formatSuccess(data, data.message));
+  }
+
   // ─── Operations Supervisor Profile ───────────────────────────────────────
   async getSupervisorProfile(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getSupervisorProfile(request.user.tenantId);
+    const data = await dashboardsService.getSupervisorProfile(request.user.tenantId, request.user.userId);
     return reply.send(formatSuccess(data));
   }
 
   async updateSupervisorProfile(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
+<<<<<<< HEAD
     const data = await dashboardsService.updateSupervisorProfile(request.user?.tenantId, body);
     return reply.send(formatSuccess(data, data.message));
   }
@@ -852,6 +940,9 @@ export class DashboardsController {
   async deleteLabourAllocation(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
     const data = await dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
+=======
+    const data = await dashboardsService.updateSupervisorProfile(request.user.tenantId, request.user.userId, body);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return reply.send(formatSuccess(data, data.message));
   }
 }

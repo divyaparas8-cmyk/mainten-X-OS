@@ -27,9 +27,9 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -43,9 +43,9 @@ declare const customerOrderBaseSchema: z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
@@ -76,9 +76,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -92,9 +92,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>, {
     quantity: number;
@@ -108,9 +108,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     customerName?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     quantity: number;
@@ -124,9 +124,9 @@ export declare const createCustomerOrderSchema: z.ZodEffects<z.ZodObject<{
     priority?: unknown;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export type CreateCustomerOrderInput = z.infer<typeof customerOrderBaseSchema>;
@@ -158,9 +158,9 @@ export declare const updateCustomerOrderSchema: z.ZodObject<{
     priority?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }, {
     status?: string | undefined;
@@ -174,9 +174,9 @@ export declare const updateCustomerOrderSchema: z.ZodObject<{
     priority?: string | undefined;
     requestedDate?: string | undefined;
     deliveryAddress?: string | undefined;
+    productName?: string | undefined;
     customer?: string | undefined;
     productCode?: string | undefined;
-    productName?: string | undefined;
     requestedShipDate?: string | undefined;
 }>;
 export type UpdateCustomerOrderInput = z.infer<typeof updateCustomerOrderSchema>;
@@ -193,6 +193,7 @@ export declare const createForecastSchema: z.ZodObject<{
     method: z.ZodOptional<z.ZodString>;
     modelType: z.ZodOptional<z.ZodString>;
     reason: z.ZodOptional<z.ZodString>;
+    justification: z.ZodOptional<z.ZodString>;
     owner: z.ZodOptional<z.ZodString>;
     status: z.ZodDefault<z.ZodString>;
     plantId: z.ZodOptional<z.ZodString>;
@@ -208,10 +209,15 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
+<<<<<<< HEAD
     productCode?: string | undefined;
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
+    productCode?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
+    justification?: string | undefined;
 }, {
     status?: string | undefined;
     method?: string | undefined;
@@ -224,10 +230,15 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
+<<<<<<< HEAD
     productCode?: string | undefined;
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
+    productCode?: string | undefined;
     historicalDemand?: number | undefined;
     baselineForecast?: number | undefined;
+    justification?: string | undefined;
 }>;
 export type CreateForecastInput = z.infer<typeof createForecastSchema>;
 export declare const updateForecastSchema: z.ZodObject<{
@@ -239,6 +250,7 @@ export declare const updateForecastSchema: z.ZodObject<{
     finalForecast: z.ZodOptional<z.ZodNumber>;
     method: z.ZodOptional<z.ZodString>;
     reason: z.ZodOptional<z.ZodString>;
+    justification: z.ZodOptional<z.ZodString>;
     owner: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
@@ -252,6 +264,7 @@ export declare const updateForecastSchema: z.ZodObject<{
     owner?: string | undefined;
     reason?: string | undefined;
     baselineForecast?: number | undefined;
+    justification?: string | undefined;
 }, {
     status?: string | undefined;
     method?: string | undefined;
@@ -263,6 +276,7 @@ export declare const updateForecastSchema: z.ZodObject<{
     owner?: string | undefined;
     reason?: string | undefined;
     baselineForecast?: number | undefined;
+    justification?: string | undefined;
 }>;
 export type UpdateForecastInput = z.infer<typeof updateForecastSchema>;
 export declare const runForecastSchema: z.ZodObject<{
@@ -307,8 +321,8 @@ export declare const createPromotionSchema: z.ZodObject<{
     startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
 }, {
     status?: string | undefined;
     title?: string | undefined;
@@ -318,25 +332,46 @@ export declare const createPromotionSchema: z.ZodObject<{
     startDate?: string | undefined;
     endDate?: string | undefined;
     channel?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     projectedUnits?: number | undefined;
 }>;
 export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
 export declare const updatePromotionSchema: z.ZodObject<{
     title: z.ZodOptional<z.ZodString>;
+    name: z.ZodOptional<z.ZodString>;
+    skuId: z.ZodOptional<z.ZodString>;
+    duration: z.ZodOptional<z.ZodString>;
+    channel: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodString>;
     upliftPercent: z.ZodOptional<z.ZodNumber>;
     projectedUnits: z.ZodOptional<z.ZodNumber>;
+    incrementalUnits: z.ZodOptional<z.ZodNumber>;
+    startDate: z.ZodOptional<z.ZodString>;
+    endDate: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status?: string | undefined;
     title?: string | undefined;
+    name?: string | undefined;
+    skuId?: string | undefined;
     upliftPercent?: number | undefined;
+    incrementalUnits?: number | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
+    channel?: string | undefined;
+    duration?: string | undefined;
     projectedUnits?: number | undefined;
 }, {
     status?: string | undefined;
     title?: string | undefined;
+    name?: string | undefined;
+    skuId?: string | undefined;
     upliftPercent?: number | undefined;
+    incrementalUnits?: number | undefined;
+    startDate?: string | undefined;
+    endDate?: string | undefined;
+    channel?: string | undefined;
+    duration?: string | undefined;
     projectedUnits?: number | undefined;
 }>;
 export type UpdatePromotionInput = z.infer<typeof updatePromotionSchema>;
@@ -371,8 +406,8 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     shiftId?: string | undefined;
     orderId?: string | undefined;
     productionOrderId?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     scheduleId?: string | undefined;
 }, {
     startTime: string;
@@ -387,8 +422,8 @@ export declare const createApsScheduleSchema: z.ZodObject<{
     changeoverMinutes?: number | undefined;
     cipRequired?: boolean | undefined;
     productionOrderId?: string | undefined;
-    productCode?: string | undefined;
     productName?: string | undefined;
+    productCode?: string | undefined;
     scheduleId?: string | undefined;
     runRate?: number | undefined;
 }>;
@@ -495,6 +530,56 @@ export declare const runMrpEngineSchema: z.ZodObject<{
     productId?: string | undefined;
 }>;
 export type RunMrpEngineInput = z.infer<typeof runMrpEngineSchema>;
+export declare const updateMrpRequirementSchema: z.ZodObject<{
+    grossRequirement: z.ZodOptional<z.ZodNumber>;
+    grossDemand: z.ZodOptional<z.ZodNumber>;
+    safetyStock: z.ZodOptional<z.ZodNumber>;
+    availableStock: z.ZodOptional<z.ZodNumber>;
+    reservedStock: z.ZodOptional<z.ZodNumber>;
+    scheduledReceipts: z.ZodOptional<z.ZodNumber>;
+    inboundSupply: z.ZodOptional<z.ZodNumber>;
+    netShortage: z.ZodOptional<z.ZodNumber>;
+    netRequirement: z.ZodOptional<z.ZodNumber>;
+    status: z.ZodOptional<z.ZodString>;
+    riskLevel: z.ZodOptional<z.ZodString>;
+    suggestedAction: z.ZodOptional<z.ZodString>;
+    materialName: z.ZodOptional<z.ZodString>;
+    name: z.ZodOptional<z.ZodString>;
+    category: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    status?: string | undefined;
+    name?: string | undefined;
+    category?: string | undefined;
+    riskLevel?: string | undefined;
+    materialName?: string | undefined;
+    grossRequirement?: number | undefined;
+    safetyStock?: number | undefined;
+    availableStock?: number | undefined;
+    reservedStock?: number | undefined;
+    scheduledReceipts?: number | undefined;
+    netShortage?: number | undefined;
+    suggestedAction?: string | undefined;
+    grossDemand?: number | undefined;
+    inboundSupply?: number | undefined;
+    netRequirement?: number | undefined;
+}, {
+    status?: string | undefined;
+    name?: string | undefined;
+    category?: string | undefined;
+    riskLevel?: string | undefined;
+    materialName?: string | undefined;
+    grossRequirement?: number | undefined;
+    safetyStock?: number | undefined;
+    availableStock?: number | undefined;
+    reservedStock?: number | undefined;
+    scheduledReceipts?: number | undefined;
+    netShortage?: number | undefined;
+    suggestedAction?: string | undefined;
+    grossDemand?: number | undefined;
+    inboundSupply?: number | undefined;
+    netRequirement?: number | undefined;
+}>;
+export type UpdateMrpRequirementInput = z.infer<typeof updateMrpRequirementSchema>;
 export declare const createPurchaseRequisitionSchema: z.ZodObject<{
     skuId: z.ZodOptional<z.ZodString>;
     skuCode: z.ZodOptional<z.ZodString>;

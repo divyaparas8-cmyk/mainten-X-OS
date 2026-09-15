@@ -3276,6 +3276,7 @@ export class MasterDataService {
 
   async listAssets(tenantId: string | undefined, plantId?: string) {
     try {
+<<<<<<< HEAD
       let query = sql`SELECT * FROM public.assets`;
       if (plantId && plantId !== "ALL") {
         query = sql`SELECT * FROM public.assets WHERE (plant_id IS NULL OR plant_id::text = ${plantId})`;
@@ -3298,11 +3299,84 @@ export class MasterDataService {
       }));
     } catch (e: any) {
       console.warn("DB listAssets error:", e.message);
+=======
+      const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+      const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
+      let rows: any[];
+      if (isUuid) {
+        rows = await db.select().from(assets).where(and(eq(assets.tenantId, tId), eq(assets.plantId, plantId))).orderBy(desc(assets.createdAt));
+      } else {
+        rows = await db.select().from(assets).where(eq(assets.tenantId, tId)).orderBy(desc(assets.createdAt));
+      }
+
+      if (!rows || rows.length === 0) {
+        rows = await db.select().from(assets).orderBy(desc(assets.createdAt));
+      }
+
+      const linesList = await db.select({ id: productionLines.id, name: productionLines.name, code: productionLines.code }).from(productionLines);
+      const lineMap = new Map<string, string>();
+      linesList.forEach(l => {
+        lineMap.set(l.id, l.name);
+      });
+
+      const plantsList = await db.select({ id: plants.id, name: plants.name, code: plants.code }).from(plants);
+      const plantMap = new Map<string, string>();
+      plantsList.forEach(p => {
+        plantMap.set(p.id, p.name);
+      });
+
+      return rows.map((r) => {
+        const plantName = (r.plantId && plantMap.get(r.plantId)) || "Indore Mega Bottling & Canning Facility";
+        const lineName = (r.lineId && lineMap.get(r.lineId)) || "Line 1 Bottling & Canning (250 BPM)";
+        const rawStatus = (r.status || "Operational").trim();
+        const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+        const rawCrit = (r.criticalLevel || "Medium").replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "");
+        const criticality = rawCrit.charAt(0).toUpperCase() + rawCrit.slice(1).toLowerCase();
+
+        return {
+          id: r.assetCode || r.id,
+          assetId: r.assetCode || `AST-${String(r.id).substring(0, 4)}`,
+          assetCode: r.assetCode,
+          dbId: r.id,
+          name: r.name,
+          type: r.modelNumber || "Packaging & Bottling",
+          department: r.department || "Packaging",
+          plant: plantName,
+          plantId: r.plantId ? String(r.plantId) : "",
+          line: lineName,
+          lineId: r.lineId ? String(r.lineId) : null,
+          location: r.location || "Bay 4A",
+          status: formattedStatus,
+          health: Number(r.healthPercent) ?? 100,
+          healthScore: Number(r.healthPercent) ?? 100,
+          criticality: criticality || "Medium",
+          mtbf: Number(r.mtbfHours) || 0,
+          mttr: Number(r.mttrHours) || 0,
+          vibration: null,
+          temperature: null,
+          manufacturer: r.manufacturer || "Krones AG",
+          model: r.modelNumber || null,
+          serialNumber: r.serialNumber || (r.assetCode ? `SN-${r.assetCode}` : null),
+          nameplatePower: r.nameplatePower || null,
+          ratedSpeed: r.ratedSpeed || null,
+          warrantyExpiry: r.warrantyExpiry || null,
+          runtimeHours: r.operatingHours || null,
+          operatingHours: r.operatingHours || null,
+          commissionDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : null,
+          installedDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : null,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        };
+      });
+    } catch (err: any) {
+      console.error("listAssets error:", err.message);
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
       return [];
     }
   }
 
   async createAsset(tenantId: string | undefined, input: any) {
+<<<<<<< HEAD
     try {
       let resolvedTenantId = tenantId;
       if (!resolvedTenantId) {
@@ -3314,6 +3388,26 @@ export class MasterDataService {
       let code = input.assetCode || input.assetId;
       const isAutoFormat = !code || code.startsWith("AST-00") || code.startsWith("AST-");
       if (isAutoFormat) {
+=======
+    const tId = tenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+    let plantId = input.plantId;
+    if (!plantId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
+      const p = await db.select({ id: plants.id }).from(plants).limit(1);
+      plantId = p[0]?.id || "bead41e2-b735-41b8-bd00-bdba1682fb6a";
+    }
+
+    let lineId = input.lineId;
+    if (lineId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lineId)) {
+      const pl = await db.select({ id: productionLines.id }).from(productionLines).where(or(eq(productionLines.name, lineId), eq(productionLines.code, lineId))).limit(1);
+      lineId = pl[0]?.id || null;
+    }
+
+    // Auto-increment code if needed: AST-001, AST-002...
+    let assetCode = input.assetCode || input.assetId || input.id;
+    const isAutoFormat = !assetCode || assetCode.startsWith("AST-00") || assetCode.startsWith("AST-");
+    if (isAutoFormat) {
+      try {
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         const existingRes = await db.execute(sql`SELECT asset_code FROM public.assets`);
         const rows = ((existingRes as any)?.rows || (Array.isArray(existingRes) ? existingRes : []));
         let maxNum = 0;
@@ -3324,6 +3418,7 @@ export class MasterDataService {
             if (n > maxNum) maxNum = n;
           }
         }
+<<<<<<< HEAD
         code = `AST-${String(maxNum + 1).padStart(3, '0')}`;
       } else {
         code = String(code).trim().toUpperCase();
@@ -3401,6 +3496,199 @@ export class MasterDataService {
       console.warn("DB deleteAsset error:", err.message);
       return { id, message: "Asset deleted" };
     }
+=======
+        assetCode = `AST-${String(maxNum + 1).padStart(3, "0")}`;
+      } catch {
+        assetCode = `AST-${Date.now().toString().slice(-4)}`;
+      }
+    } else {
+      assetCode = String(assetCode).trim().toUpperCase();
+    }
+
+    const name = String(input.name || "Unnamed Machine").trim();
+    const status = String(input.status || "OPERATIONAL").toUpperCase();
+    const healthPercent = Number(input.health ?? input.healthPercent) || 98;
+    const criticalLevel = String(input.criticality || input.criticalLevel || "IMPORTANT_P2");
+    const mtbfHours = String(input.mtbf || input.mtbfHours || "400.0");
+    const mttrHours = String(input.mttr || input.mttrHours || "1.5");
+    const manufacturer = String(input.manufacturer || "Krones AG").trim();
+    const modelNumber = String(input.model || input.modelNumber || input.type || "Packaging & Bottling").trim();
+
+    const [inserted] = await db.insert(assets).values({
+      tenantId: tId,
+      plantId,
+      lineId: lineId || null,
+      assetCode,
+      name,
+      criticalLevel,
+      status,
+      healthPercent,
+      mtbfHours,
+      mttrHours,
+      manufacturer,
+      modelNumber,
+      installDate: input.installedDate ? new Date(input.installedDate) : new Date(),
+      lastServiceDate: new Date(),
+    }).returning();
+
+    return {
+      id: inserted.assetCode,
+      assetId: inserted.assetCode,
+      assetCode: inserted.assetCode,
+      dbId: inserted.id,
+      name: inserted.name,
+      type: inserted.modelNumber,
+      department: input.department || "Packaging",
+      plant: input.plant || "Indore Mega Facility",
+      plantId,
+      line: input.line || "Line 1 Bottling & Canning",
+      lineId,
+      location: input.location || "Bay 4A - Main Hall",
+      status: input.status || "Operational",
+      health: inserted.healthPercent,
+      healthScore: inserted.healthPercent,
+      criticality: input.criticality || "Medium",
+      mtbf: Number(inserted.mtbfHours),
+      mttr: Number(inserted.mttrHours),
+      vibration: 1.5,
+      temperature: 55.0,
+      manufacturer: inserted.manufacturer,
+      model: inserted.modelNumber,
+      serialNumber: `SN-${inserted.assetCode}`,
+      installedDate: inserted.installDate ? new Date(inserted.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+      createdAt: inserted.createdAt,
+    };
+  }
+
+  async updateAsset(tenantId: string | undefined, id: string, input: any) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const condition = isUuid
+      ? or(eq(assets.id, id), eq(assets.assetCode, id))
+      : eq(assets.assetCode, id);
+
+    let existing = await db.select().from(assets).where(condition);
+    if (!existing[0]) {
+      const fallback = await db.select().from(assets).where(or(ilike(assets.assetCode, id), ilike(assets.name, id)));
+      if (!fallback[0]) {
+        throw new NotFoundError(`Asset not found: ${id}`);
+      }
+      existing = fallback;
+    }
+
+    const target = existing[0];
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (input.name !== undefined) updateData.name = String(input.name).trim();
+    if (input.assetCode !== undefined || input.newId !== undefined) {
+      updateData.assetCode = String(input.assetCode || input.newId).trim();
+    }
+    if (input.status !== undefined) updateData.status = String(input.status).toUpperCase();
+    if (input.health !== undefined || input.healthPercent !== undefined) {
+      updateData.healthPercent = Number(input.health ?? input.healthPercent);
+    }
+    if (input.criticality !== undefined || input.criticalLevel !== undefined) {
+      updateData.criticalLevel = String(input.criticality || input.criticalLevel);
+    }
+    if (input.manufacturer !== undefined) updateData.manufacturer = input.manufacturer ? String(input.manufacturer).trim() : null;
+    if (input.model !== undefined || input.modelNumber !== undefined || input.type !== undefined) {
+      const m = input.model ?? input.modelNumber ?? input.type;
+      updateData.modelNumber = m ? String(m).trim() : null;
+    }
+    if (input.mtbf !== undefined || input.mtbfHours !== undefined) {
+      updateData.mtbfHours = String(input.mtbf || input.mtbfHours);
+    }
+    if (input.mttr !== undefined || input.mttrHours !== undefined) {
+      updateData.mttrHours = String(input.mttr || input.mttrHours);
+    }
+    if (input.line !== undefined || input.lineId !== undefined) {
+      const lineVal = String(input.lineId || input.line).trim();
+      const isLineUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lineVal);
+      if (isLineUuid) {
+        updateData.lineId = lineVal;
+      } else {
+        const [foundLine] = await db
+          .select({ id: productionLines.id })
+          .from(productionLines)
+          .where(or(eq(productionLines.code, lineVal), ilike(productionLines.name, `%${lineVal}%`)))
+          .limit(1);
+        if (foundLine) updateData.lineId = foundLine.id;
+      }
+    }
+    if (input.location !== undefined) updateData.location = input.location ? String(input.location).trim() : null;
+    if (input.serialNumber !== undefined) updateData.serialNumber = input.serialNumber ? String(input.serialNumber).trim() : null;
+    if (input.nameplatePower !== undefined) updateData.nameplatePower = input.nameplatePower ? String(input.nameplatePower).trim() : null;
+    if (input.ratedSpeed !== undefined) updateData.ratedSpeed = input.ratedSpeed ? String(input.ratedSpeed).trim() : null;
+    if (input.warrantyExpiry !== undefined) updateData.warrantyExpiry = input.warrantyExpiry ? String(input.warrantyExpiry).trim() : null;
+    if (input.operatingHours !== undefined || input.runtimeHours !== undefined) {
+      const h = input.operatingHours ?? input.runtimeHours;
+      updateData.operatingHours = h != null && h !== "" && h !== "null" ? Number(h) : null;
+    }
+    if (input.commissionDate !== undefined || input.installDate !== undefined || input.installedDate !== undefined) {
+      const d = input.commissionDate ?? input.installDate ?? input.installedDate;
+      updateData.installDate = d && d !== "null" && d !== "" ? new Date(d) : null;
+    }
+
+    const [updated] = await db.update(assets).set(updateData).where(eq(assets.id, target.id)).returning();
+
+    return {
+      id: updated.assetCode,
+      assetId: updated.assetCode,
+      assetCode: updated.assetCode,
+      dbId: updated.id,
+      name: updated.name,
+      type: updated.modelNumber || updated.name,
+      department: input.department || "Packaging",
+      line: input.line || "Line 1 (Aseptic Bottling)",
+      location: updated.location || "Bay 4A",
+      status: input.status || (updated.status ? updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase() : "Operational"),
+      health: updated.healthPercent,
+      healthScore: updated.healthPercent,
+      criticality: input.criticality || (updated.criticalLevel ? updated.criticalLevel.replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "") : "Medium"),
+      mtbf: Number(updated.mtbfHours) || 0,
+      mttr: Number(updated.mttrHours) || 0,
+      vibration: null,
+      temperature: null,
+      manufacturer: updated.manufacturer || null,
+      model: updated.modelNumber || null,
+      serialNumber: updated.serialNumber || (updated.assetCode ? `SN-${updated.assetCode}` : null),
+      nameplatePower: updated.nameplatePower || null,
+      ratedSpeed: updated.ratedSpeed || null,
+      warrantyExpiry: updated.warrantyExpiry || null,
+      runtimeHours: updated.operatingHours || null,
+      operatingHours: updated.operatingHours || null,
+      commissionDate: updated.installDate ? new Date(updated.installDate).toISOString().substring(0, 10) : null,
+      installedDate: updated.installDate ? new Date(updated.installDate).toISOString().substring(0, 10) : null,
+      updatedAt: updated.updatedAt,
+    };
+  }
+
+  async deleteAsset(tenantId: string | undefined, id: string) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const condition = isUuid
+      ? or(eq(assets.id, id), eq(assets.assetCode, id))
+      : eq(assets.assetCode, id);
+
+    let existing = await db.select().from(assets).where(condition);
+    if (!existing[0]) {
+      const fallback = await db.select().from(assets).where(or(ilike(assets.assetCode, id), ilike(assets.name, id)));
+      if (!fallback[0]) {
+        throw new NotFoundError(`Asset not found: ${id}`);
+      }
+      existing = fallback;
+    }
+
+    const target = existing[0];
+    await db.delete(assets).where(eq(assets.id, target.id));
+
+    return {
+      success: true,
+      id: target.assetCode,
+      dbId: target.id,
+      message: `Asset ${target.assetCode} (${target.name}) deleted successfully`,
+    };
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
   }
 
   async listStaff(tenantId: string | undefined, plantId?: string) {
@@ -3761,7 +4049,468 @@ export class MasterDataService {
     }
     return { id, message: "Labour standard deleted" };
   }
+
+async listEmployeeSkills(tenantId?: string, plantId?: string) {
+    try {
+      const res = await db.execute(sql`
+        SELECT 
+          id,
+          employee_id AS "employeeId",
+          name,
+          email,
+          department,
+          department_id AS "departmentId",
+          role,
+          plant_id AS "plantId",
+          plant_name AS "plantName",
+          skill_level AS "skillLevel",
+          skills,
+          certifications,
+          assigned_line_ids AS "assignedLineIds",
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.employee_skills
+        ORDER BY created_at ASC
+      `);
+      if (Array.isArray(res?.rows)) {
+        return res.rows.map((r: any) => ({
+          id: r.id,
+          employeeId: r.employeeId || r.id,
+          name: r.name,
+          email: r.email || "",
+          department: r.department || "Production Operations",
+          departmentId: r.departmentId || "DEP-01",
+          role: r.role || "Line Operator",
+          plantId: r.plantId || "PLT-01",
+          plantName: r.plantName || "Indore Plant",
+          skillLevel: r.skillLevel || "Level 2 (Certified Operator)",
+          skills: Array.isArray(r.skills) ? r.skills : [],
+          certifications: Array.isArray(r.certifications) ? r.certifications : [],
+          assignedLineIds: Array.isArray(r.assignedLineIds) ? r.assignedLineIds : [],
+          status: r.status || "Active",
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+    } catch (err: any) {
+      console.warn("DB listEmployeeSkills error:", err.message);
+    }
+    return [];
+  }
+
+  async createEmployeeSkill(tenantId: string | undefined, input: any) {
+    const empId = input.employeeId || input.id || `EMP-00${Date.now().toString().slice(-3)}`;
+    const nameVal = input.name || "Employee";
+    const emailVal = input.email || `${nameVal.toLowerCase().replace(/\s+/g, ".")}@flowstate.io`;
+    const deptVal = input.department || "Production Operations";
+    const deptIdVal = input.departmentId || "DEP-01";
+    const roleVal = input.role || "Line Operator";
+    const plantIdVal = input.plantId || "PLT-01";
+    const plantNameVal = input.plantName || "Indore Plant";
+    const levelVal = input.skillLevel || "Level 2 (Certified Operator)";
+    const skillsJson = JSON.stringify(Array.isArray(input.skills) ? input.skills : ["Standard Operating Procedures"]);
+    const certsJson = JSON.stringify(Array.isArray(input.certifications) ? input.certifications : ["Plant Safety GMP"]);
+    const linesJson = JSON.stringify(Array.isArray(input.assignedLineIds) ? input.assignedLineIds : ["LIN-01"]);
+    const statVal = input.status || "Active";
+
+    let dbId: string | undefined;
+    try {
+      const res = await db.execute(sql`
+        INSERT INTO public.employee_skills (
+          employee_id, name, email, department, department_id, role,
+          plant_id, plant_name, skill_level, skills, certifications,
+          assigned_line_ids, status, created_at, updated_at
+        ) VALUES (
+          ${empId}, ${nameVal}, ${emailVal}, ${deptVal}, ${deptIdVal}, ${roleVal},
+          ${plantIdVal}, ${plantNameVal}, ${levelVal}, ${skillsJson}::jsonb, ${certsJson}::jsonb,
+          ${linesJson}::jsonb, ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (employee_id) DO UPDATE SET
+          name = EXCLUDED.name,
+          email = EXCLUDED.email,
+          department = EXCLUDED.department,
+          department_id = EXCLUDED.department_id,
+          role = EXCLUDED.role,
+          plant_id = EXCLUDED.plant_id,
+          plant_name = EXCLUDED.plant_name,
+          skill_level = EXCLUDED.skill_level,
+          skills = EXCLUDED.skills,
+          certifications = EXCLUDED.certifications,
+          assigned_line_ids = EXCLUDED.assigned_line_ids,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, employee_id
+      `);
+      if (res.rows && res.rows.length > 0) {
+        dbId = (res.rows[0] as any).id;
+      }
+    } catch (err: any) {
+      console.warn("DB createEmployeeSkill error:", err.message);
+    }
+
+    const createdRecord: any = {
+      id: dbId || empId,
+      employeeId: empId,
+      name: nameVal,
+      email: emailVal,
+      department: deptVal,
+      departmentId: deptIdVal,
+      role: roleVal,
+      plantId: plantIdVal,
+      plantName: plantNameVal,
+      skillLevel: levelVal,
+      skills: Array.isArray(input.skills) ? input.skills : ["Standard Operating Procedures"],
+      certifications: Array.isArray(input.certifications) ? input.certifications : ["Plant Safety GMP"],
+      assignedLineIds: Array.isArray(input.assignedLineIds) ? input.assignedLineIds : ["LIN-01"],
+      status: statVal,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    inMemoryEmployeeSkills.unshift(createdRecord);
+    return createdRecord;
+  }
+
+  async updateEmployeeSkill(tenantId: string | undefined, id: string, input: any) {
+    const skillsJson = input.skills !== undefined ? JSON.stringify(Array.isArray(input.skills) ? input.skills : []) : null;
+    const certsJson = input.certifications !== undefined ? JSON.stringify(Array.isArray(input.certifications) ? input.certifications : []) : null;
+    const linesJson = input.assignedLineIds !== undefined ? JSON.stringify(Array.isArray(input.assignedLineIds) ? input.assignedLineIds : []) : null;
+
+    try {
+      await db.execute(sql`
+        UPDATE public.employee_skills
+        SET
+          name = COALESCE(${input.name || null}, name),
+          email = COALESCE(${input.email || null}, email),
+          department = COALESCE(${input.department || null}, department),
+          department_id = COALESCE(${input.departmentId || null}, department_id),
+          role = COALESCE(${input.role || null}, role),
+          plant_id = COALESCE(${input.plantId || null}, plant_id),
+          plant_name = COALESCE(${input.plantName || null}, plant_name),
+          skill_level = COALESCE(${input.skillLevel || null}, skill_level),
+          skills = CASE WHEN ${skillsJson}::text IS NOT NULL THEN ${skillsJson}::jsonb ELSE skills END,
+          certifications = CASE WHEN ${certsJson}::text IS NOT NULL THEN ${certsJson}::jsonb ELSE certifications END,
+          assigned_line_ids = CASE WHEN ${linesJson}::text IS NOT NULL THEN ${linesJson}::jsonb ELSE assigned_line_ids END,
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR employee_id = ${id} OR lower(employee_id) = lower(${id})
+      `);
+    } catch (err: any) {
+      console.warn("DB updateEmployeeSkill error:", err.message);
+    }
+
+    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    if (idx !== -1) {
+      inMemoryEmployeeSkills[idx] = { ...inMemoryEmployeeSkills[idx], ...input, updatedAt: new Date().toISOString() };
+      return inMemoryEmployeeSkills[idx];
+    }
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteEmployeeSkill(tenantId: string | undefined, id: string) {
+    try {
+      await db.execute(sql`DELETE FROM public.employee_skills WHERE id::text = ${id} OR employee_id = ${id} OR lower(employee_id) = lower(${id})`);
+    } catch (err: any) {
+      console.warn("DB deleteEmployeeSkill error:", err.message);
+    }
+
+    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    if (idx !== -1) {
+      const deleted = inMemoryEmployeeSkills.splice(idx, 1);
+      return deleted[0];
+    }
+    return { id, message: "Employee record deleted" };
+  }
+
+  // ==========================================
+  // 18. HACCP CRITICAL CONTROL POINT (CCP) LIMITS (STRICTLY public.ccp_limits)
+  // ==========================================
+  async listCCPLimits(tenantId?: string) {
+    try {
+      const res = await db.execute(sql`
+        SELECT 
+          id,
+          ccp_number AS "ccpNumber",
+          process_step AS "processStep",
+          hazard,
+          critical_limit AS "criticalLimit",
+          auto_divert_action AS "autoDivertAction",
+          status,
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.ccp_limits
+        ORDER BY created_at ASC
+      `);
+      if (Array.isArray(res?.rows)) {
+        return res.rows.map((r: any) => ({
+          id: r.id,
+          ccpNumber: r.ccpNumber || `CCP-${String(r.id).slice(0, 8)}`,
+          processStep: r.processStep || "Thermal Pasteurization Hold",
+          hazard: r.hazard || "Microbial Contamination",
+          criticalLimit: r.criticalLimit || "Standard Critical Limit",
+          autoDivertAction: r.autoDivertAction || "Automated Flow Divert",
+          status: r.status || "Critical Mandatory",
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+    } catch (err: any) {
+      console.warn("DB listCCPLimits error:", err.message);
+    }
+    return [];
+  }
+
+  async createCCPLimit(tenantId: string | undefined, input: any) {
+    const rawNum = input.ccpNumber || input.id || `CCP-${Date.now().toString().slice(-4)}`;
+    const stepVal = input.processStep || "Thermal Pasteurization Hold";
+    const hazardVal = input.hazard || "Microbial Contamination Risk";
+    const limitVal = input.criticalLimit || "Standard Critical Limit Specification";
+    const divertVal = input.autoDivertAction || "Automated Flow Divert Valve";
+    const statVal = input.status || "Critical Mandatory";
+
+    let dbId: string | undefined;
+    try {
+      const res = await db.execute(sql`
+        INSERT INTO public.ccp_limits (
+          ccp_number, process_step, hazard, critical_limit, auto_divert_action,
+          status, created_at, updated_at
+        ) VALUES (
+          ${rawNum}, ${stepVal}, ${hazardVal}, ${limitVal}, ${divertVal},
+          ${statVal}, NOW(), NOW()
+        )
+        ON CONFLICT (ccp_number) DO UPDATE SET
+          process_step = EXCLUDED.process_step,
+          hazard = EXCLUDED.hazard,
+          critical_limit = EXCLUDED.critical_limit,
+          auto_divert_action = EXCLUDED.auto_divert_action,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING id, ccp_number
+      `);
+      if (res.rows && res.rows.length > 0) {
+        dbId = (res.rows[0] as any).id;
+      }
+    } catch (err: any) {
+      console.warn("DB createCCPLimit error:", err.message);
+    }
+
+    return {
+      id: dbId || rawNum,
+      ccpNumber: rawNum,
+      processStep: stepVal,
+      hazard: hazardVal,
+      criticalLimit: limitVal,
+      autoDivertAction: divertVal,
+      status: statVal,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async updateCCPLimit(tenantId: string | undefined, id: string, input: any) {
+    try {
+      await db.execute(sql`
+        UPDATE public.ccp_limits
+        SET
+          process_step = COALESCE(${input.processStep || null}, process_step),
+          hazard = COALESCE(${input.hazard || null}, hazard),
+          critical_limit = COALESCE(${input.criticalLimit || null}, critical_limit),
+          auto_divert_action = COALESCE(${input.autoDivertAction || null}, auto_divert_action),
+          status = COALESCE(${input.status || null}, status),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR ccp_number = ${id} OR lower(ccp_number) = lower(${id})
+      `);
+    } catch (err: any) {
+      console.warn("DB updateCCPLimit error:", err.message);
+    }
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteCCPLimit(tenantId: string | undefined, id: string) {
+    try {
+      await db.execute(sql`
+        DELETE FROM public.ccp_limits
+        WHERE id::text = ${id} OR ccp_number = ${id} OR lower(ccp_number) = lower(${id})
+      `);
+    } catch (err: any) {
+      console.warn("DB deleteCCPLimit error:", err.message);
+    }
+    return { id, message: "CCP Limit record deleted from database" };
+  }
+
+  // ==========================================
+  // 19. STORAGE RESOURCES & WAREHOUSE (STRICTLY public.storage_resources)
+  // ==========================================
+  async listStorageResources(tenantId?: string, plantId?: string) {
+    try {
+      const res = await db.execute(sql`
+        SELECT 
+          id,
+          resource_id AS "resourceId",
+          resource_code AS "resourceCode",
+          name,
+          resource_type AS "resourceType",
+          plant_id AS "plantId",
+          plant_name AS "plantName",
+          zone,
+          capacity_unit AS "capacityUnit",
+          total_capacity AS "totalCapacity",
+          capacity,
+          current_occupancy AS "currentOccupancy",
+          temperature_zone AS "temperatureZone",
+          status,
+          effective_from AS "effectiveFrom",
+          effective_to AS "effectiveTo",
+          created_at AS "createdAt",
+          updated_at AS "updatedAt"
+        FROM public.storage_resources
+        ORDER BY created_at ASC
+      `);
+      if (Array.isArray(res?.rows)) {
+        return res.rows.map((r: any) => ({
+          id: r.id,
+          resourceId: r.resourceId || r.resourceCode || `STR-${String(r.id).slice(0, 8)}`,
+          resourceCode: r.resourceCode || r.resourceId || `STR-${String(r.id).slice(0, 8)}`,
+          name: r.name,
+          resourceType: r.resourceType || "Selective Pallet Rack",
+          type: r.resourceType || "Selective Pallet Rack",
+          plantId: r.plantId || "PLT-01",
+          plantName: r.plantName || "Indore Plant",
+          zone: r.zone || "General Staging",
+          capacityUnit: r.capacityUnit || "Pallet Positions",
+          totalCapacity: r.totalCapacity !== null && r.totalCapacity !== undefined ? Number(r.totalCapacity) : 500,
+          capacity: r.capacity || `${r.totalCapacity || 500} ${r.capacityUnit || "Pallet Positions"}`,
+          currentOccupancy: r.currentOccupancy || "0 Pallets (0%)",
+          temperatureZone: r.temperatureZone || "Ambient (18°C - 24°C)",
+          tempControl: r.temperatureZone || "Ambient (18°C - 24°C)",
+          status: r.status || "Active",
+          effectiveFrom: r.effectiveFrom || "2025-01-01",
+          effectiveTo: r.effectiveTo || "2030-12-31",
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+        }));
+      }
+    } catch (err: any) {
+      console.warn("DB listStorageResources error:", err.message);
+    }
+    return [];
+  }
+
+  async createStorageResource(tenantId: string | undefined, input: any) {
+    const rawId = input.resourceId || input.id || input.resourceCode || `STR-0${Date.now().toString().slice(-4)}`;
+    const codeVal = input.resourceCode || input.code || rawId;
+    const nameVal = input.name || "Storage Resource Bay";
+    const typeVal = input.resourceType || input.type || "Selective Pallet Rack";
+    const plantIdVal = input.plantId || "PLT-01";
+    const plantNameVal = input.plantName || "Indore Plant";
+    const zoneVal = input.zone || "General Staging";
+    const unitVal = input.capacityUnit || "Pallet Positions";
+    const totalCap = Number(input.totalCapacity) || 500;
+    const capStr = input.capacity || `${totalCap} ${unitVal}`;
+    const occStr = input.currentOccupancy || "0 Pallets (0%)";
+    const tempVal = input.temperatureZone || input.temperatureRange || "Ambient (18°C - 24°C)";
+    const statVal = input.status || "Active";
+    const effFrom = input.effectiveFrom || new Date().toISOString().substring(0, 10);
+    const effTo = input.effectiveTo || "2030-12-31";
+
+    let dbId: string | undefined;
+    try {
+      const res = await db.execute(sql`
+        INSERT INTO public.storage_resources (
+          resource_id, resource_code, name, resource_type, plant_id, plant_name,
+          zone, capacity_unit, total_capacity, capacity, current_occupancy,
+          temperature_zone, status, effective_from, effective_to, created_at, updated_at
+        ) VALUES (
+          ${rawId}, ${codeVal}, ${nameVal}, ${typeVal}, ${plantIdVal}, ${plantNameVal},
+          ${zoneVal}, ${unitVal}, ${totalCap}, ${capStr}, ${occStr},
+          ${tempVal}, ${statVal}, ${effFrom}, ${effTo}, NOW(), NOW()
+        )
+        ON CONFLICT (resource_code) DO UPDATE SET
+          name = EXCLUDED.name,
+          resource_type = EXCLUDED.resource_type,
+          plant_id = EXCLUDED.plant_id,
+          plant_name = EXCLUDED.plant_name,
+          zone = EXCLUDED.zone,
+          capacity_unit = EXCLUDED.capacity_unit,
+          total_capacity = EXCLUDED.total_capacity,
+          capacity = EXCLUDED.capacity,
+          current_occupancy = EXCLUDED.current_occupancy,
+          temperature_zone = EXCLUDED.temperature_zone,
+          status = EXCLUDED.status,
+          effective_from = EXCLUDED.effective_from,
+          effective_to = EXCLUDED.effective_to,
+          updated_at = NOW()
+        RETURNING id, resource_id, resource_code
+      `);
+      if (res.rows && res.rows.length > 0) {
+        dbId = (res.rows[0] as any).id;
+      }
+    } catch (err: any) {
+      console.warn("DB createStorageResource error:", err.message);
+    }
+
+    return {
+      id: dbId || rawId,
+      resourceId: rawId,
+      resourceCode: codeVal,
+      name: nameVal,
+      resourceType: typeVal,
+      type: typeVal,
+      plantId: plantIdVal,
+      plantName: plantNameVal,
+      zone: zoneVal,
+      capacityUnit: unitVal,
+      totalCapacity: totalCap,
+      capacity: capStr,
+      currentOccupancy: occStr,
+      temperatureZone: tempVal,
+      tempControl: tempVal,
+      status: statVal,
+      effectiveFrom: effFrom,
+      effectiveTo: effTo,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async updateStorageResource(tenantId: string | undefined, id: string, input: any) {
+    try {
+      await db.execute(sql`
+        UPDATE public.storage_resources
+        SET
+          name = COALESCE(${input.name || null}, name),
+          resource_type = COALESCE(${input.resourceType || input.type || null}, resource_type),
+          plant_id = COALESCE(${input.plantId || null}, plant_id),
+          plant_name = COALESCE(${input.plantName || null}, plant_name),
+          zone = COALESCE(${input.zone || null}, zone),
+          capacity_unit = COALESCE(${input.capacityUnit || null}, capacity_unit),
+          total_capacity = COALESCE(${input.totalCapacity !== undefined ? Number(input.totalCapacity) : null}, total_capacity),
+          capacity = COALESCE(${input.capacity || null}, capacity),
+          current_occupancy = COALESCE(${input.currentOccupancy || null}, current_occupancy),
+          temperature_zone = COALESCE(${input.temperatureZone || input.temperatureRange || null}, temperature_zone),
+          status = COALESCE(${input.status || null}, status),
+          effective_from = COALESCE(${input.effectiveFrom || null}, effective_from),
+          effective_to = COALESCE(${input.effectiveTo || null}, effective_to),
+          updated_at = NOW()
+        WHERE id::text = ${id} OR resource_id = ${id} OR resource_code = ${id} OR lower(resource_code) = lower(${id})
+      `);
+    } catch (err: any) {
+      console.warn("DB updateStorageResource error:", err.message);
+    }
+    return { id, ...input, updatedAt: new Date().toISOString() };
+  }
+
+  async deleteStorageResource(tenantId: string | undefined, id: string) {
+    try {
+      await db.execute(sql`
+        DELETE FROM public.storage_resources
+        WHERE id::text = ${id} OR resource_id = ${id} OR resource_code = ${id} OR lower(resource_code) = lower(${id})
+      `);
+    } catch (err: any) {
+      console.warn("DB deleteStorageResource error:", err.message);
+    }
+    return { id, message: "Storage resource deleted from database" };
+  }
 }
 
 export const masterDataService = new MasterDataService();
-

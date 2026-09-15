@@ -439,6 +439,12 @@ export class MasterAdminService {
       const { rows: userRows } = await client.query(
         `INSERT INTO users (tenant_id, email, password_hash, first_name, last_name, phone, digital_signature_pin_hash, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'ACTIVE')
+         ON CONFLICT (email) DO UPDATE SET
+           tenant_id = EXCLUDED.tenant_id,
+           first_name = EXCLUDED.first_name,
+           last_name = EXCLUDED.last_name,
+           phone = COALESCE(EXCLUDED.phone, users.phone),
+           status = 'ACTIVE'
          RETURNING *`,
         [newTenant.id, input.adminEmail.toLowerCase().trim(), passwordHash, firstName, lastName, input.adminPhone || null, defaultPinHash]
       );
@@ -1406,6 +1412,20 @@ export class MasterAdminService {
     }
 
     return results;
+  }
+
+  async deleteAuditLog(id: string, actor?: ActorContext) {
+    const [log] = await db.select().from(auditLogs).where(eq(auditLogs.id, id)).limit(1);
+    if (!log) throw new NotFoundError("Audit log record not found");
+
+    await db.delete(auditLogs).where(eq(auditLogs.id, id));
+
+    return { success: true, message: `Audit log ${id} deleted successfully` };
+  }
+
+  async clearAllAuditLogs() {
+    await db.delete(auditLogs);
+    return { success: true, message: "All audit logs cleared successfully" };
   }
 
   // =========================================================================

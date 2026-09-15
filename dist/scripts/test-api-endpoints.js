@@ -4,20 +4,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 async function testEndpoints() {
     console.log("=== TESTING LIVE FASTIFY API ENDPOINTS ===");
     const endpoints = [
-        { name: "Health Check", url: "http://localhost:4000/health" },
-        { name: "Warehouse Lots", url: "http://localhost:4000/api/v1/warehouse/lots" },
-        { name: "Warehouse Transactions", url: "http://localhost:4000/api/v1/warehouse/transactions" },
-        { name: "Production Orders", url: "http://localhost:4000/api/v1/production/orders" },
-        { name: "Production Batches", url: "http://localhost:4000/api/v1/production/batches" },
-        { name: "QA Release Queue", url: "http://localhost:4000/api/v1/quality/release/queue" },
-        { name: "Maintenance Work Orders", url: "http://localhost:4000/api/v1/maintenance/work-orders" },
-        { name: "Master Data Routings", url: "http://localhost:4000/api/v1/master-data/routings" },
-        { name: "Planning Customer Orders", url: "http://localhost:4000/api/v1/planning/demand/orders" },
-        { name: "Planning APS Schedules", url: "http://localhost:4000/api/v1/planning/aps/schedules" },
-        { name: "Planning MRP Requirements", url: "http://localhost:4000/api/v1/planning/mrp/net-requirements" },
+        { name: "Health Check", url: "https://mainten-x-os-production.up.railway.app/health" },
+        { name: "Warehouse Lots", url: "https://mainten-x-os-production.up.railway.app/api/v1/warehouse/lots" },
+        { name: "Warehouse Transactions", url: "https://mainten-x-os-production.up.railway.app/api/v1/warehouse/transactions" },
+        { name: "Production Orders", url: "https://mainten-x-os-production.up.railway.app/api/v1/production/orders" },
+        { name: "Production Batches", url: "https://mainten-x-os-production.up.railway.app/api/v1/production/batches" },
+        { name: "QA Release Queue", url: "https://mainten-x-os-production.up.railway.app/api/v1/quality/release/queue" },
+        { name: "Maintenance Work Orders", url: "https://mainten-x-os-production.up.railway.app/api/v1/maintenance/work-orders" },
+        { name: "Master Data Routings", url: "https://mainten-x-os-production.up.railway.app/api/v1/master-data/routings" },
+        { name: "Planning Customer Orders", url: "https://mainten-x-os-production.up.railway.app/api/v1/planning/demand/orders" },
+        { name: "Planning APS Schedules", url: "https://mainten-x-os-production.up.railway.app/api/v1/planning/aps/schedules" },
+        { name: "Planning MRP Requirements", url: "https://mainten-x-os-production.up.railway.app/api/v1/planning/mrp/net-requirements" },
     ];
     // Obtain real token
-    const loginRes = await fetch("http://localhost:4000/api/v1/auth/login", {
+    const loginRes = await fetch("https://mainten-x-os-production.up.railway.app/api/v1/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "admin@maintenx.com", password: "Password@123" })

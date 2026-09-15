@@ -874,6 +874,82 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        materialName: import("drizzle-orm/pg-core").PgColumn<{
+            name: "material_name";
+            tableName: "mrp_requirements";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 255;
+        }>;
+        skuCode: import("drizzle-orm/pg-core").PgColumn<{
+            name: "sku_code";
+            tableName: "mrp_requirements";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 100;
+        }>;
+        category: import("drizzle-orm/pg-core").PgColumn<{
+            name: "category";
+            tableName: "mrp_requirements";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 100;
+        }>;
+        uom: import("drizzle-orm/pg-core").PgColumn<{
+            name: "uom";
+            tableName: "mrp_requirements";
+            dataType: "string";
+            columnType: "PgVarchar";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            length: 50;
+        }>;
         grossRequirement: import("drizzle-orm/pg-core").PgColumn<{
             name: "gross_requirement";
             tableName: "mrp_requirements";
@@ -883,6 +959,23 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
             driverParam: string;
             notNull: true;
             hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        safetyStock: import("drizzle-orm/pg-core").PgColumn<{
+            name: "safety_stock";
+            tableName: "mrp_requirements";
+            dataType: "string";
+            columnType: "PgNumeric";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -995,6 +1088,7 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
         }, {}, {
             length: 50;
         }>;
+<<<<<<< HEAD
         safetyStock: import("drizzle-orm/pg-core").PgColumn<{
             name: "safety_stock";
             tableName: "mrp_requirements";
@@ -1012,6 +1106,8 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         suggestedAction: import("drizzle-orm/pg-core").PgColumn<{
             name: "suggested_action";
             tableName: "mrp_requirements";
@@ -1031,6 +1127,7 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
         }, {}, {
             length: 255;
         }>;
+<<<<<<< HEAD
         category: import("drizzle-orm/pg-core").PgColumn<{
             name: "category";
             tableName: "mrp_requirements";
@@ -1107,6 +1204,8 @@ export declare const mrpRequirements: import("drizzle-orm/pg-core").PgTableWithC
         }, {}, {
             length: 100;
         }>;
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         calculatedAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "calculated_at";
             tableName: "mrp_requirements";

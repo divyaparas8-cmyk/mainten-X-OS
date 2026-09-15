@@ -305,6 +305,50 @@ export declare class MasterDataController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    getEmployeeSkills(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createEmployeeSkill(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCCPLimits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCCPLimit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getStorageResources(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createStorageResource(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateStorageResource(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteStorageResource(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
 }
 export declare const masterDataController: MasterDataController;
 //# sourceMappingURL=masterData.controller.d.ts.map

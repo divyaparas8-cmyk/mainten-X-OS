@@ -30,6 +30,10 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
         if (p) currentUser.plantId = p.id;
       } catch (_) {}
     }
+    if (!currentUser.tenantId) {
+      currentUser.tenantId = headerTenantId || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+    }
+    }
     return;
   }
 
@@ -82,11 +86,12 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
       const [demoPlant] = await db.select().from(plants).where(eq(plants.tenantId, demoTenant.id)).limit(1);
       (request as any).user = {
         id: `demo-${demoTenant.id}`,
-        tenantId: demoTenant.id,
+        userId: "4a9fe1e0-6512-444d-a639-25ca55ff4866",
+        tenantId: headerTenantId || demoTenant.id,
         plantId: demoPlant?.id || "PLT-01",
         role: "admin",
         email: `admin@${demoTenant.slug || "maintenx.com"}`,
-        isMasterAdmin: false,
+        isMasterAdmin: true,
       };
       return;
     }
@@ -96,12 +101,13 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
 
   // 5. Fallback safe dummy context
   (request as any).user = {
-    id: "anonymous-user",
-    tenantId: "default-tenant",
-    plantId: "PLT-01",
+    id: "admin-default",
+    userId: "4a9fe1e0-6512-444d-a639-25ca55ff4866",
+    tenantId: headerTenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
+    plantId: "bead41e2-b735-41b8-bd00-bdba1682fb6a",
     role: "admin",
-    email: "anonymous@maintenx.com",
-    isMasterAdmin: false,
+    email: "admin@beverage-corp.com",
+    isMasterAdmin: true,
   };
 }
 

@@ -10,8 +10,8 @@ const customerOrderBaseSchema = z.object({
   quantity: z.coerce.number().positive(),
   uom: z.string().optional(),
   priority: z.preprocess(
-    (val) => (typeof val === "string" ? val.toUpperCase().trim() : "NORMAL"),
-    z.string().default("NORMAL")
+    (val) => (typeof val === "string" && val.trim().length > 0 ? (val.trim().charAt(0).toUpperCase() + val.trim().slice(1).toLowerCase()) : "Normal"),
+    z.string().default("Normal")
   ),
   requestedDate: z.string().optional(),
   requestedShipDate: z.string().optional(),
@@ -60,6 +60,7 @@ export const createForecastSchema = z.object({
   method: z.string().optional(),
   modelType: z.string().optional(),
   reason: z.string().optional(),
+  justification: z.string().optional(),
   owner: z.string().optional(),
   status: z.string().default("Submitted"),
   plantId: z.string().optional(),
@@ -76,6 +77,7 @@ export const updateForecastSchema = z.object({
   finalForecast: z.coerce.number().optional(),
   method: z.string().optional(),
   reason: z.string().optional(),
+  justification: z.string().optional(),
   owner: z.string().optional(),
   status: z.string().optional(),
 });
@@ -110,9 +112,16 @@ export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
 
 export const updatePromotionSchema = z.object({
   title: z.string().optional(),
+  name: z.string().optional(),
+  skuId: z.string().optional(),
+  duration: z.string().optional(),
+  channel: z.string().optional(),
   status: z.string().optional(),
   upliftPercent: z.coerce.number().optional(),
   projectedUnits: z.coerce.number().optional(),
+  incrementalUnits: z.coerce.number().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
 });
 
 export type UpdatePromotionInput = z.infer<typeof updatePromotionSchema>;
@@ -192,6 +201,26 @@ export const runMrpEngineSchema = z.object({
 });
 
 export type RunMrpEngineInput = z.infer<typeof runMrpEngineSchema>;
+
+export const updateMrpRequirementSchema = z.object({
+  grossRequirement: z.coerce.number().optional(),
+  grossDemand: z.coerce.number().optional(),
+  safetyStock: z.coerce.number().optional(),
+  availableStock: z.coerce.number().optional(),
+  reservedStock: z.coerce.number().optional(),
+  scheduledReceipts: z.coerce.number().optional(),
+  inboundSupply: z.coerce.number().optional(),
+  netShortage: z.coerce.number().optional(),
+  netRequirement: z.coerce.number().optional(),
+  status: z.string().optional(),
+  riskLevel: z.string().optional(),
+  suggestedAction: z.string().optional(),
+  materialName: z.string().optional(),
+  name: z.string().optional(),
+  category: z.string().optional(),
+});
+
+export type UpdateMrpRequirementInput = z.infer<typeof updateMrpRequirementSchema>;
 
 export const createPurchaseRequisitionSchema = z.object({
   skuId: z.string().optional(),

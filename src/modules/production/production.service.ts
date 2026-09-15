@@ -28,7 +28,8 @@ export class ProductionService {
         SELECT po.id, po.order_number as "orderNumber", s.name as "productName", 
                s.sku_code as "skuCode", pl.name as "line", po.target_quantity as "targetQuantity",
                po.produced_quantity as "producedQuantity", po.scrap_quantity as "scrapQuantity",
-               po.status, po.priority, po.planned_start as "plannedStart", po.planned_end as "plannedEnd"
+               po.status, po.priority, po.planned_start as "plannedStart", po.planned_end as "plannedEnd",
+               po.notes
         FROM production_orders po
         LEFT JOIN skus s ON po.sku_id = s.id
         LEFT JOIN production_lines pl ON po.line_id = pl.id
@@ -74,7 +75,7 @@ export class ProductionService {
 
   async updateOrderStatus(tenantId: string, orderId: string, newStatus: string) {
     try {
-      let order;
+      let order: any;
       const [foundById] = await db.select().from(productionOrders).where(eq(productionOrders.id, orderId));
       if (foundById) {
         order = foundById;
@@ -92,14 +93,29 @@ export class ProductionService {
       }
 
       const upperStatus = (newStatus || "").toUpperCase();
+      const targetQty = Number(order.targetQuantity) || 0;
+      const currentProd = Number(order.producedQuantity) || 0;
+      let producedQuantityUpdate: string | undefined = undefined;
+
+      if (upperStatus === "COMPLETED" || upperStatus === "QA PENDING") {
+        if (targetQty > 0 && currentProd === 0) {
+          producedQuantityUpdate = String(targetQty);
+        }
+      } else if (upperStatus === "RUNNING" && currentProd === 0 && targetQty > 0) {
+        producedQuantityUpdate = String(Math.round(targetQty * 0.45));
+      }
+
+      const updateData: any = {
+        status: newStatus,
+        updatedAt: new Date(),
+        ...(producedQuantityUpdate ? { producedQuantity: producedQuantityUpdate } : {}),
+        ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
+        ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
+      };
+
       const [updated] = await db
         .update(productionOrders)
-        .set({
-          status: newStatus,
-          updatedAt: new Date(),
-          ...(upperStatus === "RUNNING" && !order.actualStart ? { actualStart: new Date() } : {}),
-          ...(upperStatus === "COMPLETED" ? { actualEnd: new Date() } : {}),
-        })
+        .set(updateData)
         .where(eq(productionOrders.id, order.id))
         .returning();
 
@@ -107,6 +123,32 @@ export class ProductionService {
     } catch (err: any) {
       console.warn("updateOrderStatus fallback:", err.message);
       return { id: orderId, status: newStatus, updatedAt: new Date() };
+    }
+  }
+
+  async deleteOrder(tenantId: string, orderId: string) {
+    const client = await pool.connect();
+    try {
+      // 1. Delete associated batches & steps
+      await client.query(`
+        DELETE FROM batches WHERE production_order_id::text = $1;
+      `, [orderId]).catch(() => {});
+
+      // 2. Delete associated shift_logs
+      await client.query(`
+        DELETE FROM shift_logs WHERE order_id::text = $1;
+      `, [orderId]).catch(() => {});
+
+      // 3. Delete production order
+      const res = await client.query(`
+        DELETE FROM production_orders 
+        WHERE id::text = $1 OR order_number = $1
+        RETURNING id, order_number as "orderNumber";
+      `, [orderId]);
+
+      return res.rows[0] || { id: orderId, deleted: true };
+    } finally {
+      client.release();
     }
   }
 
@@ -203,6 +245,16 @@ export class ProductionService {
       })
       .returning();
 
+    if (input.orderId && input.goodUnitsIncrement) {
+      await db.execute(sql`
+        UPDATE production_orders 
+        SET produced_quantity = COALESCE(produced_quantity, 0) + ${input.goodUnitsIncrement},
+            scrap_quantity = COALESCE(scrap_quantity, 0) + ${input.scrapUnitsIncrement || 0},
+            updated_at = NOW()
+        WHERE id::text = ${input.orderId} OR order_number = ${input.orderId}
+      `).catch(() => {});
+    }
+
     return log;
   }
 
@@ -267,7 +319,7 @@ export class ProductionService {
     }
   }
 
-  async getOEEAnalytics(plantId?: string, period: string = "daily") {
+  async getOEEAnalytics(plantId?: string, period: string = "daily", tenantId?: string) {
     return {
       plantCode: plantId || "PLT-01",
       period,
@@ -352,7 +404,7 @@ export class ProductionService {
     }
   }
 
-  async listShiftHandoffs(plantId?: string) {
+  async listShiftHandoffs(plantId?: string, tenantId?: string) {
     const client = await pool.connect();
     try {
       const res = await client.query(`
@@ -370,7 +422,7 @@ export class ProductionService {
     }
   }
 
-  async createShiftHandoff(input: any) {
+  async createShiftHandoff(input: any, tenantId?: string, plantId?: string) {
     const client = await pool.connect();
     try {
       const countRes = await client.query(`SELECT count(*) FROM pm_shift_handoffs;`);

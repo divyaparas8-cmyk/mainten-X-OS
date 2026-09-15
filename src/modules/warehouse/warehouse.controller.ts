@@ -79,7 +79,7 @@ export class WarehouseController {
   }
 
   async scanBarcode(request: FastifyRequest, reply: FastifyReply) {
-    const barcode = (request.body as any)?.barcode || "LOT-RM-ORG-4402";
+    const barcode = (request.body as any)?.barcode || "";
     const data = await warehouseService.scanBarcode(request.user.tenantId, barcode);
     return reply.send(formatSuccess(data, "Barcode scanned & validated"));
   }
@@ -343,7 +343,10 @@ export class WarehouseController {
   // ==========================================
 
   async getTraceability(request: FastifyRequest<{ Querystring: { lot?: string }; Params: { lotNumber?: string } }>, reply: FastifyReply) {
-    const lotNumber = request.params?.lotNumber || request.query?.lot || "";
+    const lotNumber = request.params?.lotNumber || (request.query as any)?.lot || (request.query as any)?.lotNumber || "";
+    if (!lotNumber) {
+      return reply.send(formatSuccess(null));
+    }
     const data = await warehouseService.getTraceability(request.user.tenantId, lotNumber);
     return reply.send(formatSuccess(data));
   }

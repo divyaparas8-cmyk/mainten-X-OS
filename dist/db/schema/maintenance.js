@@ -62,10 +62,12 @@ exports.spareParts = (0, pg_core_1.pgTable)("spare_parts", {
     unitCost: (0, pg_core_1.numeric)("unit_cost", { precision: 10, scale: 2 }).default("450.00"),
     binLocation: (0, pg_core_1.varchar)("bin_location", { length: 50 }).default("M-BIN-04"),
     supplierName: (0, pg_core_1.varchar)("supplier_name", { length: 255 }),
+    linkedAssets: (0, pg_core_1.text)("linked_assets").default(""),
 });
 exports.spareConsumption = (0, pg_core_1.pgTable)("spare_consumption", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    workOrderId: (0, pg_core_1.uuid)("work_order_id").references(() => exports.workOrders.id, { onDelete: "cascade" }).notNull(),
+    workOrderId: (0, pg_core_1.uuid)("work_order_id").references(() => exports.workOrders.id, { onDelete: "cascade" }),
+    assetId: (0, pg_core_1.uuid)("asset_id").references(() => masterData_1.assets.id, { onDelete: "cascade" }),
     sparePartId: (0, pg_core_1.uuid)("spare_part_id").references(() => exports.spareParts.id, { onDelete: "restrict" }).notNull(),
     quantityUsed: (0, pg_core_1.integer)("quantity_used").default(1).notNull(),
     unitCost: (0, pg_core_1.numeric)("unit_cost", { precision: 10, scale: 2 }).notNull(),

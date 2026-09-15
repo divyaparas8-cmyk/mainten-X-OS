@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createShipmentSchema = exports.publishScheduleSchema = exports.validateScheduleSchema = exports.createScheduleVersionSchema = exports.mitigateServiceRiskSchema = exports.updateSafetyStockPolicySchema = exports.expediteShortageSchema = exports.createPurchaseRequisitionSchema = exports.runMrpEngineSchema = exports.updateShipmentStatusSchema = exports.optimizeApsScheduleSchema = exports.splitApsScheduleSchema = exports.rescheduleApsScheduleSchema = exports.createPromotionCampaignSchema = exports.createApsScheduleSchema = exports.updatePromotionSchema = exports.createPromotionSchema = exports.runForecastSchema = exports.updateForecastSchema = exports.createForecastSchema = exports.updateCustomerOrderSchema = exports.createCustomerOrderSchema = void 0;
+exports.createShipmentSchema = exports.publishScheduleSchema = exports.validateScheduleSchema = exports.createScheduleVersionSchema = exports.mitigateServiceRiskSchema = exports.updateSafetyStockPolicySchema = exports.expediteShortageSchema = exports.createPurchaseRequisitionSchema = exports.updateMrpRequirementSchema = exports.runMrpEngineSchema = exports.updateShipmentStatusSchema = exports.optimizeApsScheduleSchema = exports.splitApsScheduleSchema = exports.rescheduleApsScheduleSchema = exports.createPromotionCampaignSchema = exports.createApsScheduleSchema = exports.updatePromotionSchema = exports.createPromotionSchema = exports.runForecastSchema = exports.updateForecastSchema = exports.createForecastSchema = exports.updateCustomerOrderSchema = exports.createCustomerOrderSchema = void 0;
 const zod_1 = require("zod");
 const customerOrderBaseSchema = zod_1.z.object({
     orderNumber: zod_1.z.string().optional(),
@@ -11,7 +11,7 @@ const customerOrderBaseSchema = zod_1.z.object({
     productName: zod_1.z.string().optional(),
     quantity: zod_1.z.coerce.number().positive(),
     uom: zod_1.z.string().optional(),
-    priority: zod_1.z.preprocess((val) => (typeof val === "string" ? val.toUpperCase().trim() : "NORMAL"), zod_1.z.string().default("NORMAL")),
+    priority: zod_1.z.preprocess((val) => (typeof val === "string" && val.trim().length > 0 ? (val.trim().charAt(0).toUpperCase() + val.trim().slice(1).toLowerCase()) : "Normal"), zod_1.z.string().default("Normal")),
     requestedDate: zod_1.z.string().optional(),
     requestedShipDate: zod_1.z.string().optional(),
     deliveryAddress: zod_1.z.string().optional(),
@@ -52,6 +52,7 @@ exports.createForecastSchema = zod_1.z.object({
     method: zod_1.z.string().optional(),
     modelType: zod_1.z.string().optional(),
     reason: zod_1.z.string().optional(),
+    justification: zod_1.z.string().optional(),
     owner: zod_1.z.string().optional(),
     status: zod_1.z.string().default("Submitted"),
     plantId: zod_1.z.string().optional(),
@@ -65,6 +66,7 @@ exports.updateForecastSchema = zod_1.z.object({
     finalForecast: zod_1.z.coerce.number().optional(),
     method: zod_1.z.string().optional(),
     reason: zod_1.z.string().optional(),
+    justification: zod_1.z.string().optional(),
     owner: zod_1.z.string().optional(),
     status: zod_1.z.string().optional(),
 });
@@ -90,9 +92,16 @@ exports.createPromotionSchema = zod_1.z.object({
 });
 exports.updatePromotionSchema = zod_1.z.object({
     title: zod_1.z.string().optional(),
+    name: zod_1.z.string().optional(),
+    skuId: zod_1.z.string().optional(),
+    duration: zod_1.z.string().optional(),
+    channel: zod_1.z.string().optional(),
     status: zod_1.z.string().optional(),
     upliftPercent: zod_1.z.coerce.number().optional(),
     projectedUnits: zod_1.z.coerce.number().optional(),
+    incrementalUnits: zod_1.z.coerce.number().optional(),
+    startDate: zod_1.z.string().optional(),
+    endDate: zod_1.z.string().optional(),
 });
 exports.createApsScheduleSchema = zod_1.z.object({
     scheduleId: zod_1.z.string().optional(),
@@ -147,6 +156,23 @@ exports.runMrpEngineSchema = zod_1.z.object({
     period: zod_1.z.string().default("Next 7 Days (W36 - W37)"),
     plantId: zod_1.z.string().optional(),
     productId: zod_1.z.string().default("ALL"),
+});
+exports.updateMrpRequirementSchema = zod_1.z.object({
+    grossRequirement: zod_1.z.coerce.number().optional(),
+    grossDemand: zod_1.z.coerce.number().optional(),
+    safetyStock: zod_1.z.coerce.number().optional(),
+    availableStock: zod_1.z.coerce.number().optional(),
+    reservedStock: zod_1.z.coerce.number().optional(),
+    scheduledReceipts: zod_1.z.coerce.number().optional(),
+    inboundSupply: zod_1.z.coerce.number().optional(),
+    netShortage: zod_1.z.coerce.number().optional(),
+    netRequirement: zod_1.z.coerce.number().optional(),
+    status: zod_1.z.string().optional(),
+    riskLevel: zod_1.z.string().optional(),
+    suggestedAction: zod_1.z.string().optional(),
+    materialName: zod_1.z.string().optional(),
+    name: zod_1.z.string().optional(),
+    category: zod_1.z.string().optional(),
 });
 exports.createPurchaseRequisitionSchema = zod_1.z.object({
     skuId: zod_1.z.string().optional(),

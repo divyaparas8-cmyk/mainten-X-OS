@@ -907,6 +907,23 @@ export declare const spareParts: import("drizzle-orm/pg-core").PgTableWithColumn
         }, {}, {
             length: 255;
         }>;
+        linkedAssets: import("drizzle-orm/pg-core").PgColumn<{
+            name: "linked_assets";
+            tableName: "spare_parts";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
     };
     dialect: "pg";
 }>;
@@ -938,7 +955,24 @@ export declare const spareConsumption: import("drizzle-orm/pg-core").PgTableWith
             columnType: "PgUUID";
             data: string;
             driverParam: string;
-            notNull: true;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        assetId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "asset_id";
+            tableName: "spare_consumption";
+            dataType: "string";
+            columnType: "PgUUID";
+            data: string;
+            driverParam: string;
+            notNull: false;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;

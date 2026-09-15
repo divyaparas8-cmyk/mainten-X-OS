@@ -136,6 +136,26 @@ class PlanningController {
         const data = await planning_service_js_1.planningService.runMrpExplosion(request.user.tenantId, plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Net Requirements calculated"));
     }
+    async getMrpRequirementById(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.getMrpRequirementById(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Requirement details retrieved"));
+    }
+    async updateMrpRequirement(request, reply) {
+        const { id } = request.params;
+        const input = planning_schema_js_1.updateMrpRequirementSchema.parse(request.body);
+        const data = await planning_service_js_1.planningService.updateMrpRequirement(request.user.tenantId, id, input);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Requirement updated successfully in database"));
+    }
+    async deleteMrpRequirement(request, reply) {
+        const { id } = request.params;
+        const data = await planning_service_js_1.planningService.deleteMrpRequirement(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "MRP Requirement deleted successfully from database"));
+    }
+    async generateMrpRequirements(request, reply) {
+        const data = await planning_service_js_1.planningService.generateMrpBaselineRequirements(request.user.tenantId, request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Material requirements generated from demand orders and BOMs"));
+    }
     async getPromotionCampaigns(request, reply) {
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await planning_service_js_1.planningService.listPromotionCampaigns(request.user.tenantId, plantId);

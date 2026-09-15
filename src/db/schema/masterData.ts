@@ -99,6 +99,26 @@ export const shifts = pgTable("shifts", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+export const assetTypes = pgTable("asset_types", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const criticalityLevels = pgTable("criticality_levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  code: varchar("code", { length: 50 }),
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const assets = pgTable("assets", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
@@ -120,6 +140,12 @@ export const assets = pgTable("assets", {
   ratedSpeed: varchar("rated_speed", { length: 100 }),
   mtbfHours: numeric("mtbf_hours", { precision: 10, scale: 2 }).default("412.5"),
   mttrHours: numeric("mttr_hours", { precision: 10, scale: 2 }).default("1.8"),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  nameplatePower: varchar("nameplate_power", { length: 50 }),
+  ratedSpeed: varchar("rated_speed", { length: 50 }),
+  warrantyExpiry: varchar("warranty_expiry", { length: 50 }),
+  operatingHours: integer("operating_hours"),
+  location: varchar("location", { length: 100 }),
   installDate: timestamp("install_date"),
   lastServiceDate: timestamp("last_service_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -221,26 +247,6 @@ export const changeoverRules = pgTable("changeover_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const companies = pgTable("companies", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 50 }),
-  industry: varchar("industry", { length: 100 }),
-  status: varchar("status", { length: 50 }).default("Active"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const departments = pgTable("departments", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-  code: varchar("code", { length: 50 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  managerName: varchar("manager_name", { length: 255 }),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const operations = pgTable("operations", {
   id: uuid("id").defaultRandom().primaryKey(),
   operationCode: varchar("operation_code", { length: 50 }).notNull(),
@@ -272,7 +278,6 @@ export const lineTargets = pgTable("line_targets", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
 export const packaging = pgTable("packaging", {
   id: uuid("id").defaultRandom().primaryKey(),
   packCode: varchar("pack_code", { length: 50 }).notNull(),
@@ -403,3 +408,4 @@ export const storageResources = pgTable("storage_resources", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+

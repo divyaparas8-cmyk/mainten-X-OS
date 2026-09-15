@@ -2,6 +2,7 @@ import { db } from "../../config/database.js";
 import { inventoryLots, inventoryTransactions, warehouses, locationBins, goodsReceipts, shipmentOrders } from "../../db/schema/warehouse.js";
 import { recallEvents } from "../../db/schema/traceability.js";
 import { skus } from "../../db/schema/masterData.js";
+import { qualityHolds } from "../../db/schema/quality.js";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { CreateLotInput, CreateTransactionInput } from "./warehouse.schema.js";
 import { NotFoundError, BusinessRuleError } from "../../shared/errors/AppError.js";
@@ -2169,27 +2170,74 @@ export class WarehouseService {
 
   // Finished Goods Inventory API
   async getFinishedGoods(tenantId: string, query?: any) {
+    const validTenant = isValidUuid(tenantId) ? tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+    let combined = [...finishedGoodsStore];
     try {
-      if (isValidUuid(tenantId)) {
-        const dbLots = await db.query.inventoryLots.findMany({
-          where: and(eq(inventoryLots.tenantId, tenantId), eq(inventoryLots.lotType, "FINISHED_GOOD")),
-          with: { sku: true },
-          orderBy: [desc(inventoryLots.createdAt)]
-        }).catch(() => []);
-        if (dbLots && dbLots.length > 0) {
-          // Merge with finished goods store
-        }
+      const qHolds = await db
+        .select()
+        .from(qualityHolds)
+        .where(eq(qualityHolds.tenantId, validTenant))
+        .orderBy(desc(qualityHolds.holdAt));
+
+      if (qHolds && qHolds.length > 0) {
+        const holdItems = qHolds.map((h, idx) => {
+          const isReleased = h.status === "RELEASED";
+          const isScrapped = h.status === "DESTROYED";
+          const isRework = h.status === "REWORK";
+
+          let qaStatus = "QA Hold";
+          let shipmentStatus = "Hold / Quarantined";
+          let location = "Quarantine Bay 3 - Bin FG-06";
+          let destination = "Pending Microbiological Clearance";
+
+          if (isReleased) {
+            qaStatus = "QA Released";
+            shipmentStatus = "Ready to Ship";
+            location = "Finished Goods High-Bay - Bin FG-52";
+            destination = "Metro Supermarkets Hub (Release Cleared)";
+          } else if (isRework) {
+            qaStatus = "QA Hold";
+            shipmentStatus = "Staged";
+            location = "Rework Buffer - Staging Bin RW-02";
+            destination = "Line 1 Rework Protocol Staging";
+          } else if (isScrapped) {
+            qaStatus = "QA Hold";
+            shipmentStatus = "Hold / Quarantined";
+            location = "Disposal / Scrap Bin SC-01";
+            destination = "Scrap Destruction Queue";
+          }
+
+          return {
+            id: h.id,
+            sku: `SKU-${h.lotNumber?.includes("CAN") ? "CAN-330ML" : "BOT-500ML"}-PRD`,
+            productName: h.reason ? `Beverage Batch (${h.reason.split('[')[0].trim()})` : "Finished Packaged Beverage",
+            finishedLot: `LOT-FG-${h.lotNumber || '2026-0891'}`,
+            batch: h.lotNumber || `BAT-${h.id.substring(0, 8)}`,
+            quantity: "36,000 units (1,500 Cases)",
+            location,
+            productionDate: h.holdAt ? new Date(h.holdAt).toISOString().substring(0, 10) : "2026-09-14",
+            expiryDate: "2027-09-14",
+            status: qaStatus,
+            pallet: `${14 + idx * 2} Pallets (PLT-${h.lotNumber || '0891'})`,
+            shipmentStatus,
+            destination,
+            tempCheck: "18.0°C Ambient"
+          };
+        });
+
+        // Live holds from database shown at top
+        combined = [...holdItems, ...finishedGoodsStore];
       }
-    } catch (e) {
-      // fallback
+    } catch (e: any) {
+      console.warn("Could not query quality_holds for finished goods:", e.message);
     }
 
     return {
-      finishedGoods: finishedGoodsStore,
+      finishedGoods: combined,
       metrics: {
-        totalFinishedPallets: `${finishedGoodsStore.reduce((acc, item) => acc + (parseInt(item.pallet) || 15), 0)} Pallets`,
-        readyForDispatch: `${finishedGoodsStore.filter(g => g.shipmentStatus === "Ready to Ship" || g.shipmentStatus === "Allocated").reduce((acc, item) => acc + (parseInt(item.pallet) || 12), 0)} Pallets`,
-        qaReleaseRate: "97.8%",
+        totalFinishedPallets: `${combined.reduce((acc, item) => acc + (parseInt(item.pallet) || 15), 0)} Pallets`,
+        readyForDispatch: `${combined.filter(g => g.shipmentStatus === "Ready to Ship" || g.shipmentStatus === "Allocated").reduce((acc, item) => acc + (parseInt(item.pallet) || 12), 0)} Pallets`,
+        qaReleaseRate: `${Math.round((combined.filter(g => g.status === "QA Released").length / (combined.length || 1)) * 100)}%`,
         highBayOccupancy: "68.5%"
       }
     };

@@ -22,6 +22,7 @@ export declare class MaintenanceService {
         actualHours: string | null;
         asset: {
             status: string | null;
+            location: string | null;
             id: string;
             name: string;
             createdAt: Date;
@@ -36,6 +37,11 @@ export declare class MaintenanceService {
             healthPercent: number | null;
             mtbfHours: string | null;
             mttrHours: string | null;
+            serialNumber: string | null;
+            nameplatePower: string | null;
+            ratedSpeed: string | null;
+            warrantyExpiry: string | null;
+            operatingHours: number | null;
             installDate: Date | null;
             lastServiceDate: Date | null;
         };
@@ -149,11 +155,19 @@ export declare class MaintenanceService {
     }>;
     updateAsset(tenantId: string, id: string, input: any): Promise<any>;
     listTroubleshooting(tenantId: string): Promise<{
-        id: string;
-        symptom: string;
-        assetType: string;
-        failureCode: string;
-        verifiedBy: string;
+        id: any;
+        problemSymptom: any;
+        symptom: any;
+        assetId: any;
+        assetName: any;
+        failureCode: any;
+        rootCause: any;
+        repairProcedure: any;
+        partsRequired: any;
+        verifiedBy: any;
+        verificationDate: any;
+        status: any;
+        createdAt: any;
     }[]>;
     saveTroubleshootingStep(tenantId: string, input: any): Promise<{
         step: any;
@@ -292,17 +306,97 @@ export declare class MaintenanceService {
     }>;
     listSpareParts(tenantId: string): Promise<{
         id: string;
-        name: string;
-        tenantId: string;
-        plantId: string;
-        category: string;
-        minStockLevel: number;
-        supplierName: string | null;
+        dbId: string;
+        partNo: string;
         partNumber: string;
+        name: string;
+        category: string;
+        stock: number;
         currentStock: number;
-        unitCost: string | null;
-        binLocation: string | null;
+        minStock: number;
+        minStockLevel: number;
+        unitCost: number;
+        location: string;
+        binLocation: string;
+        supplier: string;
+        supplierName: string;
+        status: string;
+        linkedAssets: string[];
+        linkedAsset: string | null;
     }[]>;
+    createSparePart(tenantId: string, input: any): Promise<{
+        id: string;
+        dbId: string;
+        partNo: string;
+        partNumber: string;
+        name: string;
+        category: string;
+        stock: number;
+        currentStock: number;
+        minStock: number;
+        minStockLevel: number;
+        unitCost: number;
+        location: string | null;
+        binLocation: string | null;
+        supplier: string | null;
+        supplierName: string | null;
+        status: string;
+        linkedAssets: string[];
+        linkedAsset: string | null;
+    }>;
+    updateSparePart(tenantId: string, partId: string, input: any): Promise<{
+        id: string;
+        dbId: string;
+        partNo: string;
+        partNumber: string;
+        name: string;
+        category: string;
+        stock: number;
+        currentStock: number;
+        minStock: number;
+        minStockLevel: number;
+        unitCost: number;
+        location: string | null;
+        binLocation: string | null;
+        supplier: string | null;
+        supplierName: string | null;
+        status: string;
+        linkedAssets: string[];
+    }>;
+    deleteSparePart(tenantId: string, partId: string): Promise<{
+        id: string;
+        success: boolean;
+    }>;
+    listCalibrations(tenantId: string): Promise<{
+        id: string;
+        assetId: string;
+        dbAssetId: string;
+        assetCode: string | null;
+        instrumentName: string;
+        name: string;
+        certificateNumber: string | null;
+        certificate: string | null;
+        lastCalibration: string | null;
+        nextDueDate: string | null;
+        status: string;
+        result: string;
+        isUserCreated: boolean;
+    }[]>;
+    createCalibration(tenantId: string, input: any): Promise<{
+        id: string;
+        assetId: any;
+        dbAssetId: string;
+        assetCode: any;
+        instrumentName: string;
+        name: string;
+        certificateNumber: string | null;
+        certificate: string | null;
+        lastCalibration: string | null;
+        nextDueDate: string | null;
+        status: string;
+        result: any;
+        isUserCreated: boolean;
+    }>;
     listPM(tenantId: string): Promise<{
         status: string;
         title: string;
@@ -356,15 +450,35 @@ export declare class MaintenanceService {
         plantOverall: {
             mtbfHours: number;
             mttrHours: number;
-            availabilityPercent: number;
+            overallAvailability: number;
+            repeatFailureRate: number;
+            unplannedDowntimeHoursMonth: number;
+            totalMaintenanceCostMonth: number;
         };
-        criticalAssetsHealth: {
-            code: string;
-            name: string;
-            health: number;
-            mtbf: number;
-            status: string;
+        assetRanking: any[];
+        failurePareto: any[];
+        failureCategories: {
+            category: string;
+            events: number;
+            percentage: number;
+            color: string;
         }[];
+        repeatFailures: any[];
+        monthlyTrend: {
+            month: string;
+            mtbf: number;
+            mttr: number;
+            availability: number;
+            breakdowns: number;
+            cost: number;
+        }[];
+        weibull: {
+            beta: number;
+            betaRegime: string;
+            etaHours: number;
+            pmComplianceRatio: number;
+            hazardRatePerHour: number;
+        };
     }>;
     getRCAInvestigations(tenantId: string): Promise<{
         id: string;

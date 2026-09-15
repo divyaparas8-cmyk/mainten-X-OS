@@ -37,6 +37,9 @@ export async function maintenanceRoutes(fastify: FastifyInstance) {
   fastify.get("/pm", { schema: { tags: ["Maintenance & CMMS"], summary: "List Preventive Maintenance" } }, maintenanceController.getPM.bind(maintenanceController));
   fastify.get("/calendar", { schema: { tags: ["Maintenance & CMMS"], summary: "List Maintenance Calendar Events" } }, maintenanceController.getCalendar.bind(maintenanceController));
   fastify.get("/notifications", { schema: { tags: ["Maintenance & CMMS"], summary: "List Maintenance Notifications" } }, maintenanceController.getNotifications.bind(maintenanceController));
+  fastify.patch("/notifications/:id/read", { schema: { tags: ["Maintenance & CMMS"], summary: "Mark Notification as Read" } }, maintenanceController.markNotificationRead.bind(maintenanceController));
+  fastify.post("/notifications/mark-all-read", { schema: { tags: ["Maintenance & CMMS"], summary: "Mark All Notifications as Read" } }, maintenanceController.markAllNotificationsRead.bind(maintenanceController));
+  fastify.delete("/notifications", { schema: { tags: ["Maintenance & CMMS"], summary: "Clear All Notifications" } }, maintenanceController.clearNotifications.bind(maintenanceController));
   fastify.get("/profile", { schema: { tags: ["Maintenance & CMMS"], summary: "Get Maintenance Technician Profile" } }, maintenanceController.getProfile.bind(maintenanceController));
   fastify.post("/work-orders/:id/execution", { schema: { tags: ["Maintenance & CMMS"], summary: "Save Work Order Execution Record" } }, maintenanceController.saveWorkOrderExecution.bind(maintenanceController));
   fastify.patch("/work-orders/:id/execution", { schema: { tags: ["Maintenance & CMMS"], summary: "Update Work Order Execution Record" } }, maintenanceController.saveWorkOrderExecution.bind(maintenanceController));
@@ -46,6 +49,12 @@ export async function maintenanceRoutes(fastify: FastifyInstance) {
   fastify.post("/work-orders/:id/comments", { schema: { tags: ["Maintenance & CMMS"], summary: "Add Work Order Comment" } }, maintenanceController.addWorkOrderComment.bind(maintenanceController));
 
   fastify.get("/spare-parts", { schema: { tags: ["Maintenance & CMMS"], summary: "List Spare Parts Inventory" } }, maintenanceController.getSpareParts.bind(maintenanceController));
+  fastify.post("/spare-parts", { schema: { tags: ["Maintenance & CMMS"], summary: "Create Spare Part" } }, maintenanceController.createSparePart.bind(maintenanceController));
+  fastify.patch("/spare-parts/:id", { schema: { tags: ["Maintenance & CMMS"], summary: "Update Spare Part" } }, maintenanceController.updateSparePart.bind(maintenanceController));
+  fastify.put("/spare-parts/:id", { schema: { tags: ["Maintenance & CMMS"], summary: "Update Spare Part" } }, maintenanceController.updateSparePart.bind(maintenanceController));
+  fastify.delete("/spare-parts/:id", { schema: { tags: ["Maintenance & CMMS"], summary: "Delete Spare Part" } }, maintenanceController.deleteSparePart.bind(maintenanceController));
+  fastify.get("/calibrations", { schema: { tags: ["Maintenance & CMMS"], summary: "List Instrument Calibrations" } }, maintenanceController.getCalibrations.bind(maintenanceController));
+  fastify.post("/calibrations", { schema: { tags: ["Maintenance & CMMS"], summary: "Log Instrument Calibration" } }, maintenanceController.createCalibration.bind(maintenanceController));
   fastify.get("/reliability", { schema: { tags: ["Maintenance & CMMS"], summary: "Get Plant MTBF & Reliability Metrics" } }, maintenanceController.getReliabilityMetrics.bind(maintenanceController));
   fastify.get("/reliability/rca", { schema: { tags: ["Maintenance & CMMS"], summary: "List Reliability RCA Investigations" } }, maintenanceController.getRCAInvestigations.bind(maintenanceController));
   fastify.get("/rca/investigations", { schema: { tags: ["Maintenance & CMMS"], summary: "List RCA Investigations" } }, maintenanceController.getRCAInvestigations.bind(maintenanceController));

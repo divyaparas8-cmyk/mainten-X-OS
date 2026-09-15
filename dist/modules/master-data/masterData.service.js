@@ -2923,8 +2923,14 @@ class MasterDataService {
             linesList.forEach(l => {
                 lineMap.set(l.id, l.name);
             });
+            const plantsList = await database_js_1.db.select({ id: tenants_js_1.plants.id, name: tenants_js_1.plants.name, code: tenants_js_1.plants.code }).from(tenants_js_1.plants);
+            const plantMap = new Map();
+            plantsList.forEach(p => {
+                plantMap.set(p.id, p.name);
+            });
             return rows.map((r) => {
-                const lineName = (r.lineId && lineMap.get(r.lineId)) || "Line 1 (Aseptic Bottling)";
+                const plantName = (r.plantId && plantMap.get(r.plantId)) || "Indore Mega Bottling & Canning Facility";
+                const lineName = (r.lineId && lineMap.get(r.lineId)) || "Line 1 Bottling & Canning (250 BPM)";
                 const rawStatus = (r.status || "Operational").trim();
                 const formattedStatus = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
                 const rawCrit = (r.criticalLevel || "Medium").replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "");
@@ -2935,22 +2941,27 @@ class MasterDataService {
                     dbId: r.id,
                     name: r.name,
                     type: r.modelNumber || "Packaging & Bottling",
-                    department: "Packaging",
-                    plant: "Plant 1 - North Facility",
+                    department: r.department || "Packaging",
+                    plant: plantName,
                     line: lineName,
-                    location: "Bay 4A - Main Hall",
+                    location: r.location || "Bay 4A",
                     status: formattedStatus,
                     health: Number(r.healthPercent) ?? 100,
                     criticality: criticality || "Medium",
-                    mtbf: Number(r.mtbfHours) || 350,
-                    mttr: Number(r.mttrHours) || 1.5,
-                    vibration: 1.5,
-                    temperature: 55.0,
-                    manufacturer: r.manufacturer || "Standard OEM",
-                    model: r.modelNumber || "Series-2026",
-                    serialNumber: `SN-${r.assetCode || r.id.substring(0, 8)}`,
-                    commissionDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
-                    installedDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : new Date().toISOString().substring(0, 10),
+                    mtbf: Number(r.mtbfHours) || 0,
+                    mttr: Number(r.mttrHours) || 0,
+                    vibration: null,
+                    temperature: null,
+                    manufacturer: r.manufacturer || null,
+                    model: r.modelNumber || null,
+                    serialNumber: r.serialNumber || (r.assetCode ? `SN-${r.assetCode}` : null),
+                    nameplatePower: r.nameplatePower || null,
+                    ratedSpeed: r.ratedSpeed || null,
+                    warrantyExpiry: r.warrantyExpiry || null,
+                    runtimeHours: r.operatingHours || null,
+                    operatingHours: r.operatingHours || null,
+                    commissionDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : null,
+                    installedDate: r.installDate ? new Date(r.installDate).toISOString().substring(0, 10) : null,
                     createdAt: r.createdAt,
                     updatedAt: r.updatedAt,
                 };
@@ -3053,9 +3064,10 @@ class MasterDataService {
             updateData.criticalLevel = String(input.criticality || input.criticalLevel);
         }
         if (input.manufacturer !== undefined)
-            updateData.manufacturer = String(input.manufacturer).trim();
+            updateData.manufacturer = input.manufacturer ? String(input.manufacturer).trim() : null;
         if (input.model !== undefined || input.modelNumber !== undefined || input.type !== undefined) {
-            updateData.modelNumber = String(input.model || input.modelNumber || input.type).trim();
+            const m = input.model ?? input.modelNumber ?? input.type;
+            updateData.modelNumber = m ? String(m).trim() : null;
         }
         if (input.mtbf !== undefined || input.mtbfHours !== undefined) {
             updateData.mtbfHours = String(input.mtbf || input.mtbfHours);
@@ -3063,26 +3075,67 @@ class MasterDataService {
         if (input.mttr !== undefined || input.mttrHours !== undefined) {
             updateData.mttrHours = String(input.mttr || input.mttrHours);
         }
+        if (input.line !== undefined || input.lineId !== undefined) {
+            const lineVal = String(input.lineId || input.line).trim();
+            const isLineUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lineVal);
+            if (isLineUuid) {
+                updateData.lineId = lineVal;
+            }
+            else {
+                const [foundLine] = await database_js_1.db
+                    .select({ id: masterData_js_1.productionLines.id })
+                    .from(masterData_js_1.productionLines)
+                    .where((0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.code, lineVal), (0, drizzle_orm_1.ilike)(masterData_js_1.productionLines.name, `%${lineVal}%`)))
+                    .limit(1);
+                if (foundLine)
+                    updateData.lineId = foundLine.id;
+            }
+        }
+        if (input.location !== undefined)
+            updateData.location = input.location ? String(input.location).trim() : null;
+        if (input.serialNumber !== undefined)
+            updateData.serialNumber = input.serialNumber ? String(input.serialNumber).trim() : null;
+        if (input.nameplatePower !== undefined)
+            updateData.nameplatePower = input.nameplatePower ? String(input.nameplatePower).trim() : null;
+        if (input.ratedSpeed !== undefined)
+            updateData.ratedSpeed = input.ratedSpeed ? String(input.ratedSpeed).trim() : null;
+        if (input.warrantyExpiry !== undefined)
+            updateData.warrantyExpiry = input.warrantyExpiry ? String(input.warrantyExpiry).trim() : null;
+        if (input.operatingHours !== undefined || input.runtimeHours !== undefined) {
+            const h = input.operatingHours ?? input.runtimeHours;
+            updateData.operatingHours = h != null && h !== "" && h !== "null" ? Number(h) : null;
+        }
+        if (input.commissionDate !== undefined || input.installDate !== undefined || input.installedDate !== undefined) {
+            const d = input.commissionDate ?? input.installDate ?? input.installedDate;
+            updateData.installDate = d && d !== "null" && d !== "" ? new Date(d) : null;
+        }
         const [updated] = await database_js_1.db.update(masterData_js_1.assets).set(updateData).where((0, drizzle_orm_1.eq)(masterData_js_1.assets.id, target.id)).returning();
         return {
             id: updated.assetCode,
             assetCode: updated.assetCode,
             dbId: updated.id,
             name: updated.name,
-            type: updated.modelNumber,
+            type: updated.modelNumber || updated.name,
             department: input.department || "Packaging",
             line: input.line || "Line 1 (Aseptic Bottling)",
-            location: input.location || "Bay 4A - Main Hall",
+            location: updated.location || "Bay 4A",
             status: input.status || (updated.status ? updated.status.charAt(0).toUpperCase() + updated.status.slice(1).toLowerCase() : "Operational"),
             health: updated.healthPercent,
             criticality: input.criticality || (updated.criticalLevel ? updated.criticalLevel.replace(/^CRITICAL_/i, "").replace(/_P[1-3]$/i, "") : "Medium"),
-            mtbf: Number(updated.mtbfHours),
-            mttr: Number(updated.mttrHours),
-            vibration: 1.5,
-            temperature: 55.0,
-            manufacturer: updated.manufacturer,
-            model: updated.modelNumber,
-            serialNumber: `SN-${updated.assetCode}`,
+            mtbf: Number(updated.mtbfHours) || 0,
+            mttr: Number(updated.mttrHours) || 0,
+            vibration: null,
+            temperature: null,
+            manufacturer: updated.manufacturer || null,
+            model: updated.modelNumber || null,
+            serialNumber: updated.serialNumber || (updated.assetCode ? `SN-${updated.assetCode}` : null),
+            nameplatePower: updated.nameplatePower || null,
+            ratedSpeed: updated.ratedSpeed || null,
+            warrantyExpiry: updated.warrantyExpiry || null,
+            runtimeHours: updated.operatingHours || null,
+            operatingHours: updated.operatingHours || null,
+            commissionDate: updated.installDate ? new Date(updated.installDate).toISOString().substring(0, 10) : null,
+            installedDate: updated.installDate ? new Date(updated.installDate).toISOString().substring(0, 10) : null,
             updatedAt: updated.updatedAt,
         };
     }

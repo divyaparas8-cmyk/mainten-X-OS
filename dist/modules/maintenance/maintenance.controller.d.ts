@@ -61,6 +61,19 @@ export declare class MaintenanceController {
     getProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSpareParts(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSparePart(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSparePart(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteSparePart(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCalibrations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCalibration(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getReliabilityMetrics(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getRCAInvestigations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createRCAInvestigation(request: FastifyRequest, reply: FastifyReply): Promise<never>;

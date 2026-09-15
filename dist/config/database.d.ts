@@ -3361,6 +3361,118 @@ export declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 identity: undefined;
                 generated: undefined;
             }, {}, {}>;
+            serialNumber: import("drizzle-orm/pg-core").PgColumn<{
+                name: "serial_number";
+                tableName: "assets";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 100;
+            }>;
+            nameplatePower: import("drizzle-orm/pg-core").PgColumn<{
+                name: "nameplate_power";
+                tableName: "assets";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 50;
+            }>;
+            ratedSpeed: import("drizzle-orm/pg-core").PgColumn<{
+                name: "rated_speed";
+                tableName: "assets";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 50;
+            }>;
+            warrantyExpiry: import("drizzle-orm/pg-core").PgColumn<{
+                name: "warranty_expiry";
+                tableName: "assets";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 50;
+            }>;
+            operatingHours: import("drizzle-orm/pg-core").PgColumn<{
+                name: "operating_hours";
+                tableName: "assets";
+                dataType: "number";
+                columnType: "PgInteger";
+                data: number;
+                driverParam: string | number;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            location: import("drizzle-orm/pg-core").PgColumn<{
+                name: "location";
+                tableName: "assets";
+                dataType: "string";
+                columnType: "PgVarchar";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {
+                length: 100;
+            }>;
             installDate: import("drizzle-orm/pg-core").PgColumn<{
                 name: "install_date";
                 tableName: "assets";
@@ -12635,6 +12747,23 @@ export declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
             }, {}, {
                 length: 255;
             }>;
+            linkedAssets: import("drizzle-orm/pg-core").PgColumn<{
+                name: "linked_assets";
+                tableName: "spare_parts";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: true;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
         };
         dialect: "pg";
     }>;
@@ -12666,7 +12795,24 @@ export declare const db: import("drizzle-orm/node-postgres").NodePgDatabase<{
                 columnType: "PgUUID";
                 data: string;
                 driverParam: string;
-                notNull: true;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: undefined;
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            assetId: import("drizzle-orm/pg-core").PgColumn<{
+                name: "asset_id";
+                tableName: "spare_consumption";
+                dataType: "string";
+                columnType: "PgUUID";
+                data: string;
+                driverParam: string;
+                notNull: false;
                 hasDefault: false;
                 isPrimaryKey: false;
                 isAutoincrement: false;

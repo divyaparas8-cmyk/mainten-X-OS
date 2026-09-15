@@ -76,12 +76,15 @@ export const pmRecoveryPlans = pgTable("pm_recovery_plans", {
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
   plantId: varchar("plant_id", { length: 100 }).default("PLT-01").notNull(),
   scenarioName: varchar("scenario_name", { length: 255 }).default("Recovery Scenario").notNull(),
-  speedBoostPercent: numeric("speed_boost_percent", { precision: 5, scale: 2 }).notNull(),
-  overtimeHours: numeric("overtime_hours", { precision: 5, scale: 2 }).notNull(),
-  projectedRecoveryUnits: integer("projected_recovery_units").notNull(),
-  feasibilityPercent: numeric("feasibility_percent", { precision: 5, scale: 2 }).notNull(),
-  estimatedCostUsd: numeric("estimated_cost_usd", { precision: 10, scale: 2 }).notNull(),
-  appliedAt: timestamp("applied_at", { withTimezone: true }).defaultNow().notNull(),
+  type: varchar("type", { length: 100 }).default("Speed Tune"),
+  status: varchar("status", { length: 50 }).default("PROPOSED"),
+  speedBoostPercent: numeric("speed_boost_percent", { precision: 5, scale: 2 }).default("0"),
+  overtimeHours: numeric("overtime_hours", { precision: 5, scale: 2 }).default("0"),
+  projectedRecoveryUnits: integer("projected_recovery_units").default(0),
+  feasibilityPercent: numeric("feasibility_percent", { precision: 5, scale: 2 }).default("90"),
+  estimatedCostUsd: numeric("estimated_cost_usd", { precision: 10, scale: 2 }).default("0"),
+  appliedAt: timestamp("applied_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 // 6. Digital Shift Handover Logs

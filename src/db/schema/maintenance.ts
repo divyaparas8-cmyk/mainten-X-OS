@@ -63,11 +63,13 @@ export const spareParts = pgTable("spare_parts", {
   unitCost: numeric("unit_cost", { precision: 10, scale: 2 }).default("450.00"),
   binLocation: varchar("bin_location", { length: 50 }).default("M-BIN-04"),
   supplierName: varchar("supplier_name", { length: 255 }),
+  linkedAssets: text("linked_assets").default(""),
 });
 
 export const spareConsumption = pgTable("spare_consumption", {
   id: uuid("id").defaultRandom().primaryKey(),
-  workOrderId: uuid("work_order_id").references(() => workOrders.id, { onDelete: "cascade" }).notNull(),
+  workOrderId: uuid("work_order_id").references(() => workOrders.id, { onDelete: "cascade" }),
+  assetId: uuid("asset_id").references(() => assets.id, { onDelete: "cascade" }),
   sparePartId: uuid("spare_part_id").references(() => spareParts.id, { onDelete: "restrict" }).notNull(),
   quantityUsed: integer("quantity_used").default(1).notNull(),
   unitCost: numeric("unit_cost", { precision: 10, scale: 2 }).notNull(),

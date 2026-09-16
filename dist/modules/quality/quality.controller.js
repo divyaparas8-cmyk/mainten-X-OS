@@ -35,6 +35,11 @@ class QualityController {
         const data = await quality_service_js_1.qualityService.getQaReleaseMetrics(tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async getBatchReleaseDossier(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "0bf4f354-4e0e-41f3-9974-e24de98d25ff";
+        const data = await quality_service_js_1.qualityService.getBatchReleaseDossier(tenantId, request.params.batchId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
     async authorizeBatchRelease(request, reply) {
         const input = quality_schema_js_1.qaBatchReleaseSchema.parse(request.body);
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
@@ -92,6 +97,15 @@ class QualityController {
         const data = await quality_service_js_1.qualityService.exportAllergenAudits(request.user.tenantId, request.body, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createAllergenAudit(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await quality_service_js_1.qualityService.createAllergenAudit(request.user.tenantId, plantId, request.body, request.user.userId);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteAllergenAudit(request, reply) {
+        const data = await quality_service_js_1.qualityService.deleteAllergenAudit(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async getLineReadiness(request, reply) {
         const data = await quality_service_js_1.qualityService.listLineReadiness(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -100,12 +114,12 @@ class QualityController {
         const input = quality_schema_js_1.toggleLineReadinessSchema.parse(request.body);
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await quality_service_js_1.qualityService.toggleLineReadiness(request.user.tenantId, plantId, input, request.user.userId);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Line readiness updated to ${data.newStatus}`));
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data.data || data, `Line readiness updated to ${data.newStatus}`));
     }
     async authorizeAllLines(request, reply) {
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await quality_service_js_1.qualityService.authorizeAllLines(request.user.tenantId, plantId, request.user.userId);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data.data || data, data.message));
     }
     async exportLineReadiness(request, reply) {
         const data = await quality_service_js_1.qualityService.exportLineReadiness(request.user.tenantId, request.body, request.user.userId);

@@ -41,12 +41,12 @@ export declare const qaBatchReleaseSchema: z.ZodObject<{
     comments: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     batchId: string;
-    disposition: "RELEASED" | "REJECTED" | "REWORK" | "QUARANTINED";
+    disposition: "QUARANTINED" | "RELEASED" | "REJECTED" | "REWORK";
     signaturePin: string;
     comments?: string | undefined;
 }, {
     batchId: string;
-    disposition: "RELEASED" | "REJECTED" | "REWORK" | "QUARANTINED";
+    disposition: "QUARANTINED" | "RELEASED" | "REJECTED" | "REWORK";
     signaturePin: string;
     comments?: string | undefined;
 }>;
@@ -80,15 +80,15 @@ export declare const createDeviationSchema: z.ZodObject<{
     description: string;
     category: string;
     severity: string;
-    deviationNumber?: string | undefined;
     holdId?: string | undefined;
+    deviationNumber?: string | undefined;
 }, {
     title: string;
     description: string;
     category?: string | undefined;
+    holdId?: string | undefined;
     severity?: string | undefined;
     deviationNumber?: string | undefined;
-    holdId?: string | undefined;
 }>;
 export type CreateDeviationInput = z.infer<typeof createDeviationSchema>;
 export declare const startInvestigationSchema: z.ZodObject<{
@@ -205,14 +205,14 @@ export declare const submitPreOpSchema: z.ZodObject<{
     clearanceStatus: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     line: string;
-    batchRun: string;
     officer: string;
+    batchRun: string;
     clearanceStatus: string;
     checkpoints?: any[] | undefined;
 }, {
     line?: string | undefined;
-    batchRun?: string | undefined;
     officer?: string | undefined;
+    batchRun?: string | undefined;
     checkpoints?: any[] | undefined;
     clearanceStatus?: string | undefined;
 }>;
@@ -225,15 +225,15 @@ export declare const submitSanitationSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status: string;
     operator: string;
-    protocol: string;
     loop: string;
+    protocol: string;
     steps?: any[] | undefined;
 }, {
     status?: string | undefined;
     operator?: string | undefined;
+    loop?: string | undefined;
     protocol?: string | undefined;
     steps?: any[] | undefined;
-    loop?: string | undefined;
 }>;
 export declare const clearAllergenAuditSchema: z.ZodObject<{
     auditId: z.ZodUnion<[z.ZodNumber, z.ZodString]>;

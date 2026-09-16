@@ -3,8 +3,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.productionRoutes = productionRoutes;
 const production_controller_js_1 = require("./production.controller.js");
 const authenticate_js_1 = require("../../middleware/authenticate.js");
+const authorize_js_1 = require("../../middleware/authorize.js");
 async function productionRoutes(fastify) {
     fastify.addHook("preHandler", authenticate_js_1.authenticate);
+    // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+    fastify.addHook("preHandler", async (request, reply) => {
+        const user = request.user;
+        if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+            return;
+        }
+        const url = request.url.split("?")[0];
+        const method = request.method.toUpperCase();
+        let requiredPerm = null;
+        if (url.includes("/orders")) {
+            if (method === "POST")
+                requiredPerm = "production.create";
+            else if (method === "PATCH" || method === "PUT")
+                requiredPerm = "production.edit";
+            else if (method === "DELETE")
+                requiredPerm = "production.delete";
+            else if (method === "GET")
+                requiredPerm = "production.view";
+        }
+        else if (url.includes("/qa-release")) {
+            requiredPerm = "production.approve";
+        }
+        if (requiredPerm) {
+            await (0, authorize_js_1.authorize)(requiredPerm)(request, reply);
+        }
+    });
     // Orders
     fastify.get("/orders", { schema: { tags: ["Production & MES"], summary: "List Production Orders" } }, production_controller_js_1.productionController.getOrders.bind(production_controller_js_1.productionController));
     fastify.post("/orders", { schema: { tags: ["Production & MES"], summary: "Create Production Order" } }, production_controller_js_1.productionController.createOrder.bind(production_controller_js_1.productionController));

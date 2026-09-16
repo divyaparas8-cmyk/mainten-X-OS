@@ -1261,6 +1261,8 @@ export class AdminService {
   // ==========================================
 
   async getRoles(tenantId?: string) {
+    await this.ensurePermissionsSeeded();
+
     try {
       let activeTenantId: string | null = null;
       if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
@@ -1308,7 +1310,7 @@ export class AdminService {
 
   async createRole(tenantId: string | undefined, input: { name: string; description?: string }) {
     if (!input.name || !input.name.trim()) {
-      throw new ValidationError("Role name is required.");
+      throw new ValidationError("Role title/name is required.");
     }
 
     const code = input.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "_");
@@ -1322,70 +1324,56 @@ export class AdminService {
         if (demoTenant?.id) activeTenantId = demoTenant.id;
       }
 
-      const [created] = await db
+      const [existing] = await db.select().from(roles).where(eq(roles.code, code)).limit(1);
+      if (existing) {
+        throw new ConflictError(`A role with code '${code}' already exists.`);
+      }
+
+      const [newRole] = await db
         .insert(roles)
         .values({
           tenantId: activeTenantId,
           code,
           name: input.name.trim(),
-          description: input.description?.trim() || "Custom enterprise operational scope",
+          description: input.description || "Custom enterprise operational scope",
           isSystem: false,
         })
         .returning();
 
-      if (activeTenantId && created) {
+      if (activeTenantId) {
         try {
           await db.insert(auditLogs).values({
             tenantId: activeTenantId,
-            action: "CREATE_CUSTOM_ROLE",
-            entityType: "Role",
-            entityId: created.id,
-            newValues: { name: created.name, code: created.code },
+            action: "CREATE_ROLE",
+            entityType: "Roles",
+            entityId: newRole.id,
+            newValues: { name: newRole.name, code: newRole.code },
             ipAddress: "192.168.1.10",
           });
         } catch (_) {}
       }
 
-      if (created) {
-        return {
-          id: created.id,
-          dbId: created.id,
-          code: created.code,
-          name: created.name,
-          description: created.description || "Custom enterprise operational scope",
-          userCount: 0,
-          isSystem: false,
-          createdAt: created.createdAt instanceof Date ? created.createdAt.toISOString() : String(created.createdAt || new Date().toISOString()),
-        };
-      }
-    } catch (e: any) {
-      console.warn("createRole DB insert fallback:", e.message);
-      if (tenantId) throw e;
+      return {
+        id: newRole.id,
+        dbId: newRole.id,
+        code: newRole.code,
+        name: newRole.name,
+        description: newRole.description,
+        userCount: 0,
+        isSystem: false,
+        createdAt: newRole.createdAt instanceof Date ? newRole.createdAt.toISOString() : String(newRole.createdAt),
+      };
+    } catch (err: any) {
+      if (err instanceof ConflictError || err instanceof ValidationError) throw err;
+      console.warn("createRole DB insertion failed:", err.message);
+      throw err;
     }
-
-    const newId = `ROL-0${inMemoryRoles.length + 1}`;
-    const newRoleRecord = {
-      id: newId,
-      dbId: newId,
-      code,
-      name: input.name.trim(),
-      description: input.description?.trim() || "Custom enterprise operational scope",
-      userCount: 0,
-      isSystem: false,
-      createdAt: new Date().toISOString(),
-    };
-    inMemoryRoles.push(newRoleRecord);
-    return newRoleRecord;
   }
 
   async updateRole(tenantId: string | undefined, id: string, input: { name?: string; description?: string }) {
-    if (!id) {
-      throw new ValidationError("Role ID is required.");
-    }
-
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      let targetRole = null;
+      let targetRole: any = null;
 
       if (isUuid) {
         const [found] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
@@ -1396,47 +1384,45 @@ export class AdminService {
       }
 
       if (targetRole) {
-        const updateData: any = { updatedAt: new Date() };
-        if (input.name && input.name.trim()) updateData.name = input.name.trim();
-        if (input.description !== undefined) updateData.description = input.description.trim();
+        const updateValues: any = { updatedAt: new Date() };
+        if (input.name) updateValues.name = input.name.trim();
+        if (input.description !== undefined) updateValues.description = input.description.trim();
 
-        const [updated] = await db
-          .update(roles)
-          .set(updateData)
-          .where(eq(roles.id, targetRole.id))
-          .returning();
+        const [updated] = await db.update(roles).set(updateValues).where(eq(roles.id, targetRole.id)).returning();
 
         return {
           id: updated.id,
           dbId: updated.id,
           code: updated.code,
           name: updated.name,
-          description: updated.description || "",
+          description: updated.description,
+          userCount: 1,
           isSystem: updated.isSystem,
+          createdAt: updated.createdAt instanceof Date ? updated.createdAt.toISOString() : String(updated.createdAt),
         };
       }
     } catch (err: any) {
       console.warn("updateRole DB update failed:", err.message);
+      throw err;
     }
 
     const idx = inMemoryRoles.findIndex((r) => r.id === id || r.code === id);
     if (idx !== -1) {
-      if (input.name) inMemoryRoles[idx].name = input.name.trim();
-      if (input.description !== undefined) inMemoryRoles[idx].description = input.description.trim();
+      inMemoryRoles[idx] = {
+        ...inMemoryRoles[idx],
+        name: input.name || inMemoryRoles[idx].name,
+        description: input.description !== undefined ? input.description : inMemoryRoles[idx].description,
+      };
       return inMemoryRoles[idx];
     }
 
-    return { id, name: input.name, description: input.description };
+    throw new NotFoundError(`Role with ID ${id} not found.`);
   }
 
   async deleteRole(tenantId: string | undefined, id: string) {
-    if (!id) {
-      throw new ValidationError("Role ID is required.");
-    }
-
     try {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      let targetRole = null;
+      let targetRole: any = null;
 
       if (isUuid) {
         const [found] = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
@@ -1486,12 +1472,124 @@ export class AdminService {
     const PERMISSION_ACTIONS = ["view", "create", "edit", "delete", "approve"];
 
     try {
+      // 1. Ensure Tenant & Plant exist
+      let [demoTenant] = await db.select().from(tenants).limit(1);
+      if (!demoTenant) {
+        [demoTenant] = await db
+          .insert(tenants)
+          .values({
+            name: "BeverageCorp Manufacturing Global Ltd",
+            slug: "beverage-corp",
+            plan: "ENTERPRISE",
+            status: "ACTIVE",
+          })
+          .returning();
+      }
+
+      let [demoPlant] = await db.select().from(plants).where(eq(plants.tenantId, demoTenant.id)).limit(1);
+      if (!demoPlant) {
+        [demoPlant] = await db
+          .insert(plants)
+          .values({
+            tenantId: demoTenant.id,
+            code: "INDORE-01",
+            name: "Indore Mega Bottling & Canning Facility",
+            city: "Indore",
+            state: "Madhya Pradesh",
+            country: "India",
+            timezone: "Asia/Kolkata",
+          })
+          .returning();
+      }
+
+      // 2. Ensure standard System Roles exist in PostgreSQL
+      const standardRoles = [
+        { code: "master_admin", name: "Master Admin", description: "Platform Chief Administrator & SuperAdmin" },
+        { code: "admin", name: "Super Admin / System Administrator", description: "Indore IT & System Configuration Administrator" },
+        { code: "plant_manager", name: "Plant Manager", description: "Indore Plant Director & Operations Lead" },
+        { code: "quality", name: "Quality Manager", description: "Quality Assurance & Food Safety Lead" },
+        { code: "qa_manager", name: "Quality Manager", description: "Quality Assurance & Food Safety Manager" },
+        { code: "maintenance", name: "Maintenance Manager / Lead", description: "Senior Reliability Technician & Maintenance Lead" },
+        { code: "operator", name: "Line Operator", description: "Certified HMI Line Operator" },
+        { code: "planner", name: "Planner / Scheduler", description: "Lead Production & Demand Scheduler" },
+        { code: "warehouse", name: "Warehouse / Receiver", description: "Warehouse, Receiving & Logistics Manager" },
+        { code: "supervisor", name: "Operations Supervisor", description: "Shift Operations & Workforce Supervisor" },
+        { code: "line_lead", name: "Line Lead", description: "Line Lead - Packaging & Bottling" },
+        { code: "ci_engineer", name: "CI / Engineering", description: "Continuous Improvement & RCA Engineer" },
+        { code: "executive", name: "Executive", description: "Chief Operating Officer & Enterprise Executive" },
+      ];
+
+      const currentRoles = await db.select().from(roles);
+      for (const r of standardRoles) {
+        const found = currentRoles.find((cr) => cr.code === r.code);
+        if (!found) {
+          const [insertedRole] = await db
+            .insert(roles)
+            .values({
+              tenantId: demoTenant.id,
+              code: r.code,
+              name: r.name,
+              description: r.description,
+              isSystem: true,
+            })
+            .returning();
+          if (insertedRole) currentRoles.push(insertedRole);
+        }
+      }
+
+      // 3. Ensure test users exist in PostgreSQL for role testing
+      const passwordHash = await bcrypt.hash("Password@123", 10);
+      const testUsers = [
+        { email: "admin@maintenx.com", firstName: "Alexander", lastName: "Vance", roleCode: "admin", isMasterAdmin: true },
+        { email: "plant.manager@maintenx.com", firstName: "Arthur", lastName: "Sterling", roleCode: "plant_manager", isMasterAdmin: false },
+        { email: "qa@maintenx.com", firstName: "Dr. Rachel", lastName: "Thorne", roleCode: "quality", isMasterAdmin: false },
+        { email: "maintenance@maintenx.com", firstName: "Dave", lastName: "Miller", roleCode: "maintenance", isMasterAdmin: false },
+        { email: "operator@maintenx.com", firstName: "Marcus", lastName: "Chen", roleCode: "operator", isMasterAdmin: false },
+      ];
+
+      for (const u of testUsers) {
+        let [existingUser] = await db.select().from(users).where(eq(users.email, u.email)).limit(1);
+        if (!existingUser) {
+          [existingUser] = await db
+            .insert(users)
+            .values({
+              tenantId: demoTenant.id,
+              email: u.email,
+              passwordHash,
+              firstName: u.firstName,
+              lastName: u.lastName,
+              isMasterAdmin: u.isMasterAdmin,
+              status: "ACTIVE",
+            })
+            .returning();
+        }
+
+        const roleObj = currentRoles.find((r) => r.code === u.roleCode);
+        if (existingUser && roleObj) {
+          const [existingUserRole] = await db.select().from(userRoles).where(eq(userRoles.userId, existingUser.id)).limit(1);
+          if (!existingUserRole) {
+            await db.insert(userRoles).values({
+              userId: existingUser.id,
+              roleId: roleObj.id,
+              plantId: demoPlant.id,
+            });
+          }
+        }
+      }
+
+      // 4. Ensure all 55 Permissions exist
       const existingPerms = await db.select().from(permissions);
-      if (!existingPerms || existingPerms.length === 0) {
-        for (const mod of PERMISSION_MODULES) {
-          for (const act of PERMISSION_ACTIONS) {
+      const permMap = new Map<string, any>();
+      for (const p of existingPerms) {
+        permMap.set(`${p.module.toLowerCase()}:::${p.action.toLowerCase()}`, p);
+      }
+
+      for (const mod of PERMISSION_MODULES) {
+        for (const act of PERMISSION_ACTIONS) {
+          const key = `${mod.toLowerCase()}:::${act.toLowerCase()}`;
+          if (!permMap.has(key)) {
             const code = `${mod.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${act}`;
-            await db
+            const [newPerm] = await db
               .insert(permissions)
               .values({
                 code,
@@ -1499,78 +1597,105 @@ export class AdminService {
                 action: act,
                 description: `${act.toUpperCase()} operations on ${mod}`,
               })
-              .onConflictDoNothing();
+              .onConflictDoNothing()
+              .returning();
+            if (newPerm) {
+              existingPerms.push(newPerm);
+              permMap.set(key, newPerm);
+            }
           }
         }
       }
 
+      // 5. Ensure Default Role Permissions per role
+      const allRoles = await db.select().from(roles);
+      const allPerms = await db.select().from(permissions);
       const existingRolePerms = await db.select().from(rolePermissions);
-      if (!existingRolePerms || existingRolePerms.length === 0) {
-        const allRoles = await db.select().from(roles);
-        const allPerms = await db.select().from(permissions);
 
-        const defaultMatrix: Record<string, Record<string, string[]>> = {
-          admin: {
-            "SKU Master": ["view", "create", "edit", "delete", "approve"],
-            "BOM / Recipe": ["view", "create", "edit", "delete", "approve"],
-            "Work Centers / Lines": ["view", "create", "edit", "delete", "approve"],
-            "Machine Assets": ["view", "create", "edit", "delete", "approve"],
-            "Employees & Skills": ["view", "create", "edit", "delete", "approve"],
-            "Quality Specs": ["view", "create", "edit", "delete", "approve"],
-            "Production": ["view", "create", "edit", "delete", "approve"],
-            "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
-            "Data Migration": ["view", "create", "edit", "delete", "approve"],
-            "Audit Trail": ["view", "create", "edit", "delete", "approve"],
-            "Reports & Exports": ["view", "create", "edit", "delete", "approve"],
-          },
-          plant_manager: {
-            "SKU Master": ["view", "create", "edit", "approve"],
-            "BOM / Recipe": ["view", "create", "edit", "approve"],
-            "Work Centers / Lines": ["view", "create", "edit", "approve"],
-            "Machine Assets": ["view", "create", "edit", "approve"],
-            "Employees & Skills": ["view", "create", "edit", "approve"],
-            "Quality Specs": ["view", "create", "edit", "approve"],
-            "Production": ["view", "create", "edit", "delete", "approve"],
-            "Maintenance & CMMS": ["view", "create", "edit", "approve"],
-            "Audit Trail": ["view", "approve"],
-            "Reports & Exports": ["view", "create", "edit", "approve"],
-          },
-          quality: {
-            "SKU Master": ["view"],
-            "BOM / Recipe": ["view", "edit", "approve"],
-            "Quality Specs": ["view", "create", "edit", "approve"],
-            "Production": ["view", "approve"],
-            "Audit Trail": ["view", "approve"],
-          },
-          maintenance: {
-            "Machine Assets": ["view", "create", "edit", "approve"],
-            "Work Centers / Lines": ["view", "edit"],
-            "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
-            "Production": ["view"],
-          },
-          operator: {
-            "SKU Master": ["view"],
-            "BOM / Recipe": ["view"],
-            "Work Centers / Lines": ["view"],
-            "Production": ["view", "create", "edit"],
-            "Quality Specs": ["view"],
-          },
-        };
+      const defaultMatrix: Record<string, Record<string, string[]>> = {
+        admin: {
+          "SKU Master": ["view", "create", "edit", "delete", "approve"],
+          "BOM / Recipe": ["view", "create", "edit", "delete", "approve"],
+          "Work Centers / Lines": ["view", "create", "edit", "delete", "approve"],
+          "Machine Assets": ["view", "create", "edit", "delete", "approve"],
+          "Employees & Skills": ["view", "create", "edit", "delete", "approve"],
+          "Quality Specs": ["view", "create", "edit", "delete", "approve"],
+          "Production": ["view", "create", "edit", "delete", "approve"],
+          "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
+          "Data Migration": ["view", "create", "edit", "delete", "approve"],
+          "Audit Trail": ["view", "create", "edit", "delete", "approve"],
+          "Reports & Exports": ["view", "create", "edit", "delete", "approve"],
+        },
+        master_admin: {
+          "SKU Master": ["view", "create", "edit", "delete", "approve"],
+          "BOM / Recipe": ["view", "create", "edit", "delete", "approve"],
+          "Work Centers / Lines": ["view", "create", "edit", "delete", "approve"],
+          "Machine Assets": ["view", "create", "edit", "delete", "approve"],
+          "Employees & Skills": ["view", "create", "edit", "delete", "approve"],
+          "Quality Specs": ["view", "create", "edit", "delete", "approve"],
+          "Production": ["view", "create", "edit", "delete", "approve"],
+          "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
+          "Data Migration": ["view", "create", "edit", "delete", "approve"],
+          "Audit Trail": ["view", "create", "edit", "delete", "approve"],
+          "Reports & Exports": ["view", "create", "edit", "delete", "approve"],
+        },
+        plant_manager: {
+          "SKU Master": ["view", "create", "edit", "approve"],
+          "BOM / Recipe": ["view", "create", "edit", "approve"],
+          "Work Centers / Lines": ["view", "create", "edit", "approve"],
+          "Machine Assets": ["view", "create", "edit", "approve"],
+          "Employees & Skills": ["view", "create", "edit", "approve"],
+          "Quality Specs": ["view", "create", "edit", "approve"],
+          "Production": ["view", "create", "edit", "delete", "approve"],
+          "Maintenance & CMMS": ["view", "create", "edit", "approve"],
+          "Audit Trail": ["view", "approve"],
+          "Reports & Exports": ["view", "create", "edit", "approve"],
+        },
+        quality: {
+          "SKU Master": ["view"],
+          "BOM / Recipe": ["view", "edit", "approve"],
+          "Quality Specs": ["view", "create", "edit", "approve"],
+          "Production": ["view", "approve"],
+          "Audit Trail": ["view", "approve"],
+        },
+        qa_manager: {
+          "SKU Master": ["view"],
+          "BOM / Recipe": ["view", "edit", "approve"],
+          "Quality Specs": ["view", "create", "edit", "approve"],
+          "Production": ["view", "approve"],
+          "Audit Trail": ["view", "approve"],
+        },
+        maintenance: {
+          "Machine Assets": ["view", "create", "edit", "approve"],
+          "Work Centers / Lines": ["view", "edit"],
+          "Maintenance & CMMS": ["view", "create", "edit", "delete", "approve"],
+          "Production": ["view"],
+        },
+        operator: {
+          "SKU Master": ["view"],
+          "BOM / Recipe": ["view"],
+          "Work Centers / Lines": ["view"],
+          "Production": ["view", "create", "edit"],
+          "Quality Specs": ["view"],
+        },
+      };
 
-        for (const [roleCode, moduleRules] of Object.entries(defaultMatrix)) {
-          const role = allRoles.find((r) => r.code === roleCode || (roleCode === "admin" && r.code === "master_admin"));
-          if (!role) continue;
-
-          for (const [mod, allowedActs] of Object.entries(moduleRules)) {
-            for (const act of allowedActs) {
-              const perm = allPerms.find((p) => p.module === mod && p.action.toLowerCase() === act.toLowerCase());
-              if (perm) {
-                try {
-                  await db.insert(rolePermissions).values({
-                    roleId: role.id,
-                    permissionId: perm.id,
-                  });
-                } catch (_) {}
+      for (const [roleCode, moduleRules] of Object.entries(defaultMatrix)) {
+        const matchingRoles = allRoles.filter((r) => r.code === roleCode || (roleCode === "admin" && r.code === "master_admin"));
+        for (const targetRole of matchingRoles) {
+          const roleHasAnyPerms = existingRolePerms.some((rp) => rp.roleId === targetRole.id);
+          if (!roleHasAnyPerms) {
+            for (const [mod, allowedActs] of Object.entries(moduleRules)) {
+              for (const act of allowedActs) {
+                const perm = allPerms.find((p) => p.module === mod && p.action.toLowerCase() === act.toLowerCase());
+                if (perm) {
+                  try {
+                    await db.insert(rolePermissions).values({
+                      roleId: targetRole.id,
+                      permissionId: perm.id,
+                    });
+                  } catch (_) {}
+                }
               }
             }
           }
@@ -1643,8 +1768,14 @@ export class AdminService {
       if (matrix["quality"] && !matrix["qa_manager"]) {
         matrix["qa_manager"] = JSON.parse(JSON.stringify(matrix["quality"]));
       }
+      if (matrix["qa_manager"] && !matrix["quality"]) {
+        matrix["quality"] = JSON.parse(JSON.stringify(matrix["qa_manager"]));
+      }
       if (matrix["admin"] && !matrix["master_admin"]) {
         matrix["master_admin"] = JSON.parse(JSON.stringify(matrix["admin"]));
+      }
+      if (matrix["master_admin"] && !matrix["admin"]) {
+        matrix["admin"] = JSON.parse(JSON.stringify(matrix["master_admin"]));
       }
 
       return matrix;
@@ -1656,93 +1787,107 @@ export class AdminService {
   }
 
   async updatePermissionMatrix(
-    tenantId: string | undefined,
-    input: { roleKey: string; permissions?: Record<string, Record<string, boolean>>; module?: string; action?: string; allowed?: boolean }
+    arg1?: string | { roleKey: string; permissions?: Record<string, Record<string, boolean>>; module?: string; action?: string; allowed?: boolean },
+    arg2?: { roleKey: string; permissions?: Record<string, Record<string, boolean>>; module?: string; action?: string; allowed?: boolean }
   ) {
+    let tenantId: string | undefined;
+    let input: { roleKey: string; permissions?: Record<string, Record<string, boolean>>; module?: string; action?: string; allowed?: boolean };
+
+    if (typeof arg1 === "object" && arg1 !== null && "roleKey" in arg1) {
+      input = arg1 as any;
+      tenantId = undefined;
+    } else {
+      tenantId = arg1 as string | undefined;
+      input = arg2!;
+    }
+
     await this.ensurePermissionsSeeded();
 
     try {
       const allRoles = await db.select().from(roles);
       let allPerms = await db.select().from(permissions);
 
-      const targetRole = allRoles.find(
+      const targetRoles = allRoles.filter(
         (r) =>
           r.code === input.roleKey ||
           r.id === input.roleKey ||
-          (input.roleKey === "qa_manager" && r.code === "quality") ||
+          (input.roleKey === "qa_manager" && (r.code === "quality" || r.code === "qa_manager")) ||
+          (input.roleKey === "quality" && (r.code === "qa_manager" || r.code === "quality")) ||
           (input.roleKey === "admin" && (r.code === "admin" || r.code === "master_admin"))
       );
 
-      if (!targetRole) {
+      if (!targetRoles || targetRoles.length === 0) {
         throw new NotFoundError(`Role "${input.roleKey}" not found in database.`);
       }
 
-      if (input.permissions) {
-        for (const [modName, actionsObj] of Object.entries(input.permissions)) {
-          for (const [actName, isAllowed] of Object.entries(actionsObj as Record<string, boolean>)) {
-            let perm = allPerms.find(
-              (p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName.toLowerCase()
-            );
+      for (const targetRole of targetRoles) {
+        if (input.permissions) {
+          for (const [modName, actionsObj] of Object.entries(input.permissions)) {
+            for (const [actName, isAllowed] of Object.entries(actionsObj as Record<string, boolean>)) {
+              let perm = allPerms.find(
+                (p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName.toLowerCase()
+              );
 
-            if (!perm) {
-              const code = `${modName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${actName.toLowerCase()}`;
-              const [newPerm] = await db
-                .insert(permissions)
-                .values({
-                  code,
-                  module: modName,
-                  action: actName.toLowerCase(),
-                  description: `${actName.toUpperCase()} on ${modName}`,
-                })
-                .returning();
-              perm = newPerm;
-              if (newPerm) allPerms.push(newPerm);
-            }
+              if (!perm) {
+                const code = `${modName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${actName.toLowerCase()}`;
+                const [newPerm] = await db
+                  .insert(permissions)
+                  .values({
+                    code,
+                    module: modName,
+                    action: actName.toLowerCase(),
+                    description: `${actName.toUpperCase()} on ${modName}`,
+                  })
+                  .returning();
+                perm = newPerm;
+                if (newPerm) allPerms.push(newPerm);
+              }
 
-            if (perm) {
-              if (isAllowed) {
-                const existing = await db
-                  .select()
-                  .from(rolePermissions)
-                  .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
+              if (perm) {
+                if (isAllowed) {
+                  const existing = await db
+                    .select()
+                    .from(rolePermissions)
+                    .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
 
-                if (!existing || existing.length === 0) {
-                  await db.insert(rolePermissions).values({
-                    roleId: targetRole.id,
-                    permissionId: perm.id,
-                  });
+                  if (!existing || existing.length === 0) {
+                    await db.insert(rolePermissions).values({
+                      roleId: targetRole.id,
+                      permissionId: perm.id,
+                    });
+                  }
+                } else {
+                  await db
+                    .delete(rolePermissions)
+                    .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
                 }
-              } else {
-                await db
-                  .delete(rolePermissions)
-                  .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
               }
             }
           }
-        }
-      } else if (input.module && input.action) {
-        const modName = input.module;
-        const actName = input.action.toLowerCase();
-        let perm = allPerms.find(
-          (p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName
-        );
+        } else if (input.module && input.action) {
+          const modName = input.module;
+          const actName = input.action.toLowerCase();
+          let perm = allPerms.find(
+            (p) => p.module.toLowerCase() === modName.toLowerCase() && p.action.toLowerCase() === actName
+          );
 
-        if (perm) {
-          if (input.allowed) {
-            const existing = await db
-              .select()
-              .from(rolePermissions)
-              .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
-            if (!existing || existing.length === 0) {
-              await db.insert(rolePermissions).values({
-                roleId: targetRole.id,
-                permissionId: perm.id,
-              });
+          if (perm) {
+            if (input.allowed) {
+              const existing = await db
+                .select()
+                .from(rolePermissions)
+                .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
+              if (!existing || existing.length === 0) {
+                await db.insert(rolePermissions).values({
+                  roleId: targetRole.id,
+                  permissionId: perm.id,
+                });
+              }
+            } else {
+              await db
+                .delete(rolePermissions)
+                .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
             }
-          } else {
-            await db
-              .delete(rolePermissions)
-              .where(and(eq(rolePermissions.roleId, targetRole.id), eq(rolePermissions.permissionId, perm.id)));
           }
         }
       }
@@ -1755,14 +1900,14 @@ export class AdminService {
         if (demoTenant?.id) activeTenantId = demoTenant.id;
       }
 
-      if (activeTenantId) {
+      if (activeTenantId && targetRoles[0]) {
         try {
           await db.insert(auditLogs).values({
             tenantId: activeTenantId,
             action: "UPDATE_PERMISSION_MATRIX",
             entityType: "PermissionMatrix",
-            entityId: targetRole.id,
-            newValues: { role: targetRole.name, roleCode: targetRole.code },
+            entityId: targetRoles[0].id,
+            newValues: { role: targetRoles[0].name, roleCode: targetRoles[0].code },
             ipAddress: "192.168.1.10",
           });
         } catch (_) {}
@@ -1771,8 +1916,8 @@ export class AdminService {
       return {
         success: true,
         roleKey: input.roleKey,
-        roleId: targetRole.id,
-        message: `Permissions matrix for role "${targetRole.name}" successfully updated in database!`,
+        roleIds: targetRoles.map((r) => r.id),
+        message: `Permissions matrix for role "${targetRoles[0]?.name || input.roleKey}" successfully updated in database!`,
       };
     } catch (err: any) {
       console.warn("updatePermissionMatrix error:", err.message);
@@ -1781,8 +1926,18 @@ export class AdminService {
   }
 
   async testPermissionAccess(input: { roleKey: string; module: string; action: string }) {
-    const matrix = await this.getPermissionMatrix();
     const roleKey = input.roleKey || "plant_manager";
+    if (roleKey === "admin" || roleKey === "master_admin") {
+      return {
+        allowed: true,
+        roleKey,
+        module: input.module,
+        action: input.action,
+        message: `Access Granted: "${roleKey}" has verified permission to "${input.action?.toUpperCase()}" on "${input.module}".`,
+      };
+    }
+
+    const matrix = await this.getPermissionMatrix();
     const roleConfig = (matrix as any)[roleKey] || (matrix as any)["plant_manager"];
     const allowed = !!roleConfig?.permissions?.[input.module]?.[input.action?.toLowerCase()];
 

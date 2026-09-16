@@ -10,6 +10,11 @@ export declare class QualityController {
     }>, reply: FastifyReply): Promise<never>;
     getQaReleaseQueue(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getQaReleaseMetrics(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getBatchReleaseDossier(request: FastifyRequest<{
+        Params: {
+            batchId: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     authorizeBatchRelease(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getQualityHolds(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createQualityHold(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -21,6 +26,12 @@ export declare class QualityController {
     clearAllergenAudit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     clearAllAllergenAudits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportAllergenAudits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAllergenAudit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteAllergenAudit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getLineReadiness(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     toggleLineReadiness(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeAllLines(request: FastifyRequest, reply: FastifyReply): Promise<never>;

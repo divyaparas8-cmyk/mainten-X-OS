@@ -3,8 +3,74 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.masterDataRoutes = masterDataRoutes;
 const masterData_controller_js_1 = require("./masterData.controller.js");
 const authenticate_js_1 = require("../../middleware/authenticate.js");
+const authorize_js_1 = require("../../middleware/authorize.js");
 async function masterDataRoutes(fastify) {
     fastify.addHook("preHandler", authenticate_js_1.authenticate);
+    // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+    fastify.addHook("preHandler", async (request, reply) => {
+        const user = request.user;
+        if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+            return;
+        }
+        const url = request.url.split("?")[0];
+        const method = request.method.toUpperCase();
+        let requiredPerm = null;
+        if (url.includes("/boms")) {
+            if (method === "POST")
+                requiredPerm = ["bom___recipe.create", "bom_recipe.create"];
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = ["bom___recipe.edit", "bom_recipe.edit"];
+            else if (method === "DELETE")
+                requiredPerm = ["bom___recipe.delete", "bom_recipe.delete"];
+            else if (method === "GET")
+                requiredPerm = ["bom___recipe.view", "bom_recipe.view"];
+        }
+        else if (url.includes("/skus")) {
+            if (method === "POST")
+                requiredPerm = "sku_master.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "sku_master.edit";
+            else if (method === "DELETE")
+                requiredPerm = "sku_master.delete";
+            else if (method === "GET")
+                requiredPerm = "sku_master.view";
+        }
+        else if (url.includes("/work-centers") || url.includes("/lines")) {
+            if (method === "POST")
+                requiredPerm = "work_centers___lines.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "work_centers___lines.edit";
+            else if (method === "DELETE")
+                requiredPerm = "work_centers___lines.delete";
+        }
+        else if (url.includes("/assets")) {
+            if (method === "POST")
+                requiredPerm = "machine_assets.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "machine_assets.edit";
+            else if (method === "DELETE")
+                requiredPerm = "machine_assets.delete";
+        }
+        else if (url.includes("/quality-specs")) {
+            if (method === "POST")
+                requiredPerm = "quality_specs.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "quality_specs.edit";
+            else if (method === "DELETE")
+                requiredPerm = "quality_specs.delete";
+        }
+        else if (url.includes("/employee-skills") || url.includes("/employees")) {
+            if (method === "POST")
+                requiredPerm = "employees___skills.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "employees___skills.edit";
+            else if (method === "DELETE")
+                requiredPerm = "employees___skills.delete";
+        }
+        if (requiredPerm) {
+            await (0, authorize_js_1.authorize)(requiredPerm)(request, reply);
+        }
+    });
     // 1. Companies & Legal Entities
     fastify.get("/companies", { schema: { tags: ["Master Data"], summary: "List Enterprise Companies & Legal Entities" } }, masterData_controller_js_1.masterDataController.getCompanies.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/companies", { schema: { tags: ["Master Data"], summary: "Register New Legal Corporate Entity" } }, masterData_controller_js_1.masterDataController.createCompany.bind(masterData_controller_js_1.masterDataController));
@@ -81,6 +147,7 @@ async function masterDataRoutes(fastify) {
     fastify.post("/skus", { schema: { tags: ["Master Data"], summary: "Create new SKU" } }, masterData_controller_js_1.masterDataController.createSku.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/skus/:id", { schema: { tags: ["Master Data"], summary: "Update SKU master record" } }, masterData_controller_js_1.masterDataController.updateSku.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/skus/:id", { schema: { tags: ["Master Data"], summary: "Delete SKU from master" } }, masterData_controller_js_1.masterDataController.deleteSku.bind(masterData_controller_js_1.masterDataController));
+    // BOMs & Recipe Master
     fastify.get("/boms", { schema: { tags: ["Master Data"], summary: "List BOMs & Formulations" } }, masterData_controller_js_1.masterDataController.getBoms.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.createBom.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.updateBom.bind(masterData_controller_js_1.masterDataController));

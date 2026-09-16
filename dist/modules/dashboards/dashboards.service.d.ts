@@ -1255,15 +1255,22 @@ export declare class DashboardsService {
         success: boolean;
         data: {
             status: string;
+            date: string | null;
             id: string;
-            tenantId: string;
-            plantId: string;
+            createdAt: Date | null;
+            updatedAt: Date | null;
+            tenantId: string | null;
+            plantId: string | null;
+            notes: string | null;
             reason: string;
             batchId: string | null;
             releasedAt: Date | null;
+            holdId: string | null;
+            batch: string | null;
             lotNumber: string;
             severity: string | null;
-            holdBy: string;
+            holdBy: string | null;
+            heldByName: string | null;
             holdAt: Date;
         };
         message: string;

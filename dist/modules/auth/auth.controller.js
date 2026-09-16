@@ -69,7 +69,7 @@ class AuthController {
             tenantId: user.tenantId,
             plantId: user.plantId,
             role: user.role,
-            permissions: ["*"],
+            permissions: user.permissions || (user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" ? ["*"] : []),
             isMasterAdmin: user.isMasterAdmin,
         });
         await (0, auditContext_js_1.logAuditTrail)({

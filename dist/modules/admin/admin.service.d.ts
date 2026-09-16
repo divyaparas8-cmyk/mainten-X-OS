@@ -276,7 +276,7 @@ export declare class AdminService {
         dbId: string;
         code: string;
         name: string;
-        description: string;
+        description: string | null;
         userCount: number;
         isSystem: boolean;
         createdAt: string;
@@ -293,7 +293,13 @@ export declare class AdminService {
     getPermissionMatrix(tenantId?: string): Promise<Record<string, {
         permissions: Record<string, Record<string, boolean>>;
     }>>;
-    updatePermissionMatrix(tenantId: string | undefined, input: {
+    updatePermissionMatrix(arg1?: string | {
+        roleKey: string;
+        permissions?: Record<string, Record<string, boolean>>;
+        module?: string;
+        action?: string;
+        allowed?: boolean;
+    }, arg2?: {
         roleKey: string;
         permissions?: Record<string, Record<string, boolean>>;
         module?: string;
@@ -302,7 +308,7 @@ export declare class AdminService {
     }): Promise<{
         success: boolean;
         roleKey: string;
-        roleId: string;
+        roleIds: string[];
         message: string;
     }>;
     testPermissionAccess(input: {
@@ -679,13 +685,13 @@ export declare class AdminService {
         updatedAt: Date | null;
         tenantId: string | null;
         tier: string | null;
+        generatedBy: string | null;
         uptime: string;
         dbStorage: string;
         apiLatency: string;
         licensesUsed: number | null;
         licensesTotal: number | null;
         edgeHealth: string | null;
-        generatedBy: string | null;
         metrics: unknown;
     }[]>;
     createSystemReport(tenantId: string | undefined, data: any): Promise<{

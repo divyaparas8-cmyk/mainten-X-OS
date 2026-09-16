@@ -10,7 +10,9 @@ export declare class AuthService {
             tenantId: string;
             plantId: string;
             role: string;
+            roleId: string | undefined;
             roleName: string;
+            permissions: string[];
             isMasterAdmin: boolean;
             avatarUrl: string | null;
         };

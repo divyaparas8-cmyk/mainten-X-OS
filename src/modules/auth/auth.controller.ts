@@ -82,7 +82,7 @@ export class AuthController {
       tenantId: user.tenantId,
       plantId: user.plantId,
       role: user.role,
-      permissions: ["*"],
+      permissions: (user as any).permissions || (user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" ? ["*"] : []),
       isMasterAdmin: user.isMasterAdmin,
     });
 

@@ -911,12 +911,40 @@ export class DashboardsController {
 
   async updateSupervisorProfile(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
-    const data = await dashboardsService.updateSupervisorProfile(request.user.tenantId, request.user.userId, body);
+    const data = await dashboardsService.updateSupervisorProfile(request.user?.tenantId, request.user?.userId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
+  async getLabourAllocations(request: FastifyRequest, reply: FastifyReply) {
+    const query = (request.query as any) || {};
+    const shift = query.shift || "Shift A";
+    const data = await dashboardsService.getLabourAllocations(request.user?.tenantId, shift);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createLabourAllocation(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.createLabourAllocation(request.user?.tenantId, body);
+    return reply.code(201).send(formatSuccess(data, "Staff allocation created successfully"));
+  }
+
+  async updateLabourAllocation(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.updateLabourAllocation(request.user?.tenantId, id, body);
+    return reply.send(formatSuccess(data, "Staff allocation updated successfully"));
+  }
+
+  async deleteLabourAllocation(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
     return reply.send(formatSuccess(data, data.message));
   }
 }
 
 export const dashboardsController = new DashboardsController();
+
 
 
 

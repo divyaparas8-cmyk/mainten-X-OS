@@ -343,6 +343,23 @@ export const uoms = pgTable("uoms", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const labourAllocations = pgTable("labour_allocations", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  tenantId: uuid("tenant_id"),
+  plantId: varchar("plant_id", { length: 64 }).default("PLT-01"),
+  shift: varchar("shift", { length: 50 }).default("Shift A"),
+  line: varchar("line", { length: 255 }).notNull(),
+  lineId: varchar("line_id", { length: 64 }),
+  required: integer("required").default(1).notNull(),
+  assigned: integer("assigned").default(0).notNull(),
+  supervisor: varchar("supervisor", { length: 255 }).notNull(),
+  supervisorId: varchar("supervisor_id", { length: 64 }),
+  status: varchar("status", { length: 50 }).default("Full Coverage"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
 export const labourStandards = pgTable("labour_standards", {
   id: uuid("id").defaultRandom().primaryKey(),
   standardId: varchar("standard_id", { length: 50 }),

@@ -628,6 +628,58 @@ export declare class WarehouseService {
         message: string;
     }>;
     getTraceability(tenantId: string, lotNumber?: string): Promise<{
+<<<<<<< HEAD
+        lotNumber: any;
+        lotType: any;
+        category: any;
+        type: string;
+        materialName: any;
+        skuCode: any;
+        barcode: any;
+        initialQuantity: any;
+        currentQuantity: any;
+        quantity: string;
+        uom: any;
+        supplier: any;
+        supplierLot: any;
+        mfgDate: string;
+        expiryDate: string;
+        status: any;
+        qaStatus: string;
+        qaCert: string;
+        receivedDate: string;
+        currentLocation: string;
+        receivedLocation: string;
+        poNumber: any;
+        tempLog: string;
+        integrityScore: string;
+        batches: {
+            batchId: any;
+            date: string;
+            product: any;
+            sku: any;
+            line: string;
+            quantityProduced: string;
+            status: any;
+            ccpStatus: string;
+            pallets: {
+                palletId: string;
+                cases: string;
+                lpn: string;
+                dest: any;
+            }[];
+        }[];
+        productionOrders: any[];
+        ingredients: any[];
+        recallImpact: {
+            affectedBatches: number;
+            finishedCases: number;
+            palletsCount: number;
+            customersExposed: any[];
+        };
+        allLots: any[];
+    } | null>;
+=======
         batches: never[];
         activeLot: null;
         metrics: {
@@ -747,6 +799,7 @@ export declare class WarehouseService {
             completedAt: Date | null;
         }[];
     }>;
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     simulateRecall(tenantId: string, input: any, userId?: string): Promise<{
         success: boolean;
         recallCode: string;

@@ -198,5 +198,10 @@ async function dashboardsRoutes(fastify) {
     // ─── Operations Supervisor Profile ─────────────────────────────────────────
     fastify.get("/supervisor/profile", { schema: { tags: ["Dashboards & Executive"], summary: "Get Supervisor Profile Details" } }, dashboards_controller_js_1.dashboardsController.getSupervisorProfile.bind(dashboards_controller_js_1.dashboardsController));
     fastify.put("/supervisor/profile", { schema: { tags: ["Dashboards & Executive"], summary: "Update Supervisor Profile Information" } }, dashboards_controller_js_1.dashboardsController.updateSupervisorProfile.bind(dashboards_controller_js_1.dashboardsController));
+    // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
+    fastify.get("/labour/allocations", { schema: { tags: ["Dashboards & Executive"], summary: "Get Shift Labour Staffing & Line Allocations" } }, dashboards_controller_js_1.dashboardsController.getLabourAllocations.bind(dashboards_controller_js_1.dashboardsController));
+    fastify.post("/labour/allocations", { schema: { tags: ["Dashboards & Executive"], summary: "Create Shift Labour Allocation" } }, dashboards_controller_js_1.dashboardsController.createLabourAllocation.bind(dashboards_controller_js_1.dashboardsController));
+    fastify.put("/labour/allocations/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Update Shift Labour Allocation" } }, dashboards_controller_js_1.dashboardsController.updateLabourAllocation.bind(dashboards_controller_js_1.dashboardsController));
+    fastify.delete("/labour/allocations/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Delete Shift Labour Allocation" } }, dashboards_controller_js_1.dashboardsController.deleteLabourAllocation.bind(dashboards_controller_js_1.dashboardsController));
 }
 //# sourceMappingURL=dashboards.routes.js.map

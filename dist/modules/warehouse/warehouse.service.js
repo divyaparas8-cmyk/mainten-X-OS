@@ -324,6 +324,165 @@ let scannerLogsStore = [
         scannedAt: new Date(Date.now() - 1000 * 60 * 15).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 ];
+<<<<<<< HEAD
+let finishedGoodsStore = [
+    {
+        id: "FG-001",
+        sku: "SKU-CAN-330ML-LEM",
+        productName: "Sparkling Yuzu Sparkling Tea 330ml Can",
+        finishedLot: "LOT-FG-2026-0885",
+        batch: "BAT-2026-0885",
+        quantity: "36,000 cans (1,500 Cases)",
+        location: "Finished Goods High-Bay - Bin FG-44",
+        productionDate: "2026-08-30",
+        expiryDate: "2027-08-30",
+        status: "QA Released",
+        pallet: "20 Pallets (PLT-0885-01..20)",
+        shipmentStatus: "Ready to Ship",
+        destination: "Metro Supermarkets Hub (Toronto)",
+        tempCheck: "18.5°C Controlled"
+    },
+    {
+        id: "FG-002",
+        sku: "SKU-BOT-500ML-CIT",
+        productName: "Organic Citrus Blast 500ml Multi-Barrier Bottle",
+        finishedLot: "LOT-FG-2026-0886",
+        batch: "BAT-2026-0886",
+        quantity: "24,000 bottles (1,000 Cases)",
+        location: "Finished Goods Cold Staging - Bin FG-12",
+        productionDate: "2026-09-01",
+        expiryDate: "2027-09-01",
+        status: "QA Released",
+        pallet: "14 Pallets (PLT-0886-01..14)",
+        shipmentStatus: "Staged",
+        destination: "Costco Wholesale East Depot (Brampton)",
+        tempCheck: "4.2°C Cold Chain"
+    },
+    {
+        id: "FG-003",
+        sku: "SKU-CAN-330ML-ORG",
+        productName: "Sparkling Organic Orange Soda 330ml Sleek Can",
+        finishedLot: "LOT-FG-2026-0887",
+        batch: "BAT-2026-0887",
+        quantity: "48,000 cans (2,000 Cases)",
+        location: "Finished Goods High-Bay - Bin FG-48",
+        productionDate: "2026-09-02",
+        expiryDate: "2027-09-02",
+        status: "QA Released",
+        pallet: "26 Pallets (PLT-0887-01..26)",
+        shipmentStatus: "Allocated",
+        destination: "Whole Foods Regional Logistics Center",
+        tempCheck: "18.0°C Ambient"
+    },
+    {
+        id: "FG-004",
+        sku: "SKU-BOT-1000ML-TON",
+        productName: "Natural Botanical Tonic Water 1L Glass Bottle",
+        finishedLot: "LOT-FG-2026-0879",
+        batch: "BAT-2026-0879",
+        quantity: "12,000 bottles (1,000 Cases)",
+        location: "Finished Goods Bay 3 - Bin FG-06",
+        productionDate: "2026-08-25",
+        expiryDate: "2028-08-25",
+        status: "QA Hold",
+        pallet: "12 Pallets (PLT-0879-01..12)",
+        shipmentStatus: "Hold / Quarantined",
+        destination: "Pending Microbiological Clearance",
+        tempCheck: "20.5°C Ambient"
+    }
+];
+let shipmentOrdersStore = [
+    {
+        id: "SHP-2026-881",
+        customer: "Metro Supermarkets Distribution",
+        orderNumber: "ORD-88210",
+        finishedGoods: "Sparkling Yuzu Sparkling Tea 330ml Can",
+        batchLot: "LOT-FG-2026-0885",
+        quantity: "24 Pallets (36,000 cans)",
+        carrier: "Challenger Freight Lines",
+        shipDate: "2026-09-04",
+        destination: "Toronto Logistics Hub, ON",
+        status: "Loading Complete",
+        trailerNo: "TR-5510",
+        sealNo: "SL-99410",
+        bolNumber: "BOL-2026-881",
+        trackingMilestones: [
+            { step: "Order Allocated", time: "08:00 AM", done: true },
+            { step: "Staging Bay Loaded", time: "10:30 AM", done: true },
+            { step: "Trailer Sealed & Inspected", time: "11:45 AM", done: true },
+            { step: "En Route to Hub", time: "ETA 14:30", done: false },
+            { step: "Customer Dock Delivery", time: "Pending", done: false }
+        ]
+    },
+    {
+        id: "SHP-2026-882",
+        customer: "Costco Wholesale East Depot",
+        orderNumber: "ORD-88214",
+        finishedGoods: "Organic Citrus Blast 500ml Multi-Barrier Bottle",
+        batchLot: "LOT-FG-2026-0886",
+        quantity: "26 Pallets (24,000 bottles)",
+        carrier: "Bison Transport Logistics",
+        shipDate: "2026-09-04",
+        destination: "Brampton Depot 04, ON",
+        status: "Dispatched",
+        trailerNo: "TR-8822",
+        sealNo: "SL-99411",
+        bolNumber: "BOL-2026-882",
+        trackingMilestones: [
+            { step: "Order Allocated", time: "07:30 AM", done: true },
+            { step: "Staging Bay Loaded", time: "09:00 AM", done: true },
+            { step: "Trailer Sealed & Inspected", time: "10:15 AM", done: true },
+            { step: "En Route to Hub", time: "10:45 AM", done: true },
+            { step: "Customer Dock Delivery", time: "ETA 13:00", done: false }
+        ]
+    },
+    {
+        id: "SHP-2026-883",
+        customer: "Whole Foods Regional Logistics Center",
+        orderNumber: "ORD-88219",
+        finishedGoods: "Sparkling Organic Orange Soda 330ml Sleek Can",
+        batchLot: "LOT-FG-2026-0887",
+        quantity: "20 Pallets (30,000 cans)",
+        carrier: "Titan Freight Corp.",
+        shipDate: "2026-09-05",
+        destination: "Austin Central Hub, TX",
+        status: "Scheduled",
+        trailerNo: "TR-9040",
+        sealNo: "Pending",
+        bolNumber: "BOL-2026-883",
+        trackingMilestones: [
+            { step: "Order Allocated", time: "09:00 AM", done: true },
+            { step: "Staging Bay Loaded", time: "Pending", done: false },
+            { step: "Trailer Sealed & Inspected", time: "Pending", done: false },
+            { step: "En Route to Hub", time: "Pending", done: false },
+            { step: "Customer Dock Delivery", time: "Pending", done: false }
+        ]
+    },
+    {
+        id: "SHP-2026-879",
+        customer: "Kroger Distribution Center",
+        orderNumber: "ORD-88190",
+        finishedGoods: "Natural Botanical Tonic Water 1L Glass Bottle",
+        batchLot: "LOT-FG-2026-0870",
+        quantity: "16 Pallets (16,000 bottles)",
+        carrier: "Swift Transportation",
+        shipDate: "2026-09-02",
+        destination: "Dallas Regional Facility, TX",
+        status: "Delivered",
+        trailerNo: "TR-4401",
+        sealNo: "SL-99380",
+        bolNumber: "BOL-2026-879",
+        trackingMilestones: [
+            { step: "Order Allocated", time: "2026-09-02 06:00", done: true },
+            { step: "Staging Bay Loaded", time: "2026-09-02 08:30", done: true },
+            { step: "Trailer Sealed & Inspected", time: "2026-09-02 09:15", done: true },
+            { step: "En Route to Hub", time: "2026-09-02 10:00", done: true },
+            { step: "Customer Dock Delivery", time: "Delivered & Signed", done: true }
+        ]
+    }
+];
+// Traceability data is now read from real DB (inventory_lots + lot_genealogies tables)
+=======
 let finishedGoodsStore = [];
 let shipmentOrdersStore = [];
 let traceabilityStore = {
@@ -521,6 +680,7 @@ let traceabilityStore = {
         }
     }
 };
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 let rawMaterialsStore = [
     {
         id: "RM-LOT-001",
@@ -971,7 +1131,7 @@ class WarehouseService {
             id: `TX-${Date.now()}`,
             tenantId,
             plantId,
-            lotId: lotId || "LOT-RM-ORG-4402",
+            lotId: lotId || "",
             type: txType,
             quantity: qty,
             uom: input.uom || "Units",
@@ -2042,6 +2202,63 @@ class WarehouseService {
             message: `Inventory stock adjusted for SKU ${sku} by ${qtyChange} units.`
         };
     }
+<<<<<<< HEAD
+    // 360° Supply Lot Traceability API — reads from real inventory_lots DB table
+    async getTraceability(tenantId, lotNumber) {
+        if (!lotNumber || !lotNumber.trim())
+            return null;
+        const rawKey = lotNumber.trim();
+        const key = rawKey.toUpperCase();
+        try {
+            // 1. Find the target lot by lotNumber, or by production order number, or by SKU code
+            let lot = null;
+            // Check lot_number match first
+            const lotRows = await database_js_1.db
+                .select()
+                .from(warehouse_js_1.inventoryLots)
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.sql) `UPPER(${warehouse_js_1.inventoryLots.lotNumber}) LIKE ${'%' + key + '%'}`))
+                .limit(10);
+            if (lotRows && lotRows.length > 0) {
+                lot = lotRows[0];
+            }
+            else {
+                // Fallback: Check if key matches a Production Order number (e.g. ORD-2511)
+                const poRows = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT * FROM production_orders 
+          WHERE tenant_id = ${tenantId} AND UPPER(order_number) LIKE ${'%' + key + '%'}
+          LIMIT 1
+        `);
+                if (poRows.rows && poRows.rows.length > 0) {
+                    const po = poRows.rows[0];
+                    const poLotRows = await database_js_1.db
+                        .select()
+                        .from(warehouse_js_1.inventoryLots)
+                        .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.skuId, po.sku_id)))
+                        .limit(1);
+                    if (poLotRows && poLotRows.length > 0) {
+                        lot = poLotRows[0];
+                    }
+                }
+            }
+            // Fallback 2: Check if key matches an SKU code or name (e.g. afdgh, sku-1)
+            if (!lot) {
+                const skuSearch = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT * FROM skus 
+          WHERE tenant_id = ${tenantId} 
+            AND (UPPER(sku_code) LIKE ${'%' + key + '%'} OR UPPER(name) LIKE ${'%' + key + '%'})
+          LIMIT 1
+        `);
+                if (skuSearch.rows && skuSearch.rows.length > 0) {
+                    const foundSku = skuSearch.rows[0];
+                    const skuLotRows = await database_js_1.db
+                        .select()
+                        .from(warehouse_js_1.inventoryLots)
+                        .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.tenantId, tenantId), (0, drizzle_orm_1.eq)(warehouse_js_1.inventoryLots.skuId, foundSku.id)))
+                        .limit(1);
+                    if (skuLotRows && skuLotRows.length > 0) {
+                        lot = skuLotRows[0];
+                    }
+=======
     // 360° Supply Lot Traceability API (Connected directly to PostgreSQL `batches` and `skus`)
     async getTraceability(tenantId, lotNumber) {
         let dbBatches = [];
@@ -2082,9 +2299,194 @@ class WarehouseService {
                     linkedBatches: 0,
                     finishedGoodsOutput: "0 Cases",
                     customerDispatchDestinations: 0
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                 }
+            }
+            if (!lot)
+                return null;
+            // 2. Query SKU details
+            let skuInfo = null;
+            if (lot.skuId) {
+                const skuRows = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT * FROM skus WHERE id = ${lot.skuId} LIMIT 1
+        `);
+                if (skuRows.rows && skuRows.rows.length > 0) {
+                    skuInfo = skuRows.rows[0];
+                }
+            }
+            // 3. Query Linked Production Orders & Lines
+            let prodOrders = [];
+            if (lot.skuId) {
+                const poRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT po.*, pl.name as line_name, pl.line_code 
+          FROM production_orders po 
+          LEFT JOIN production_lines pl ON po.line_id = pl.id 
+          WHERE po.tenant_id = ${tenantId} AND po.sku_id = ${lot.skuId}
+        `);
+                prodOrders = poRes.rows || [];
+            }
+            // 4. Query Linked Batches
+            let batchList = [];
+            const batchRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT b.*, po.order_number, pl.name as line_name, pl.line_code 
+        FROM batches b 
+        LEFT JOIN production_orders po ON b.production_order_id = po.id 
+        LEFT JOIN production_lines pl ON po.line_id = pl.id 
+        WHERE b.tenant_id = ${tenantId} 
+          AND (b.sku_id = ${lot.skuId} OR b.production_order_id = ANY(SELECT id FROM production_orders WHERE sku_id = ${lot.skuId}))
+      `);
+            batchList = batchRes.rows || [];
+            // 5. Query Quality Specs (Critical Control Points / CCPs)
+            let qualitySpecs = [];
+            if (lot.skuId) {
+                const qsRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT * FROM quality_specs WHERE tenant_id = ${tenantId} AND sku_id = ${lot.skuId}
+        `);
+                qualitySpecs = qsRes.rows || [];
+            }
+            const ccpSpec = qualitySpecs.find(q => q.is_ccp) || qualitySpecs[0];
+            const ccpDesc = ccpSpec
+                ? `Parameter ${ccpSpec.parameter_name}: Target ${ccpSpec.target_value} ${ccpSpec.uom || ''} (Validated CCP)`
+                : 'In-line Quality Parameters & Metal Detector Clear';
+            // 6. Query Customer Orders (Downstream Exposure & Pallet Shipments)
+            let customerOrders = [];
+            if (lot.skuId) {
+                const coRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT * FROM customer_orders WHERE tenant_id = ${tenantId} AND sku_id = ${lot.skuId}
+        `);
+                customerOrders = coRes.rows || [];
+            }
+            // 7. Query Lot Genealogies (Upstream Ingredients & Downstream links)
+            const genRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+        SELECT lg.*, 
+               il_parent.lot_number as parent_lot_number, 
+               il_parent.supplier_name as parent_supplier,
+               il_parent.lot_type as parent_type,
+               il_child.lot_number as child_lot_number,
+               il_child.supplier_name as child_supplier
+        FROM lot_genealogies lg
+        LEFT JOIN inventory_lots il_parent ON lg.parent_lot_id = il_parent.id
+        LEFT JOIN inventory_lots il_child ON lg.child_lot_id = il_child.id
+        WHERE lg.tenant_id = ${tenantId} 
+          AND (lg.child_lot_id = ${lot.id} OR lg.parent_lot_id = ${lot.id})
+      `);
+            const genealogies = genRes.rows || [];
+            // Build ingredients list (Upstream Backward Genealogy)
+            const ingredientLots = [];
+            const upstreamGen = genealogies.filter((g) => g.child_lot_id === lot.id);
+            for (const g of upstreamGen) {
+                ingredientLots.push({
+                    componentType: g.parent_type === 'packaging' ? 'Packaging Material' : 'Raw Ingredient',
+                    materialName: g.parent_lot_number ? `Source Raw Material (${g.parent_lot_number})` : (skuInfo?.name || 'Raw Ingredient'),
+                    sourceLot: g.parent_lot_number || 'LOT-RM-SOURCE',
+                    supplier: g.parent_supplier || 'Approved Supplier',
+                    qaClearance: 'Pass (COA Verified)',
+                    storageRack: 'Raw Materials Warehouse Bay'
+                });
+            }
+            // Check BOM items if ingredientLots is empty
+            if (ingredientLots.length === 0 && lot.skuId) {
+                const bomRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          SELECT bi.*, b.name as bom_name, b.bom_number 
+          FROM bom_items bi 
+          JOIN boms b ON bi.bom_id = b.id 
+          WHERE b.tenant_id = ${tenantId} AND b.sku_id = ${lot.skuId}
+        `);
+                for (const item of (bomRes.rows || [])) {
+                    ingredientLots.push({
+                        componentType: 'Recipe Component',
+                        materialName: item.component_name || skuInfo?.name || 'Component Item',
+                        sourceLot: item.sku_code || 'BOM-COMP',
+                        supplier: 'Verified Production Sourcing',
+                        qaClearance: 'Pass (Formulation Spec)',
+                        storageRack: 'Production Staging Area'
+                    });
+                }
+            }
+            // Build Batches for Tab 1 (Forward Traceability Pipeline)
+            const formattedBatches = batchList.map((b) => ({
+                batchId: b.batch_number,
+                date: b.created_at ? new Date(b.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent',
+                product: skuInfo?.name || 'Production Good',
+                sku: skuInfo?.sku_code || 'SKU',
+                line: b.line_name ? `Line ${b.line_name} (${b.line_code || 'Main'})` : 'Production Line 1',
+                quantityProduced: `${Number(b.actual_volume || b.target_volume || 0).toLocaleString()} ${b.uom || 'units'}`,
+                status: b.status === 'Completed' ? 'Completed & QA Released' : (b.status || 'Active Execution'),
+                ccpStatus: ccpDesc,
+                pallets: customerOrders.map((co, pIdx) => ({
+                    palletId: `PLT-${co.order_number || (pIdx + 1)}`,
+                    cases: `${Number(co.quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
+                    lpn: `LPN-${(co.order_number || '').replace(/[^a-zA-Z0-9]/g, '')}-${pIdx + 1}`,
+                    dest: co.customer_name || 'Regional Distribution'
+                }))
+            }));
+            // Fallback batch from production orders if no batch record exists
+            if (formattedBatches.length === 0 && prodOrders.length > 0) {
+                const po = prodOrders[0];
+                formattedBatches.push({
+                    batchId: `BAT-${po.order_number}`,
+                    date: po.created_at ? new Date(po.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent',
+                    product: skuInfo?.name || 'Production Good',
+                    sku: skuInfo?.sku_code || 'SKU',
+                    line: po.line_name ? `Line ${po.line_name} (${po.line_code || 'Main'})` : 'Production Line 1',
+                    quantityProduced: `${Number(po.target_quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
+                    status: po.status === 'Completed' ? 'Completed & Released' : (po.status || 'Scheduled'),
+                    ccpStatus: ccpDesc,
+                    pallets: customerOrders.map((co, pIdx) => ({
+                        palletId: `PLT-${co.order_number || (pIdx + 1)}`,
+                        cases: `${Number(co.quantity || 0).toLocaleString()} ${skuInfo?.uom || 'units'}`,
+                        lpn: `LPN-${(co.order_number || '').replace(/[^a-zA-Z0-9]/g, '')}-${pIdx + 1}`,
+                        dest: co.customer_name || 'Regional Distribution'
+                    }))
+                });
+            }
+            const isQuarantine = lot.status === 'quarantine' || lot.status === 'HOLD';
+            const currentQtyNum = Number(lot.currentQuantity || 0);
+            const estPallets = customerOrders.length > 0 ? customerOrders.length : Math.max(1, Math.ceil(currentQtyNum / 100));
+            const customerNames = customerOrders.map((c) => c.customer_name);
+            return {
+                lotNumber: lot.lotNumber,
+                lotType: lot.lotType,
+                category: skuInfo?.category ? skuInfo.category.replace(/_/g, ' ') : (lot.lotType === 'finished_goods' ? 'FINISHED GOODS' : 'RAW MATERIAL'),
+                type: lot.lotType === 'finished_goods' ? 'Finished Good' : (lot.lotType === 'packaging' ? 'Packaging' : 'Raw Material'),
+                materialName: skuInfo?.name || lot.lotNumber,
+                skuCode: skuInfo?.sku_code || 'N/A',
+                barcode: skuInfo?.barcode || lot.lotNumber,
+                initialQuantity: lot.initialQuantity,
+                currentQuantity: lot.currentQuantity,
+                quantity: `${currentQtyNum.toLocaleString()} ${lot.uom || skuInfo?.uom || 'units'}`,
+                uom: lot.uom || skuInfo?.uom || 'units',
+                supplier: lot.supplierName || (prodOrders[0]?.line_name ? `Internal Line ${prodOrders[0].line_name}` : 'Internal Warehouse'),
+                supplierLot: lot.supplierLotNumber || (prodOrders[0]?.order_number || 'N/A'),
+                mfgDate: lot.mfgDate ? new Date(lot.mfgDate).toISOString().split('T')[0] : (lot.createdAt ? new Date(lot.createdAt).toISOString().split('T')[0] : 'N/A'),
+                expiryDate: lot.expiryDate ? new Date(lot.expiryDate).toISOString().split('T')[0] : 'N/A',
+                status: lot.status || 'Active',
+                qaStatus: isQuarantine ? 'Quarantine Active' : (lot.status === 'released' || lot.status === 'ACTIVE' ? 'QA Cleared (Pass)' : 'Pending Inspection'),
+                qaCert: `COA-${lot.lotNumber.replace(/[^a-zA-Z0-9]/g, '').slice(-8) || 'PASS'}`,
+                receivedDate: lot.createdAt ? new Date(lot.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A',
+                currentLocation: lot.lotType === 'finished_goods' ? 'Warehouse Finished Goods Staging' : 'Warehouse Storage Bay',
+                receivedLocation: prodOrders[0]?.line_name ? `Line ${prodOrders[0].line_name} Outfeed` : 'Inbound Receiving Dock',
+                poNumber: lot.supplierLotNumber || (prodOrders[0]?.order_number ? `PO-${prodOrders[0].order_number}` : 'N/A'),
+                tempLog: 'Ambient Controlled (Pass)',
+                integrityScore: '100%',
+                batches: formattedBatches,
+                productionOrders: prodOrders.map((p) => p.order_number),
+                ingredients: ingredientLots,
+                recallImpact: {
+                    affectedBatches: formattedBatches.length,
+                    finishedCases: currentQtyNum,
+                    palletsCount: estPallets,
+                    customersExposed: customerNames
+                },
+                allLots: [lot]
             };
         }
+<<<<<<< HEAD
+        catch (err) {
+            console.error('[getTraceability] DB error:', err?.message);
+            return null;
+        }
+=======
         const searchKey = (lotNumber || "").trim().toUpperCase();
         let selectedBatch = dbBatches[0];
         if (searchKey) {
@@ -2210,21 +2612,18 @@ class WarehouseService {
         await database_js_1.db.delete(quality_js_1.qualityHolds).where((0, drizzle_orm_1.sql) `batch_id IN (SELECT id FROM batches WHERE id::text = ${idOrBatch} OR batch_number = ${idOrBatch})`).catch(() => null);
         const res = await database_js_1.db.delete(production_js_1.batches).where((0, drizzle_orm_1.or)((0, drizzle_orm_1.sql) `id::text = ${idOrBatch}`, (0, drizzle_orm_1.eq)(production_js_1.batches.batchNumber, idOrBatch))).returning();
         return { success: true, deleted: res };
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     async simulateRecall(tenantId, input, userId) {
-        const lotNumber = input.lotNumber || "LOT-RM-ORG-4402";
-        const reason = input.reason || "Digital QA Mock Simulation";
-        const recallCode = `REC-2026-${Math.floor(100 + Math.random() * 900)}`;
-        if (traceabilityStore[lotNumber]) {
-            traceabilityStore[lotNumber].qaStatus = "CRITICAL HOLD / QUARANTINED";
-            traceabilityStore[lotNumber].recallImpact.quarantineStatus = `Active Quarantine Lock (${recallCode})`;
-        }
+        const lotNumber = input.lotNumber || 'LOT-RM-ORG-4402';
+        const reason = input.reason || 'Digital QA Mock Simulation';
+        const recallCode = 'REC-2026-' + Math.floor(100 + Math.random() * 900);
         const impactSummary = {
             affectedLot: lotNumber,
             reason,
             recallCode,
             lockedAt: new Date().toISOString(),
-            action: "Automated digital WMS hold placed across all warehouse staging and outbound shipments."
+            action: 'Automated digital WMS hold placed across all warehouse staging and outbound shipments.'
         };
         try {
             if ((0, tenantContext_js_1.isValidUuid)(tenantId) && userId && (0, tenantContext_js_1.isValidUuid)(userId)) {

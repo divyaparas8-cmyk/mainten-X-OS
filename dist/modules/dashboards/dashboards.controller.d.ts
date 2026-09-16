@@ -150,6 +150,10 @@ export declare class DashboardsController {
     createSupervisorNotification(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateSupervisorProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getLabourAllocations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const dashboardsController: DashboardsController;
 //# sourceMappingURL=dashboards.controller.d.ts.map

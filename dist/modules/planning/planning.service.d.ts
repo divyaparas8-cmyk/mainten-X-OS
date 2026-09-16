@@ -104,6 +104,22 @@ export declare class PlanningService {
         overrideQuantity: number;
         finalForecast: number;
         method: string;
+        mapeAccuracy: number;
+        status: string;
+        confidenceLevel: number;
+        recommendedAction: string;
+    }[] | {
+        id: string;
+        period: string;
+        skuId: string;
+        productCode: string;
+        productName: string;
+        historicalDemand: number;
+        baselineForecast: number;
+        baselineDemand: number;
+        overrideQuantity: number;
+        finalForecast: number;
+        method: string;
         modelType: string;
         mapeAccuracy: number;
         reason: string;

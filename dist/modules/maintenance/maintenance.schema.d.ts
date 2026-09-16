@@ -5,10 +5,15 @@ export declare const createWorkOrderSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
     type: z.ZodEffects<z.ZodDefault<z.ZodEnum<["CORRECTIVE", "PREVENTIVE", "EMERGENCY_BREAKDOWN", "CALIBRATION"]>>, "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION", unknown>;
     priority: z.ZodEffects<z.ZodDefault<z.ZodEnum<["P1_CRITICAL", "HIGH", "MEDIUM", "LOW"]>>, "HIGH" | "LOW" | "MEDIUM" | "P1_CRITICAL", unknown>;
+<<<<<<< HEAD
+    assignedTo: z.ZodOptional<z.ZodString>;
+    failureCodeId: z.ZodOptional<z.ZodString>;
+=======
     assignedTo: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     assignedTechnician: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     technician: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     failureCodeId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     estimatedHours: z.ZodDefault<z.ZodNumber>;
     scheduledDate: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     dueDate: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -16,6 +21,10 @@ export declare const createWorkOrderSchema: z.ZodObject<{
     type: "CORRECTIVE" | "PREVENTIVE" | "EMERGENCY_BREAKDOWN" | "CALIBRATION";
     title: string;
     priority: "HIGH" | "LOW" | "MEDIUM" | "P1_CRITICAL";
+<<<<<<< HEAD
+    assetId: string;
+=======
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     estimatedHours: number;
     description?: string | undefined;
     assetId?: string | undefined;

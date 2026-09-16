@@ -276,7 +276,11 @@ class WarehouseController {
     // TRACEABILITY & FDA 21 CFR CONTROLLER
     // ==========================================
     async getTraceability(request, reply) {
+<<<<<<< HEAD
+        const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber;
+=======
         const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber || "";
+>>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         if (!lotNumber) {
             return reply.send((0, responseFormatter_js_1.formatSuccess)(null));
         }

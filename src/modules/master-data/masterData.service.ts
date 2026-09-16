@@ -248,6 +248,7 @@ let inMemoryChangeoverRules: ChangeoverRuleEntity[] = [];
 let inMemorySanitationClasses: SanitationClassEntity[] = [];
 let inMemoryAllergenRules: AllergenRuleEntity[] = [];
 let inMemoryLabourStandards: LabourStandardEntity[] = [];
+let inMemoryEmployeeSkills: any[] = [];
 let inMemorySkus: any[] = [];
 
 function matchKey(entity: any, keyVal: string, candidateProps: string[] = ["id", "code", "companyId", "plantId", "departmentId", "lineId", "workCenterId", "operationId", "routingId", "familyId", "uomId", "configId", "targetId", "ruleId", "classId", "name"]): boolean {
@@ -3930,6 +3931,9 @@ export class MasterDataService {
     return { id, message: "Labour standard deleted" };
   }
 
+  // ==========================================
+  // 17. EMPLOYEE SKILLS MATRIX
+  // ==========================================
   async listEmployeeSkills(tenantId?: string, plantId?: string) {
     try {
       const res = await db.execute(sql`
@@ -4079,7 +4083,7 @@ export class MasterDataService {
       console.warn("DB updateEmployeeSkill error:", err.message);
     }
 
-    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    const idx = inMemoryEmployeeSkills.findIndex((e: any) => e.id === id || e.employeeId === id);
     if (idx !== -1) {
       inMemoryEmployeeSkills[idx] = { ...inMemoryEmployeeSkills[idx], ...input, updatedAt: new Date().toISOString() };
       return inMemoryEmployeeSkills[idx];
@@ -4094,7 +4098,7 @@ export class MasterDataService {
       console.warn("DB deleteEmployeeSkill error:", err.message);
     }
 
-    const idx = inMemoryEmployeeSkills.findIndex((e) => e.id === id || e.employeeId === id);
+    const idx = inMemoryEmployeeSkills.findIndex((e: any) => e.id === id || e.employeeId === id);
     if (idx !== -1) {
       const deleted = inMemoryEmployeeSkills.splice(idx, 1);
       return deleted[0];

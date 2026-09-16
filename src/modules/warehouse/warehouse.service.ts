@@ -1,6 +1,6 @@
 import { db } from "../../config/database.js";
 import { inventoryLots, inventoryTransactions, warehouses, locationBins, goodsReceipts, shipmentOrders, suppliers, warehouseLocations, wmsReceiving, finishedGoods } from "../../db/schema/warehouse.js";
-import { recallEvents } from "../../db/schema/traceability.js";
+import { lotGenealogies, recallEvents } from "../../db/schema/traceability.js";
 import { skus } from "../../db/schema/masterData.js";
 import { batches, batchSteps, productionOrders } from "../../db/schema/production.js";
 import { ccpChecks, qaReleases, qualityHolds } from "../../db/schema/quality.js";
@@ -341,201 +341,7 @@ let finishedGoodsStore: any[] = [];
 
 let shipmentOrdersStore: any[] = [];
 
-let traceabilityStore: Record<string, any> = {
-  "LOT-RM-ORG-4402": {
-    lotNumber: "LOT-RM-ORG-4402",
-    materialName: "Valencia Organic Orange Juice Concentrate 65° Brix",
-    materialCode: "RM-ORG-CONC",
-    category: "Raw Material",
-    type: "Raw Ingredient",
-    quantity: "3,800 kg (19 Aseptic Drums)",
-    supplier: "Citrus Valley Farms Co.",
-    supplierLot: "CVF-2026-VAL-104",
-    poNumber: "PO-2026-0881",
-    receivedDate: "2026-09-03 08:45 AM",
-    receivedLocation: "Dock 01 - Inbound Staging STG-01",
-    currentLocation: "Cold Storage Zone A - Rack R04-B2",
-    expiryDate: "2027-03-15",
-    qaStatus: "Approved / Released",
-    qaCert: "COA-9812-PASS",
-    tempLog: "3.4°C (Target: 2.0°C - 4.0°C • Compliant)",
-    integrityScore: "100%",
-    barcode: "8902810044025",
-    productionOrders: ["PO-OR-8821", "PO-OR-8824"],
-    batches: [
-      {
-        batchId: "BAT-2026-0885",
-        product: "Sparkling Organic Orange Soda 330ml Can",
-        sku: "SKU-CAN-330ML-ORG",
-        line: "High-Speed Packaging Line 1 (Rotary 580 BPM)",
-        date: "2026-09-03 10:15 AM",
-        quantityProduced: "36,000 Cans (1,500 Cases)",
-        status: "Completed & Released",
-        ccpStatus: "CCP-1 Pasteurized (72.4°C / 16s) • CCP-2 Metal Checked (Pass)",
-        finishedLot: "LOT-FG-2026-0885",
-        pallets: [
-          { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
-          { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
-        ]
-      },
-      {
-        batchId: "BAT-2026-0886",
-        product: "Organic Citrus Blast 500ml Bottle",
-        sku: "SKU-BOT-500ML-CIT",
-        line: "Bottling Line 2 (Aseptic Filler)",
-        date: "2026-09-03 14:00 PM",
-        quantityProduced: "24,000 Bottles (1,000 Cases)",
-        status: "In Staging / Final QA Review",
-        ccpStatus: "CCP-1 Passed • In-line Brix Validated (11.4°)",
-        finishedLot: "LOT-FG-2026-0886",
-        pallets: [
-          { palletId: "PLT-0886-01", cases: 50, lpn: "GS1-128-LPN-9920", dest: "Central Market Hub (Dallas, TX)" }
-        ]
-      }
-    ],
-    recallImpact: {
-      affectedBatches: 2,
-      finishedCases: 2500,
-      palletsCount: 35,
-      customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Warehouse", "Central Market Hub"],
-      quarantineStatus: "Cleared • Low Risk"
-    }
-  },
-  "LOT-ORG-442": {
-    lotNumber: "LOT-ORG-442",
-    materialName: "Valencia Organic Orange Juice Concentrate 65° Brix",
-    materialCode: "RM-ORG-CONC",
-    category: "Raw Material",
-    type: "Raw Ingredient",
-    quantity: "3,800 kg (19 Aseptic Drums)",
-    supplier: "Citrus Valley Farms Co.",
-    supplierLot: "CVF-2026-VAL-104",
-    poNumber: "PO-2026-0881",
-    receivedDate: "2026-09-03 08:45 AM",
-    receivedLocation: "Dock 01 - Inbound Staging STG-01",
-    currentLocation: "Cold Storage Zone A - Rack R04-B2",
-    expiryDate: "2027-03-15",
-    qaStatus: "Approved / Released",
-    qaCert: "COA-9812-PASS",
-    tempLog: "3.4°C (Target: 2.0°C - 4.0°C • Compliant)",
-    integrityScore: "100%",
-    barcode: "8902810044025",
-    productionOrders: ["PO-OR-8821", "PO-OR-8824"],
-    batches: [
-      {
-        batchId: "BAT-2026-0885",
-        product: "Sparkling Organic Orange Soda 330ml Can",
-        sku: "SKU-CAN-330ML-ORG",
-        line: "High-Speed Packaging Line 1 (Rotary 580 BPM)",
-        date: "2026-09-03 10:15 AM",
-        quantityProduced: "36,000 Cans (1,500 Cases)",
-        status: "Completed & Released",
-        ccpStatus: "CCP-1 Pasteurized (72.4°C / 16s) • CCP-2 Metal Checked (Pass)",
-        finishedLot: "LOT-FG-2026-0885",
-        pallets: [
-          { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
-          { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
-        ]
-      }
-    ],
-    recallImpact: {
-      affectedBatches: 1,
-      finishedCases: 1500,
-      palletsCount: 20,
-      customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Distribution"],
-      quarantineStatus: "Cleared • Low Risk"
-    }
-  },
-  "LOT-PKG-CAN-9140": {
-    lotNumber: "LOT-PKG-CAN-9140",
-    materialName: "330ml Sleek Aluminum Cans w/ Matte Varnish (BPA-NI)",
-    materialCode: "PKG-CAN-330",
-    category: "Packaging",
-    type: "Direct Food Contact Packaging",
-    quantity: "120,000 units (12 Pallets)",
-    supplier: "Ball Metal Beverage Packaging",
-    supplierLot: "BLL-SLK330-8910",
-    poNumber: "PO-2026-0902",
-    receivedDate: "2026-09-03 10:30 AM",
-    receivedLocation: "Dock 03 - Dry Goods Staging STG-03",
-    currentLocation: "Packaging High-Bay 3 - Racks P01-P06",
-    expiryDate: "2028-09-03",
-    qaStatus: "Approved / Released",
-    qaCert: "COA-BLL-901-PASS",
-    tempLog: "Ambient Dry (21°C • RH 44%)",
-    integrityScore: "100%",
-    barcode: "8902810091404",
-    productionOrders: ["PO-OR-8821"],
-    batches: [
-      {
-        batchId: "BAT-2026-0885",
-        product: "Sparkling Organic Orange Soda 330ml Can",
-        sku: "SKU-CAN-330ML-ORG",
-        line: "High-Speed Packaging Line 1",
-        date: "2026-09-03 10:15 AM",
-        quantityProduced: "36,000 Cans Ingested",
-        status: "Completed & Released",
-        ccpStatus: "Pre-Rinse Verified • Can Flange Vision Checked (Zero Defect)",
-        finishedLot: "LOT-FG-2026-0885",
-        pallets: [
-          { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" }
-        ]
-      }
-    ],
-    recallImpact: {
-      affectedBatches: 1,
-      finishedCases: 1500,
-      palletsCount: 20,
-      customersExposed: ["Whole Foods Market DC 04"],
-      quarantineStatus: "Cleared • Zero Leakage"
-    }
-  },
-  "LOT-FG-2026-0885": {
-    lotNumber: "LOT-FG-2026-0885",
-    materialName: "Sparkling Yuzu & Orange Soda 330ml Can (Finished Good)",
-    materialCode: "SKU-CAN-330ML-ORG",
-    category: "Finished Goods",
-    type: "Commercial Finished Product",
-    quantity: "36,000 Cans (1,500 Cases • 20 Pallets)",
-    supplier: "Internal Plant 2 - High-Speed Line 1",
-    supplierLot: "BAT-2026-0885",
-    poNumber: "PROD-WO-2026-441",
-    receivedDate: "2026-09-03 11:30 AM",
-    receivedLocation: "Packaging Discharge Conveyor 01",
-    currentLocation: "Finished Goods High-Bay FG-44",
-    expiryDate: "2027-09-03",
-    qaStatus: "Approved / Released",
-    qaCert: "QA-REL-2026-0885-SIGNED",
-    tempLog: "Ambient Controlled Warehouse (18.5°C)",
-    integrityScore: "100%",
-    barcode: "8902810033019",
-    productionOrders: ["PO-OR-8821"],
-    batches: [
-      {
-        batchId: "BAT-2026-0885",
-        product: "Sparkling Yuzu & Orange Soda 330ml Can",
-        sku: "SKU-CAN-330ML-ORG",
-        line: "High-Speed Packaging Line 1",
-        date: "2026-09-03 10:15 AM",
-        quantityProduced: "1,500 Cases",
-        status: "Released to Shipping",
-        ccpStatus: "FDA 21 CFR Sign-Off by Dr. Maya Lin (QA Lead)",
-        finishedLot: "LOT-FG-2026-0885",
-        pallets: [
-          { palletId: "PLT-0885-01", cases: 75, lpn: "GS1-128-LPN-9910", dest: "Whole Foods DC 04 (Austin, TX)" },
-          { palletId: "PLT-0885-02", cases: 75, lpn: "GS1-128-LPN-9911", dest: "H-E-B Central Distribution (San Antonio, TX)" }
-        ]
-      }
-    ],
-    recallImpact: {
-      affectedBatches: 1,
-      finishedCases: 1500,
-      palletsCount: 20,
-      customersExposed: ["Whole Foods Market DC 04", "H-E-B Central Distribution"],
-      quarantineStatus: "Approved for Commerce"
-    }
-  }
-};
+// Traceability data is now read from real DB (inventory_lots + lot_genealogies tables)
 
 let rawMaterialsStore: any[] = [
   {
@@ -996,7 +802,7 @@ export class WarehouseService {
       id: `TX-${Date.now()}`,
       tenantId,
       plantId,
-      lotId: lotId || "LOT-RM-ORG-4402",
+      lotId: lotId || "",
       type: txType,
       quantity: qty,
       uom: input.uom || "Units",
@@ -2321,21 +2127,16 @@ export class WarehouseService {
   }
 
   async simulateRecall(tenantId: string, input: any, userId?: string) {
-    const lotNumber = input.lotNumber || "LOT-RM-ORG-4402";
-    const reason = input.reason || "Digital QA Mock Simulation";
-    const recallCode = `REC-2026-${Math.floor(100 + Math.random() * 900)}`;
-
-    if (traceabilityStore[lotNumber]) {
-      traceabilityStore[lotNumber].qaStatus = "CRITICAL HOLD / QUARANTINED";
-      traceabilityStore[lotNumber].recallImpact.quarantineStatus = `Active Quarantine Lock (${recallCode})`;
-    }
+    const lotNumber = input.lotNumber || 'LOT-RM-ORG-4402';
+    const reason = input.reason || 'Digital QA Mock Simulation';
+    const recallCode = 'REC-2026-' + Math.floor(100 + Math.random() * 900);
 
     const impactSummary = {
       affectedLot: lotNumber,
       reason,
       recallCode,
       lockedAt: new Date().toISOString(),
-      action: "Automated digital WMS hold placed across all warehouse staging and outbound shipments."
+      action: 'Automated digital WMS hold placed across all warehouse staging and outbound shipments.'
     };
 
     try {
@@ -3134,5 +2935,4 @@ let warehouseProfileStore = {
 };
 
 export const warehouseService = new WarehouseService();
-
 

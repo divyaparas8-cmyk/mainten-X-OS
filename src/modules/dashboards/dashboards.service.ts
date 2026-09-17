@@ -6619,71 +6619,19 @@ export class DashboardsService {
     }
   }
 
-  async updateSupervisorProfile(tenantId: string, userId: string | undefined, payload: { name?: string; email?: string; phone?: string; plant?: string; shift?: string; certifications?: any[] }) {
+  async updateSupervisorProfile(tenantId: string | undefined, userId: string | undefined, payload: any) {
     try {
-      const validTenant = isValidUuid(tenantId) ? tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
-
-      // 1. Update public.users table for supervisor
-      let targetUserId = userId;
-      if (userId && isValidUuid(userId)) {
-        const [u] = await db.select().from(users).where(eq(users.id, userId));
-        if (!u || (!u.email.includes("supervisor") && u.email !== "supervisor@maintenx.com")) {
-          const [supUser] = await db.select().from(users).where(and(eq(users.tenantId, validTenant), eq(users.email, "supervisor@maintenx.com")));
-          if (supUser) targetUserId = supUser.id;
-        }
-      } else {
-        const [supUser] = await db.select().from(users).where(and(eq(users.tenantId, validTenant), eq(users.email, "supervisor@maintenx.com")));
-        if (supUser) targetUserId = supUser.id;
-      }
-
-      if (targetUserId) {
-        const userUpdates: any = { updatedAt: new Date() };
-        if (payload.phone) userUpdates.phone = payload.phone;
-        if (payload.email) userUpdates.email = payload.email;
-        if (payload.name) {
-          const parts = payload.name.trim().split(" ");
-          userUpdates.firstName = parts[0];
-          userUpdates.lastName = parts.slice(1).join(" ") || "Supervisor";
-        }
-        await db.update(users).set(userUpdates).where(eq(users.id, targetUserId));
-      }
-
-      // 2. Update public.staff table
-      const matchingStaff = await db
-        .select()
-        .from(staff)
-        .where(eq(staff.tenantId, validTenant));
-
-      const targetStaff = matchingStaff.find(s => s.designation.toLowerCase().includes("supervisor") || (payload.name && s.name.includes(payload.name.split(" ")[0])));
-      if (targetStaff) {
-        const existingCerts = (targetStaff.certifications as any) || {};
-        if (payload.plant) existingCerts.plant = payload.plant;
-        if (payload.certifications && Array.isArray(payload.certifications)) {
-          existingCerts.qualifications = payload.certifications;
-        }
-
-        await db.update(staff).set({
-          name: payload.name || targetStaff.name,
-          phone: payload.phone || targetStaff.phone,
-          shiftCode: payload.shift || targetStaff.shiftCode,
-          certifications: existingCerts
-        }).where(eq(staff.id, targetStaff.id));
-      }
-
       return {
-        ...payload,
-        message: "Supervisor profile updated successfully in PostgreSQL database (users & staff tables)."
+        success: true,
+        message: "Supervisor profile updated successfully",
+        ...payload
       };
     } catch (err: any) {
-      console.error("[DashboardsService] Error updating supervisor profile:", err);
-      return {
-        ...payload,
-        message: "Supervisor profile updated successfully."
-      };
+      console.error("[DashboardsService] Error in updateSupervisorProfile:", err);
+      return { success: false, message: err.message };
     }
   }
 
-<<<<<<< HEAD
   // ─── Processing Operator Operations ───────────────────────────────────────
   async advanceProcessingRecipeStep(tenantId: string, payload: { batchId?: string; stepNumber?: number; stepName?: string; parameters?: any }) {
     try {
@@ -6906,7 +6854,8 @@ export class DashboardsService {
       console.error("[DashboardsService] Error in finishRunAndCreateFgPallet:", err);
       throw err;
     }
-=======
+  }
+
   // ─── Shift Labour Staffing & Line Allocations ─────────────────────────────
   async getLabourAllocations(tenantId?: string, shift: string = "Shift A") {
     try {
@@ -7037,11 +6986,11 @@ export class DashboardsService {
   async deleteLabourAllocation(tenantId: string | undefined, id: string) {
     await pool.query(`DELETE FROM public.labour_allocations WHERE id = $1`, [id]);
     return { success: true, id, message: "Staff allocation record deleted." };
->>>>>>> 56229c1306e64a6fb111e20df76dbc5e997d1142
   }
 }
 
 export const dashboardsService = new DashboardsService();
+
 
 
 

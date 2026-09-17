@@ -12,11 +12,7 @@ export class ExceptionsService {
                status, resolution_notes as "resolutionNotes",
                resolved_at as "resolvedAt", created_at as "createdAt"
         FROM pm_exceptions
-<<<<<<< HEAD
         WHERE 1=1
-=======
-        WHERE (plant_id = $1 OR plant_id = 'PLT-01' OR plant_id = 'bead41e2-b735-41b8-bd00-bdba1682fb6a' OR $1 IS NULL)
->>>>>>> 56229c1306e64a6fb111e20df76dbc5e997d1142
       `;
       const params: any[] = [];
 

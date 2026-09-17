@@ -687,18 +687,6 @@ export class MasterDataService {
   // ==========================================
   async listLines(tenantId: string | undefined, plantId?: string) {
     try {
-<<<<<<< HEAD
-      let query = sql`SELECT * FROM public.production_lines ORDER BY created_at DESC`;
-      if (plantId && plantId !== "ALL" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
-        query = sql`SELECT * FROM public.production_lines WHERE plant_id::text = ${plantId} ORDER BY created_at DESC`;
-      }
-      let res = await db.execute(query);
-      let rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
-      if (rows.length === 0) {
-        res = await db.execute(sql`SELECT * FROM public.production_lines ORDER BY created_at DESC`);
-        rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
-      }
-=======
       let query = sql`SELECT pl.*, p.name as plant_name, p.code as plant_code 
                       FROM public.production_lines pl 
                       LEFT JOIN public.plants p ON pl.plant_id = p.id`;
@@ -709,31 +697,25 @@ export class MasterDataService {
                     WHERE pl.plant_id::text = ${plantId} OR p.name = ${plantId} OR p.code = ${plantId}`;
       }
       query = sql`${query} ORDER BY pl.created_at ASC`;
-      const res = await db.execute(query);
-      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
->>>>>>> 56229c1306e64a6fb111e20df76dbc5e997d1142
+      let res = await db.execute(query);
+      let rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      if (rows.length === 0) {
+        res = await db.execute(sql`SELECT pl.*, p.name as plant_name, p.code as plant_code FROM public.production_lines pl LEFT JOIN public.plants p ON pl.plant_id = p.id ORDER BY pl.created_at ASC`);
+        rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      }
       return rows.map((l: any) => ({
         id: String(l.id),
         lineId: String(l.id),
         lineCode: l.code || `LINE-${String(l.id).substring(0, 4)}`,
         code: l.code || `LINE-${String(l.id).substring(0, 4)}`,
         name: l.name || "Production Line",
-<<<<<<< HEAD
         plantId: l.plant_id ? String(l.plant_id) : "PLT-01",
-        plantName: "Main Facility",
+        plantName: l.plant_name || "Main Facility",
         type: l.type || l.line_type || "Continuous Flow",
         lineType: l.line_type || "BOTTLING",
-        ratedSpeed: l.rated_speed || (l.nominal_speed_bpm ? `${l.nominal_speed_bpm * 60} BPH` : "38,000 BPH"),
-        ratedSpeedBPH: l.rated_speed_bph || (l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 38000),
-=======
-        plantId: l.plant_id ? String(l.plant_id) : "",
-        plantName: l.plant_name || (l.plant_id ? "Assigned Plant" : "—"),
-        type: l.line_type || "Continuous Flow",
-        lineType: l.line_type || "Continuous Flow",
         nominalSpeedBpm: l.nominal_speed_bpm || 0,
-        ratedSpeed: l.nominal_speed_bpm ? `${(l.nominal_speed_bpm * 60).toLocaleString()} BPH` : "—",
-        ratedSpeedBPH: l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 0,
->>>>>>> 56229c1306e64a6fb111e20df76dbc5e997d1142
+        ratedSpeed: l.rated_speed || (l.nominal_speed_bpm ? `${(l.nominal_speed_bpm * 60).toLocaleString()} BPH` : "38,000 BPH"),
+        ratedSpeedBPH: l.rated_speed_bph || (l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 38000),
         status: l.status || "Active",
         healthScore: l.health_score ?? 95,
         supervisorId: null,

@@ -2173,7 +2173,7 @@ export class PlanningService {
 
       const totalDemand = orderQty > 0 ? orderQty : fcQty;
 
-      const currentStock = Number(sku.currentStock || 0);
+      const currentStock = Number((sku as any).currentStock || 0);
       const scheduledProd = schedules
         .filter((s) => s.skuId === sku.id)
         .reduce((sum, s) => sum + (Number(s.quantity) || 0), 0);

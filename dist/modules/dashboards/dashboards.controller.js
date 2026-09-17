@@ -62,6 +62,11 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.updateHbRecord(request.user.tenantId, id, body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async deleteHbRecord(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteHbRecord(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async recalculateCatchUp(request, reply) {
         const body = request.body || {};
         const data = await dashboards_service_js_1.dashboardsService.recalculateCatchUp(request.user.tenantId, body);
@@ -92,6 +97,16 @@ class DashboardsController {
         const body = request.body || {};
         const data = await dashboards_service_js_1.dashboardsService.dispatchTech(request.user.tenantId, id, body);
         return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async resolveDowntime(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.resolveDowntime(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteDowntimeLog(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteDowntimeLog(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Changeover Control ───────────────────────────────────────────────────────
     async getChangeoverStatus(request, reply) {
@@ -425,6 +440,10 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.getSupervisorDeptSchedule(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async createSupervisorDeptSchedule(request, reply) {
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorDeptSchedule(request.user.tenantId, request.body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Production Run Schedule saved to PostgreSQL database"));
+    }
     async resequenceSupervisorDeptSchedule(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.resequenceSupervisorDeptSchedule(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
@@ -470,6 +489,11 @@ class DashboardsController {
         const { id } = request.params;
         const body = request.body || {};
         const data = await dashboards_service_js_1.dashboardsService.assignSupervisorWorkforceTraining(request.user.tenantId, id, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteSupervisorWorkforceEmployee(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteSupervisorWorkforceEmployee(request.user.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Operations Supervisor Labour Time & Allocations ───────────────────────
@@ -573,6 +597,11 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.closeSupervisorStaffingShift(request.user.tenantId, id, body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async deleteSupervisorStaffing(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteSupervisorStaffing(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operations Supervisor Production Performance ──────────────────────────
     async setSupervisorProductionSpeedLimit(request, reply) {
         const body = request.body || {};
@@ -583,10 +612,20 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.getSupervisorDowntimePareto(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async updateSupervisorProductionRun(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProductionRun(request.user.tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operations Supervisor Quality Quarantine Holds ─────────────────────────
     async getSupervisorHolds(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.getSupervisorHolds(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createSupervisorHold(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorHold(request.user.tenantId, body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async addSupervisorHoldNote(request, reply) {
         const { id } = request.params;
@@ -625,6 +664,16 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.authorizeAllSupervisorRecoveryCountermeasures(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createSupervisorRecoveryCountermeasure(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorRecoveryCountermeasure(request.user.tenantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data.data, data.message));
+    }
+    async deleteSupervisorRecoveryCountermeasure(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteSupervisorRecoveryCountermeasure(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operations Supervisor Pending Shift Approvals ─────────────────────────
     async getSupervisorApprovals(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.getSupervisorApprovals(request.user.tenantId);
@@ -650,10 +699,25 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.bulkApproveSupervisorApprovals(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createSupervisorApproval(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorApproval(request.user.tenantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data.data, data.message));
+    }
+    async deleteSupervisorApproval(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteSupervisorApproval(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operations Supervisor Reports ─────────────────────────────────────────
     async getSupervisorReportsList(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.getSupervisorReportsList(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createSupervisorReport(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorReport(request.user.tenantId, request.user.userId, body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data.report, data.message));
     }
     async printSupervisorReport(request, reply) {
         const { id } = request.params;
@@ -683,14 +747,42 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.clearAllSupervisorNotifications(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createSupervisorNotification(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.createSupervisorNotification(request.user.tenantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operations Supervisor Profile ───────────────────────────────────────
     async getSupervisorProfile(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getSupervisorProfile(request.user.tenantId);
+        const data = await dashboards_service_js_1.dashboardsService.getSupervisorProfile(request.user.tenantId, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async updateSupervisorProfile(request, reply) {
         const body = request.body || {};
-        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user.tenantId, body);
+        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user?.tenantId, request.user?.userId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
+    async getLabourAllocations(request, reply) {
+        const query = request.query || {};
+        const shift = query.shift || "Shift A";
+        const data = await dashboards_service_js_1.dashboardsService.getLabourAllocations(request.user?.tenantId, shift);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createLabourAllocation(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.createLabourAllocation(request.user?.tenantId, body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Staff allocation created successfully"));
+    }
+    async updateLabourAllocation(request, reply) {
+        const { id } = request.params;
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.updateLabourAllocation(request.user?.tenantId, id, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Staff allocation updated successfully"));
+    }
+    async deleteLabourAllocation(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
 }

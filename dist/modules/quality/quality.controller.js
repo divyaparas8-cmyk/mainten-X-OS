@@ -21,8 +21,23 @@ class QualityController {
         const data = await quality_service_js_1.qualityService.recordCcpCheck(request.user.tenantId, plantId, input, request.user.userId);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `CCP check recorded (${data.status})`));
     }
+    async deleteCcpCheck(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.deleteCcpCheck(tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CCP check deleted successfully"));
+    }
     async getQaReleaseQueue(request, reply) {
         const data = await quality_service_js_1.qualityService.listQaReleaseQueue(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getQaReleaseMetrics(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.getQaReleaseMetrics(tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getBatchReleaseDossier(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "0bf4f354-4e0e-41f3-9974-e24de98d25ff";
+        const data = await quality_service_js_1.qualityService.getBatchReleaseDossier(tenantId, request.params.batchId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async authorizeBatchRelease(request, reply) {
@@ -82,6 +97,15 @@ class QualityController {
         const data = await quality_service_js_1.qualityService.exportAllergenAudits(request.user.tenantId, request.body, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createAllergenAudit(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await quality_service_js_1.qualityService.createAllergenAudit(request.user.tenantId, plantId, request.body, request.user.userId);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteAllergenAudit(request, reply) {
+        const data = await quality_service_js_1.qualityService.deleteAllergenAudit(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async getLineReadiness(request, reply) {
         const data = await quality_service_js_1.qualityService.listLineReadiness(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -90,12 +114,12 @@ class QualityController {
         const input = quality_schema_js_1.toggleLineReadinessSchema.parse(request.body);
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await quality_service_js_1.qualityService.toggleLineReadiness(request.user.tenantId, plantId, input, request.user.userId);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Line readiness updated to ${data.newStatus}`));
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data.data || data, `Line readiness updated to ${data.newStatus}`));
     }
     async authorizeAllLines(request, reply) {
         const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
         const data = await quality_service_js_1.qualityService.authorizeAllLines(request.user.tenantId, plantId, request.user.userId);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data.data || data, data.message));
     }
     async exportLineReadiness(request, reply) {
         const data = await quality_service_js_1.qualityService.exportLineReadiness(request.user.tenantId, request.body, request.user.userId);
@@ -150,6 +174,11 @@ class QualityController {
     async exportProductChecks(request, reply) {
         const data = await quality_service_js_1.qualityService.exportProductChecks(request.user.tenantId, request.body, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteProductCheck(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.deleteProductCheck(tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Product check deleted successfully"));
     }
     async getQualitySpecs(request, reply) {
         const data = await quality_service_js_1.qualityService.listQualitySpecs(request.user.tenantId);
@@ -368,6 +397,34 @@ class QualityController {
         const data = await quality_service_js_1.qualityService.savePreOpProgress(request.user.tenantId, request.body || {}, request.user.userId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async createPreOpItem(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await quality_service_js_1.qualityService.createPreOpItem(request.user.tenantId, plantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async updatePreOpItem(request, reply) {
+        const { id } = request.params;
+        const data = await quality_service_js_1.qualityService.updatePreOpItem(request.user.tenantId, id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deletePreOpItem(request, reply) {
+        const { id } = request.params;
+        const data = await quality_service_js_1.qualityService.deletePreOpItem(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async markAllPreOpPass(request, reply) {
+        const data = await quality_service_js_1.qualityService.markAllPreOpPass(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async resetPreOpChecklist(request, reply) {
+        const data = await quality_service_js_1.qualityService.resetPreOpChecklist(request.user.tenantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async seedStandardPreOp(request, reply) {
+        const plantId = await (0, tenantContext_js_1.resolvePlantId)(request.user.tenantId, request.user.plantId);
+        const data = await quality_service_js_1.qualityService.seedStandardPreOp(request.user.tenantId, plantId, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     async getSanitationChecklist(request, reply) {
         const data = await quality_service_js_1.qualityService.getSanitationChecklist(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
@@ -395,6 +452,31 @@ class QualityController {
     }
     async exportQualityRecords(request, reply) {
         const data = await quality_service_js_1.qualityService.exportQualityRecords(request.user.tenantId, request.body, request.user.userId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async getDeviationCategories(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.getDeviationCategories(tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async saveDeviationCategory(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.saveDeviationCategory(tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Deviation category saved successfully"));
+    }
+    async deleteDeviationCategory(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.deleteDeviationCategory(tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Deviation category deleted successfully"));
+    }
+    async deleteDeviation(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.deleteDeviation(tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteQualityHold(request, reply) {
+        const tenantId = request.user?.tenantId || request.headers["x-tenant-id"] || "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const data = await quality_service_js_1.qualityService.deleteQualityHold(tenantId, request.params.id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
 }

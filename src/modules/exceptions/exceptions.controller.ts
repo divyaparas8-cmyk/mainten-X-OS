@@ -5,7 +5,7 @@ import { formatSuccess } from "../../shared/utils/responseFormatter.js";
 export class ExceptionsController {
   async getExceptions(request: FastifyRequest, reply: FastifyReply) {
     const { plantId, severity, category } = request.query as any;
-    const data = await exceptionsService.listExceptions(plantId || request.user.plantId, severity, category);
+    const data = await exceptionsService.listExceptions(plantId || request.user?.plantId, severity, category);
     return reply.send(formatSuccess(data));
   }
 
@@ -24,7 +24,7 @@ export class ExceptionsController {
       impactDescription: body.impactDescription || body.description,
       owner: body.owner,
       escalationLevel: body.escalationLevel,
-      plantId: body.plantId || request.user.plantId,
+      plantId: body.plantId || request.user?.plantId,
     });
     return reply.status(201).send(formatSuccess(data, "Exception alert logged in Control Tower"));
   }

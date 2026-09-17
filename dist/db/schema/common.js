@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.purchasingVendors = exports.ciIdeas = exports.documents = exports.exceptions = exports.notifications = void 0;
+exports.shiftApprovals = exports.purchasingVendors = exports.ciIdeas = exports.documents = exports.exceptions = exports.notifications = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const users_1 = require("./users");
@@ -13,6 +13,7 @@ exports.notifications = (0, pg_core_1.pgTable)("notifications", {
     message: (0, pg_core_1.text)("message").notNull(),
     category: (0, pg_core_1.varchar)("category", { length: 100 }).default("SYSTEM").notNull(), // "PRODUCTION", "QUALITY_CCP", "MAINTENANCE", "WAREHOUSE", "PLANNING"
     severity: (0, pg_core_1.varchar)("severity", { length: 50 }).default("INFO").notNull(), // "INFO", "WARNING", "CRITICAL"
+    targetRole: (0, pg_core_1.varchar)("target_role", { length: 100 }).default("ALL").notNull(), // "SUPERVISOR", "MAINTENANCE", "OPERATOR", "QUALITY", "ALL"
     isRead: (0, pg_core_1.boolean)("is_read").default(false).notNull(),
     linkUrl: (0, pg_core_1.text)("link_url"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
@@ -67,5 +68,19 @@ exports.purchasingVendors = (0, pg_core_1.pgTable)("purchasing_vendors", {
     rating: (0, pg_core_1.numeric)("rating", { precision: 3, scale: 2 }).default("4.8"),
     leadTimeDays: (0, pg_core_1.integer)("lead_time_days").default(5),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("ACTIVE").notNull(),
+});
+exports.shiftApprovals = (0, pg_core_1.pgTable)("shift_approvals", {
+    id: (0, pg_core_1.varchar)("id", { length: 100 }).primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.varchar)("plant_id", { length: 100 }).default("PLT-01"),
+    approvalCode: (0, pg_core_1.varchar)("approval_code", { length: 100 }).notNull(),
+    type: (0, pg_core_1.varchar)("type", { length: 100 }).notNull(),
+    details: (0, pg_core_1.text)("details").notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("PENDING").notNull(),
+    requestedBy: (0, pg_core_1.varchar)("requested_by", { length: 255 }).default("Line Operator"),
+    proposedSpeed: (0, pg_core_1.integer)("proposed_speed"),
+    supervisorComment: (0, pg_core_1.text)("supervisor_comment"),
+    createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
+    approvedAt: (0, pg_core_1.timestamp)("approved_at", { withTimezone: true }),
 });
 //# sourceMappingURL=common.js.map

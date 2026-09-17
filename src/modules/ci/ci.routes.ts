@@ -31,6 +31,7 @@ export async function ciRoutes(fastify: FastifyInstance) {
   // 4. Evidence Locker
   fastify.get("/rca/evidence", { schema: { tags: ["RCA 2.0"], summary: "List RCA Evidence Items" } }, ciController.getEvidence.bind(ciController));
   fastify.post("/rca/evidence", { schema: { tags: ["RCA 2.0"], summary: "Log RCA Evidence Item" } }, ciController.createEvidence.bind(ciController));
+  fastify.put("/rca/evidence/:id", { schema: { tags: ["RCA 2.0"], summary: "Update RCA Evidence Item" } }, ciController.updateEvidence.bind(ciController));
   fastify.delete("/rca/evidence/:id", { schema: { tags: ["RCA 2.0"], summary: "Delete RCA Evidence Item" } }, ciController.deleteEvidence.bind(ciController));
 
   // 5. Hypotheses & Validation Tests
@@ -42,6 +43,7 @@ export async function ciRoutes(fastify: FastifyInstance) {
   // 6. CAPA Action Items
   fastify.get("/capa/actions", { schema: { tags: ["CAPA"], summary: "List CAPA Actions" } }, ciController.getCapaActions.bind(ciController));
   fastify.post("/capa/actions", { schema: { tags: ["CAPA"], summary: "Create CAPA Action" } }, ciController.createCapaAction.bind(ciController));
+  fastify.put("/capa/actions/:id", { schema: { tags: ["CAPA"], summary: "Update CAPA Action" } }, ciController.updateCapaAction.bind(ciController));
   fastify.patch("/capa/actions/:id/status", { schema: { tags: ["CAPA"], summary: "Update CAPA Action Status" } }, ciController.updateCapaStatus.bind(ciController));
   fastify.post("/capa/actions/:id/verify", { schema: { tags: ["CAPA"], summary: "Verify CAPA Effectiveness" } }, ciController.verifyCapaEffectiveness.bind(ciController));
   fastify.delete("/capa/actions/:id", { schema: { tags: ["CAPA"], summary: "Delete CAPA Action" } }, ciController.deleteCapaAction.bind(ciController));

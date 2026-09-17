@@ -4,6 +4,15 @@ exports.ciController = exports.CIController = void 0;
 const ci_service_js_1 = require("./ci.service.js");
 const responseFormatter_js_1 = require("../../shared/utils/responseFormatter.js");
 class CIController {
+    getUserContext(request) {
+        const u = request.user || {};
+        return {
+            tenantId: u.tenantId || null,
+            plantId: u.plantId || null,
+            userId: u.id || null,
+            userName: u.name || u.email || "Lead CI Engineer",
+        };
+    }
     // ============================================================================
     // 1. DASHBOARD
     // ============================================================================
@@ -28,12 +37,13 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createInvestigation(request, reply) {
-        const userName = request.user?.name || request.user?.email || "David Kim (Lead CI Engineer)";
-        const data = await ci_service_js_1.ciService.createInvestigation(request.body, userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createInvestigation(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "RCA Investigation initiated successfully"));
     }
     async updateInvestigation(request, reply) {
-        const data = await ci_service_js_1.ciService.updateInvestigation(request.params.id, request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateInvestigation(request.params.id, request.body, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "RCA Investigation updated successfully"));
     }
     async advanceInvestigationPhase(request, reply) {
@@ -41,11 +51,13 @@ class CIController {
         if (!phase) {
             return reply.status(400).send({ success: false, message: "Next phase is required" });
         }
-        const data = await ci_service_js_1.ciService.advanceInvestigationPhase(request.params.id, phase);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.advanceInvestigationPhase(request.params.id, phase, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `RCA ${request.params.id} phase advanced to "${phase}"`));
     }
     async deleteInvestigation(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteInvestigation(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteInvestigation(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "RCA Investigation deleted successfully"));
     }
     async getRCASummary(request, reply) {
@@ -62,12 +74,13 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createEvidence(request, reply) {
-        const userName = request.user?.name || request.user?.email || "David Kim";
-        const data = await ci_service_js_1.ciService.createEvidence(request.body, userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createEvidence(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Evidence logged successfully"));
     }
     async deleteEvidence(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteEvidence(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteEvidence(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Evidence deleted"));
     }
     // ============================================================================
@@ -79,20 +92,22 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createHypothesis(request, reply) {
-        const data = await ci_service_js_1.ciService.createHypothesis(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createHypothesis(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Hypothesis formulated successfully"));
     }
     async validateHypothesis(request, reply) {
         const { validationStatus, evidenceResult } = request.body || {};
-        const userName = request.user?.name || request.user?.email || "Lead CI Engineer";
         if (!validationStatus) {
             return reply.status(400).send({ success: false, message: "validationStatus is required" });
         }
-        const data = await ci_service_js_1.ciService.validateHypothesis(request.params.id, validationStatus, evidenceResult, userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.validateHypothesis(request.params.id, validationStatus, evidenceResult, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Hypothesis marked as "${validationStatus}"`));
     }
     async deleteHypothesis(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteHypothesis(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteHypothesis(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Hypothesis deleted"));
     }
     // ============================================================================
@@ -103,7 +118,8 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createCapaAction(request, reply) {
-        const data = await ci_service_js_1.ciService.createCapaAction(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createCapaAction(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "CAPA Action created successfully"));
     }
     async updateCapaStatus(request, reply) {
@@ -111,17 +127,19 @@ class CIController {
         if (!status) {
             return reply.status(400).send({ success: false, message: "Status is required" });
         }
-        const data = await ci_service_js_1.ciService.updateCapaStatus(request.params.id, status, completionDate, evidenceNotes);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateCapaStatus(request.params.id, status, completionDate, evidenceNotes, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `CAPA Action updated to ${status}`));
     }
     async verifyCapaEffectiveness(request, reply) {
         const { effectivenessResult } = request.body || {};
-        const userName = request.user?.name || request.user?.email || "Quality Manager";
-        const data = await ci_service_js_1.ciService.verifyCapaEffectiveness(request.params.id, effectivenessResult || "Verified Effective", userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.verifyCapaEffectiveness(request.params.id, effectivenessResult || "Verified Effective", ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CAPA Action verified effective"));
     }
     async deleteCapaAction(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteCapaAction(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteCapaAction(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CAPA Action deleted"));
     }
     // ============================================================================
@@ -133,11 +151,13 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createLoss(request, reply) {
-        const data = await ci_service_js_1.ciService.createLoss(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createLoss(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Loss incident logged"));
     }
     async deleteLoss(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteLoss(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteLoss(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Loss incident deleted"));
     }
     async getLossSummary(request, reply) {
@@ -161,26 +181,29 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createProject(request, reply) {
-        const data = await ci_service_js_1.ciService.createProject(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createProject(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "CI Project created successfully"));
     }
     async updateProject(request, reply) {
-        const data = await ci_service_js_1.ciService.updateProject(request.params.id, request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateProject(request.params.id, request.body, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CI Project updated successfully"));
     }
     async deleteProject(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteProject(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteProject(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CI Project deleted successfully"));
     }
     async verifyAndLockBenefit(request, reply) {
-        const userName = request.user?.name || request.user?.email || "David Kim (Lead CI)";
-        const data = await ci_service_js_1.ciService.verifyAndLockBenefit(request.params.id, userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.verifyAndLockBenefit(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Project ${request.params.id} benefit certified and immutably locked`));
     }
     async unlockBenefit(request, reply) {
-        const userName = request.user?.name || request.user?.email || "David Kim (Lead CI)";
+        const ctx = this.getUserContext(request);
         const justification = request.body?.justification || "Engineering review and metric recalculation";
-        const data = await ci_service_js_1.ciService.unlockBenefit(request.params.id, justification, userName);
+        const data = await ci_service_js_1.ciService.unlockBenefit(request.params.id, justification, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, `Project ${request.params.id} benefit unlocked for recalculation`));
     }
     async getBenefitsSummary(request, reply) {
@@ -197,15 +220,18 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createStandard(request, reply) {
-        const data = await ci_service_js_1.ciService.createStandard(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createStandard(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Standard published successfully"));
     }
     async updateStandard(request, reply) {
-        const data = await ci_service_js_1.ciService.updateStandard(request.params.id, request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateStandard(request.params.id, request.body, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Standard revised successfully"));
     }
     async deleteStandard(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteStandard(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteStandard(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Standard archived/deleted"));
     }
     // ============================================================================
@@ -217,11 +243,13 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createSolution(request, reply) {
-        const data = await ci_service_js_1.ciService.createSolution(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createSolution(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Verified solution documented"));
     }
     async deleteSolution(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteSolution(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteSolution(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Verified solution removed"));
     }
     // ============================================================================
@@ -233,11 +261,13 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createCapex(request, reply) {
-        const data = await ci_service_js_1.ciService.createCapex(request.body);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.createCapex(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Capex project proposal submitted"));
     }
     async deleteCapex(request, reply) {
-        const data = await ci_service_js_1.ciService.deleteCapex(request.params.id);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.deleteCapex(request.params.id, ctx);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Capex proposal removed"));
     }
     // ============================================================================
@@ -249,8 +279,8 @@ class CIController {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async launchRcaFromBadActor(request, reply) {
-        const userName = request.user?.name || request.user?.email || "David Kim (Lead CI)";
-        const data = await ci_service_js_1.ciService.launchRcaFromBadActor(request.params.assetId, userName);
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.launchRcaFromBadActor(request.params.assetId, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, `RCA launched for Bad Actor asset ${request.params.assetId}`));
     }
 }

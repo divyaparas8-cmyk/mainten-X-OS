@@ -3,8 +3,74 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.masterDataRoutes = masterDataRoutes;
 const masterData_controller_js_1 = require("./masterData.controller.js");
 const authenticate_js_1 = require("../../middleware/authenticate.js");
+const authorize_js_1 = require("../../middleware/authorize.js");
 async function masterDataRoutes(fastify) {
     fastify.addHook("preHandler", authenticate_js_1.authenticate);
+    // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+    fastify.addHook("preHandler", async (request, reply) => {
+        const user = request.user;
+        if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+            return;
+        }
+        const url = request.url.split("?")[0];
+        const method = request.method.toUpperCase();
+        let requiredPerm = null;
+        if (url.includes("/boms")) {
+            if (method === "POST")
+                requiredPerm = ["bom___recipe.create", "bom_recipe.create"];
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = ["bom___recipe.edit", "bom_recipe.edit"];
+            else if (method === "DELETE")
+                requiredPerm = ["bom___recipe.delete", "bom_recipe.delete"];
+            else if (method === "GET")
+                requiredPerm = ["bom___recipe.view", "bom_recipe.view"];
+        }
+        else if (url.includes("/skus")) {
+            if (method === "POST")
+                requiredPerm = "sku_master.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "sku_master.edit";
+            else if (method === "DELETE")
+                requiredPerm = "sku_master.delete";
+            else if (method === "GET")
+                requiredPerm = "sku_master.view";
+        }
+        else if (url.includes("/work-centers") || url.includes("/lines")) {
+            if (method === "POST")
+                requiredPerm = "work_centers___lines.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "work_centers___lines.edit";
+            else if (method === "DELETE")
+                requiredPerm = "work_centers___lines.delete";
+        }
+        else if (url.includes("/assets")) {
+            if (method === "POST")
+                requiredPerm = "machine_assets.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "machine_assets.edit";
+            else if (method === "DELETE")
+                requiredPerm = "machine_assets.delete";
+        }
+        else if (url.includes("/quality-specs")) {
+            if (method === "POST")
+                requiredPerm = "quality_specs.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "quality_specs.edit";
+            else if (method === "DELETE")
+                requiredPerm = "quality_specs.delete";
+        }
+        else if (url.includes("/employee-skills") || url.includes("/employees")) {
+            if (method === "POST")
+                requiredPerm = "employees___skills.create";
+            else if (method === "PUT" || method === "PATCH")
+                requiredPerm = "employees___skills.edit";
+            else if (method === "DELETE")
+                requiredPerm = "employees___skills.delete";
+        }
+        if (requiredPerm) {
+            await (0, authorize_js_1.authorize)(requiredPerm)(request, reply);
+        }
+    });
     // 1. Companies & Legal Entities
     fastify.get("/companies", { schema: { tags: ["Master Data"], summary: "List Enterprise Companies & Legal Entities" } }, masterData_controller_js_1.masterDataController.getCompanies.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/companies", { schema: { tags: ["Master Data"], summary: "Register New Legal Corporate Entity" } }, masterData_controller_js_1.masterDataController.createCompany.bind(masterData_controller_js_1.masterDataController));
@@ -81,10 +147,18 @@ async function masterDataRoutes(fastify) {
     fastify.post("/skus", { schema: { tags: ["Master Data"], summary: "Create new SKU" } }, masterData_controller_js_1.masterDataController.createSku.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/skus/:id", { schema: { tags: ["Master Data"], summary: "Update SKU master record" } }, masterData_controller_js_1.masterDataController.updateSku.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/skus/:id", { schema: { tags: ["Master Data"], summary: "Delete SKU from master" } }, masterData_controller_js_1.masterDataController.deleteSku.bind(masterData_controller_js_1.masterDataController));
+    // BOMs & Recipe Master
     fastify.get("/boms", { schema: { tags: ["Master Data"], summary: "List BOMs & Formulations" } }, masterData_controller_js_1.masterDataController.getBoms.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.createBom.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.updateBom.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterData_controller_js_1.masterDataController.deleteBom.bind(masterData_controller_js_1.masterDataController));
+    // 13. Assets, Categories & Machine Capability
+    fastify.get("/asset-types", { schema: { tags: ["Master Data"], summary: "List Asset Categories / Types" } }, masterData_controller_js_1.masterDataController.getAssetTypes.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/asset-types", { schema: { tags: ["Master Data"], summary: "Create Asset Category / Type" } }, masterData_controller_js_1.masterDataController.createAssetType.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/asset-types/:id", { schema: { tags: ["Master Data"], summary: "Delete Asset Category / Type" } }, masterData_controller_js_1.masterDataController.deleteAssetType.bind(masterData_controller_js_1.masterDataController));
+    fastify.get("/criticality-levels", { schema: { tags: ["Master Data"], summary: "List Criticality Ratings" } }, masterData_controller_js_1.masterDataController.getCriticalityLevels.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/criticality-levels", { schema: { tags: ["Master Data"], summary: "Create Criticality Rating" } }, masterData_controller_js_1.masterDataController.createCriticalityLevel.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/criticality-levels/:id", { schema: { tags: ["Master Data"], summary: "Delete Criticality Rating" } }, masterData_controller_js_1.masterDataController.deleteCriticalityLevel.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/assets", { schema: { tags: ["Master Data"], summary: "List Equipment Assets" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/assets", { schema: { tags: ["Master Data"], summary: "Register New Equipment Asset" } }, masterData_controller_js_1.masterDataController.createAsset.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/assets/:id", { schema: { tags: ["Master Data"], summary: "Update Equipment Asset Record" } }, masterData_controller_js_1.masterDataController.updateAsset.bind(masterData_controller_js_1.masterDataController));
@@ -92,11 +166,38 @@ async function masterDataRoutes(fastify) {
     fastify.delete("/assets/:id", { schema: { tags: ["Master Data"], summary: "Delete Equipment Asset" } }, masterData_controller_js_1.masterDataController.deleteAsset.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterData_controller_js_1.masterDataController.getAssets.bind(masterData_controller_js_1.masterDataController));
     fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterData_controller_js_1.masterDataController.getStaff.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/staff", { schema: { tags: ["Master Data"], summary: "Register New Shift Supervisor / Staff Member" } }, masterData_controller_js_1.masterDataController.createStaff.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/staff/:id", { schema: { tags: ["Master Data"], summary: "Update Staff Member Qualifications & Profile" } }, masterData_controller_js_1.masterDataController.updateStaff.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/staff/:id", { schema: { tags: ["Master Data"], summary: "Remove Staff Member" } }, masterData_controller_js_1.masterDataController.deleteStaff.bind(masterData_controller_js_1.masterDataController));
+    // 14. Quality Specifications & Parameter Master
     fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterData_controller_js_1.masterDataController.getQualitySpecs.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/quality-specs", { schema: { tags: ["Master Data"], summary: "Create QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.createQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Update QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.updateQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Delete QA & CCP Specification" } }, masterData_controller_js_1.masterDataController.deleteQualitySpec.bind(masterData_controller_js_1.masterDataController));
+    // 18. HACCP CCP Limits
+    fastify.get("/ccp-limits", { schema: { tags: ["Master Data"], summary: "List HACCP CCP Limits" } }, masterData_controller_js_1.masterDataController.getCCPLimits.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/ccp-limits", { schema: { tags: ["Master Data"], summary: "Create HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.createCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Update HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.updateCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Delete HACCP CCP Limit" } }, masterData_controller_js_1.masterDataController.deleteCCPLimit.bind(masterData_controller_js_1.masterDataController));
+    // 19. Storage Resources & Warehouse Master
+    fastify.get("/storage-resources", { schema: { tags: ["Master Data"], summary: "List Storage Resources" } }, masterData_controller_js_1.masterDataController.getStorageResources.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/storage-resources", { schema: { tags: ["Master Data"], summary: "Create Storage Resource" } }, masterData_controller_js_1.masterDataController.createStorageResource.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Update Storage Resource" } }, masterData_controller_js_1.masterDataController.updateStorageResource.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Delete Storage Resource" } }, masterData_controller_js_1.masterDataController.deleteStorageResource.bind(masterData_controller_js_1.masterDataController));
     // 15. Labour Standards
     fastify.get("/labour-standards", { schema: { tags: ["Master Data"], summary: "List Labour Standards" } }, masterData_controller_js_1.masterDataController.getLabourStandards.bind(masterData_controller_js_1.masterDataController));
     fastify.post("/labour-standards", { schema: { tags: ["Master Data"], summary: "Create Labour Standard" } }, masterData_controller_js_1.masterDataController.createLabourStandard.bind(masterData_controller_js_1.masterDataController));
     fastify.put("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Update Labour Standard" } }, masterData_controller_js_1.masterDataController.updateLabourStandard.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Delete Labour Standard" } }, masterData_controller_js_1.masterDataController.deleteLabourStandard.bind(masterData_controller_js_1.masterDataController));
+    // 17. Employee Skills & Qualifications Matrix
+    fastify.get("/employee-skills", { schema: { tags: ["Master Data"], summary: "List Employee Skill Qualification Matrix" } }, masterData_controller_js_1.masterDataController.getEmployeeSkills.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/employee-skills", { schema: { tags: ["Master Data"], summary: "Onboard Employee with Skill Competencies" } }, masterData_controller_js_1.masterDataController.createEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Skill Matrix" } }, masterData_controller_js_1.masterDataController.updateEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Skill Record" } }, masterData_controller_js_1.masterDataController.deleteEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    // Aliases for seamless API compatibility
+    fastify.get("/employees", { schema: { tags: ["Master Data"], summary: "List Employees Matrix" } }, masterData_controller_js_1.masterDataController.getEmployeeSkills.bind(masterData_controller_js_1.masterDataController));
+    fastify.post("/employees", { schema: { tags: ["Master Data"], summary: "Create Employee Record" } }, masterData_controller_js_1.masterDataController.createEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.put("/employees/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Record" } }, masterData_controller_js_1.masterDataController.updateEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
+    fastify.delete("/employees/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Record" } }, masterData_controller_js_1.masterDataController.deleteEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
 }
 //# sourceMappingURL=masterData.routes.js.map

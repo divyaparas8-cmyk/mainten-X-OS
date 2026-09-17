@@ -20,6 +20,7 @@ export const ciRcaInvestigations = pgTable("ci_rca_investigations", {
   currentPhase: varchar("current_phase", { length: 100 }).default("Event").notNull(), // "Event", "Evidence", "Hypothesis & Tests", "Occurrence Cause", "Escape Cause", "CAPA", "Verification", "Closed"
   problemStatement: text("problem_statement").notNull(),
   leadInvestigator: varchar("lead_investigator", { length: 255 }).notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   teamMembers: jsonb("team_members").default([]),
   eventDate: varchar("event_date", { length: 50 }).notNull(),
   daysActive: integer("days_active").default(0),
@@ -65,6 +66,7 @@ export const ciCapaActions = pgTable("ci_capa_actions", {
   owner: varchar("owner", { length: 255 }).notNull(),
   dueDate: varchar("due_date", { length: 50 }).notNull(),
   priority: varchar("priority", { length: 50 }).default("Medium").notNull(), // "Critical", "High", "Medium"
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   status: varchar("status", { length: 50 }).default("Open").notNull(), // "Open", "In Progress", "Completed", "Verified"
   completionDate: varchar("completion_date", { length: 50 }),
   evidenceNotes: text("evidence_notes"),
@@ -109,6 +111,7 @@ export const ciLosses = pgTable("ci_losses", {
   lineId: varchar("line_id", { length: 100 }).notNull(),
   assetId: varchar("asset_id", { length: 100 }).notNull(),
   eventName: varchar("event_name", { length: 255 }).notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   hoursLost: numeric("hours_lost", { precision: 8, scale: 2 }).default("0.00").notNull(),
   unitsLost: integer("units_lost").default(0).notNull(),
   financialImpactUSD: numeric("financial_impact_usd", { precision: 12, scale: 2 }).default("0.00").notNull(),
@@ -190,6 +193,7 @@ export const ciReliabilityRecords = pgTable("ci_reliability_records", {
   mttrMin: integer("mttr_min").default(0).notNull(),
   lastFailureDate: varchar("last_failure_date", { length: 50 }).notNull(),
   failureCategory: varchar("failure_category", { length: 100 }).notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   criticality: varchar("criticality", { length: 50 }).default("Medium").notNull(), // "Critical", "High", "Medium"
   isBadActor: boolean("is_bad_actor").default(false).notNull(),
   badActorReason: text("bad_actor_reason"),

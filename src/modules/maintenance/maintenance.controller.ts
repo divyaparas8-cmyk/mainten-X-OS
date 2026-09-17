@@ -264,6 +264,44 @@ export class MaintenanceController {
     const data = await maintenanceService.addWorkOrderComment(tenantId, id, request.body);
     return reply.status(201).send(formatSuccess(data, "Comment logged to work order activity trail"));
   }
+
+  async getReports(request: FastifyRequest, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const data = await maintenanceService.listReports(tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async getReportsSummary(request: FastifyRequest, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const data = await maintenanceService.getReportsSummary(tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createReport(request: FastifyRequest, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const userId = (request.user as any)?.userId;
+    const data = await maintenanceService.createReport(tenantId, request.body, userId);
+    return reply.status(201).send(formatSuccess(data, "Maintenance report template created successfully"));
+  }
+
+  async updateReport(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const data = await maintenanceService.updateReport(tenantId, request.params.id, request.body);
+    return reply.send(formatSuccess(data, "Maintenance report template updated successfully"));
+  }
+
+  async deleteReport(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const data = await maintenanceService.deleteReport(tenantId, request.params.id);
+    return reply.send(formatSuccess(data, "Maintenance report template deleted successfully"));
+  }
+
+  async generateReport(request: FastifyRequest<{ Params: { id: string }; Body: { format?: string } }>, reply: FastifyReply) {
+    const tenantId = (request.user as any)?.tenantId;
+    const format = (request.body as any)?.format || "CSV";
+    const data = await maintenanceService.generateReport(tenantId, request.params.id, format);
+    return reply.send(formatSuccess(data, "Report data generated successfully"));
+  }
 }
 
 export const maintenanceController = new MaintenanceController();

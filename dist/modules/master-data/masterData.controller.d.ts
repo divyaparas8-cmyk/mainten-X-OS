@@ -218,16 +218,37 @@ export declare class MasterDataController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    getAssetTypes(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAssetType(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteAssetType(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCriticalityLevels(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCriticalityLevel(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteCriticalityLevel(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getAssets(request: FastifyRequest<{
         Querystring: {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
-    createAsset(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAsset(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
     updateAsset(request: FastifyRequest<{
         Params: {
             id: string;
         };
+        Body: any;
     }>, reply: FastifyReply): Promise<never>;
     deleteAsset(request: FastifyRequest<{
         Params: {
@@ -239,7 +260,39 @@ export declare class MasterDataController {
             plantId?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
-    getQualitySpecs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createStaff(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateStaff(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteStaff(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getQualitySpecs(request: FastifyRequest<{
+        Querystring: {
+            skuId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createQualitySpec(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteQualitySpec(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getLabourStandards(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createLabourStandard(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateLabourStandard(request: FastifyRequest<{
@@ -248,6 +301,50 @@ export declare class MasterDataController {
         };
     }>, reply: FastifyReply): Promise<never>;
     deleteLabourStandard(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getEmployeeSkills(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createEmployeeSkill(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteEmployeeSkill(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getCCPLimits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createCCPLimit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteCCPLimit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    getStorageResources(request: FastifyRequest<{
+        Querystring: {
+            plantId?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createStorageResource(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateStorageResource(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteStorageResource(request: FastifyRequest<{
         Params: {
             id: string;
         };

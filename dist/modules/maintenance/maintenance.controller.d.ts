@@ -58,6 +58,13 @@ export declare class MaintenanceController {
     getPM(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getCalendar(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    markNotificationRead(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    markAllNotificationsRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    clearNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSpareParts(request: FastifyRequest, reply: FastifyReply): Promise<never>;

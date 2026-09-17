@@ -89,3 +89,23 @@ export const calibrations = pgTable("calibrations", {
   status: varchar("status", { length: 50 }).default("VALID").notNull(), // "VALID", "DUE_SOON", "EXPIRED"
 });
 
+export const maintenanceReports = pgTable("maintenance_reports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  plantId: uuid("plant_id"),
+  reportCode: varchar("report_code", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  description: text("description"),
+  frequency: varchar("frequency", { length: 50 }).default("Monthly").notNull(),
+  targetModule: varchar("target_module", { length: 50 }).default("assets").notNull(),
+  dataPoints: integer("data_points").default(0),
+  status: varchar("status", { length: 50 }).default("Active").notNull(),
+  lastGeneratedAt: timestamp("last_generated_at"),
+  lastExportFormat: varchar("last_export_format", { length: 20 }).default("CSV"),
+  regulatoryStandard: varchar("regulatory_standard", { length: 100 }).default("ISO 55001 / FDA CFR 21"),
+  createdBy: varchar("created_by", { length: 100 }).default("System"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+

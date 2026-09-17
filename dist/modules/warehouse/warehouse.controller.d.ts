@@ -2,6 +2,11 @@ import { FastifyReply, FastifyRequest } from "fastify";
 export declare class WarehouseController {
     getLots(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createLot(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteLot(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     recordTransaction(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getTransactions(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getWarehouses(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -73,6 +78,11 @@ export declare class WarehouseController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    deleteSupplier(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getSupplierScorecard(request: FastifyRequest<{
         Params: {
             id: string;
@@ -80,6 +90,16 @@ export declare class WarehouseController {
     }>, reply: FastifyReply): Promise<never>;
     getWmsOperations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     dockCheckIn(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateWmsReceiving(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteWmsReceiving(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     inspectAndAccept(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     completePutAway(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     recordStockMovementTask(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -89,6 +109,17 @@ export declare class WarehouseController {
     dispatchShipment(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     listLocationsHierarchy(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     listLocations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createLocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateLocation(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteLocation(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getBinsLocations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getPutAwayLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getStagingLocations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -115,6 +146,20 @@ export declare class WarehouseController {
             lotNumber?: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    createTraceabilityBatch(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateTraceabilityBatch(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteTraceabilityBatch(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     simulateRecall(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getRawMaterials(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     toggleRawMaterialStatus(request: FastifyRequest<{
@@ -131,6 +176,20 @@ export declare class WarehouseController {
         Body?: any;
     }>, reply: FastifyReply): Promise<never>;
     getFinishedGoods(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createFinishedGood(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    updateFinishedGood(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteFinishedGood(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     listShipmentOrders(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createShipmentOrder(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateShipmentOrder(request: FastifyRequest<{
@@ -139,6 +198,12 @@ export declare class WarehouseController {
         };
     }>, reply: FastifyReply): Promise<never>;
     dispatchShipmentOrder(request: FastifyRequest<{
+        Params?: {
+            id?: string;
+        };
+        Body?: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteShipmentOrder(request: FastifyRequest<{
         Params: {
             id: string;
         };
@@ -188,6 +253,25 @@ export declare class WarehouseController {
         };
         Body?: any;
     }>, reply: FastifyReply): Promise<never>;
+    issueRawMaterialForProcessing(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getWipLots(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createWipLot(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    stagePackagingMaterial(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getSeparatedMovements(request: FastifyRequest<{
+        Querystring: {
+            category?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createPackagingFinishedGoods(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getFlowSummary(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const warehouseController: WarehouseController;
 //# sourceMappingURL=warehouse.controller.d.ts.map

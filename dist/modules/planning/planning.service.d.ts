@@ -82,9 +82,9 @@ export declare class PlanningService {
         priority?: string | undefined;
         requestedDate?: string | undefined;
         deliveryAddress?: string | undefined;
+        productName?: string | undefined;
         customer?: string | undefined;
         productCode?: string | undefined;
-        productName?: string | undefined;
         requestedShipDate?: string | undefined;
         id: string;
     }>;
@@ -93,6 +93,22 @@ export declare class PlanningService {
         id: string;
     }>;
     listForecasts(tenantId: string, plantId?: string): Promise<{
+        id: string;
+        period: string;
+        skuId: string;
+        productCode: string;
+        productName: string;
+        historicalDemand: number;
+        baselineForecast: number;
+        baselineDemand: number;
+        overrideQuantity: number;
+        finalForecast: number;
+        method: string;
+        mapeAccuracy: number;
+        status: string;
+        confidenceLevel: number;
+        recommendedAction: string;
+    }[] | {
         id: string;
         period: string;
         skuId: string;

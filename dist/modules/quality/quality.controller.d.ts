@@ -3,7 +3,18 @@ export declare class QualityController {
     getQualitySummary(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getCcpChecks(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     recordCcpCheck(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteCcpCheck(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getQaReleaseQueue(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getQaReleaseMetrics(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getBatchReleaseDossier(request: FastifyRequest<{
+        Params: {
+            batchId: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     authorizeBatchRelease(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getQualityHolds(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createQualityHold(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -15,6 +26,12 @@ export declare class QualityController {
     clearAllergenAudit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     clearAllAllergenAudits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportAllergenAudits(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createAllergenAudit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteAllergenAudit(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getLineReadiness(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     toggleLineReadiness(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeAllLines(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -30,6 +47,11 @@ export declare class QualityController {
     getProductChecks(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     recordProductCheck(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportProductChecks(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteProductCheck(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
     getQualitySpecs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createQualitySpec(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     toggleQualitySpecCcp(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -79,6 +101,12 @@ export declare class QualityController {
     verifyQualityCert(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getPreOpChecklist(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     savePreOpProgress(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createPreOpItem(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updatePreOpItem(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deletePreOpItem(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    markAllPreOpPass(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    resetPreOpChecklist(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    seedStandardPreOp(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSanitationChecklist(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     saveSanitationProgress(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getBatchHistory(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -86,6 +114,25 @@ export declare class QualityController {
     exportBatchHistory(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getQualityRecords(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     exportQualityRecords(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getDeviationCategories(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    saveDeviationCategory(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    deleteDeviationCategory(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteDeviation(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    deleteQualityHold(request: FastifyRequest<{
+        Params: {
+            id: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
 }
 export declare const qualityController: QualityController;
 //# sourceMappingURL=quality.controller.d.ts.map

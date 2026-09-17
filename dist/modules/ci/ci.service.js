@@ -4,6 +4,28 @@ exports.ciService = exports.CIService = void 0;
 const database_js_1 = require("../../config/database.js");
 class CIService {
     // ============================================================================
+    // AUDIT LOG HELPER
+    // ============================================================================
+    async logAudit(params) {
+        const isUuid = (str) => typeof str === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+        try {
+            await database_js_1.pool.query(`INSERT INTO audit_logs (id, tenant_id, plant_id, user_id, action, entity_type, entity_id, old_values, new_values, created_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW())`, [
+                isUuid(params.tenantId) ? params.tenantId : null,
+                isUuid(params.plantId) ? params.plantId : null,
+                isUuid(params.userId) ? params.userId : null,
+                params.action,
+                params.entityType,
+                params.entityId,
+                params.oldValues ? JSON.stringify(params.oldValues) : null,
+                params.newValues ? JSON.stringify(params.newValues) : null,
+            ]);
+        }
+        catch (err) {
+            console.warn("Audit log insert warning:", err.message);
+        }
+    }
+    // ============================================================================
     // 1. DASHBOARD SUMMARY
     // ============================================================================
     async getDashboardSummary(plantId) {
@@ -15,7 +37,8 @@ class CIService {
         COALESCE(SUM(projected_savings_annual), 0) AS projected_total,
         COALESCE(SUM(realized_savings_ytd), 0) AS realized_total,
         COUNT(*) AS total_projects,
-        COUNT(CASE WHEN status = 'Completed' OR benefit_status = 'Verified & Locked' THEN 1 END) AS completed_projects
+        COUNT(CASE WHEN status = 'Completed' OR benefit_status = 'Verified & Locked' THEN 1 END) AS completed_projects,
+        COUNT(CASE WHEN benefit_status = 'Pending Verification' THEN 1 END) AS pending_benefits
       FROM ci_projects ${plantClause}`, params);
         // RCA investigations
         const rcaRes = await database_js_1.pool.query(`SELECT 
@@ -40,39 +63,68 @@ class CIService {
         const capaRes = await database_js_1.pool.query(`SELECT 
         COUNT(*) AS total_capa,
         COUNT(CASE WHEN status = 'Open' OR status = 'In Progress' THEN 1 END) AS pending_capa,
-        COUNT(CASE WHEN status = 'Verified' THEN 1 END) AS verified_capa
+        COUNT(CASE WHEN status = 'Verified' THEN 1 END) AS verified_capa,
+        COUNT(CASE WHEN status NOT IN ('Completed', 'Verified', 'Closed') AND due_date < CURRENT_DATE::text THEN 1 END) AS overdue_capa
       FROM ci_capa_actions`);
-        const proj = projRes.rows[0];
-        const rca = rcaRes.rows[0];
-        const rel = relRes.rows[0];
-        const loss = lossRes.rows[0];
-        const capa = capaRes.rows[0];
+        // Capex projects
+        const capexRes = await database_js_1.pool.query(`SELECT 
+        COUNT(*) AS total_capex,
+        COUNT(CASE WHEN status NOT IN ('Closed', 'Commissioned') THEN 1 END) AS open_capex
+      FROM ci_capex_projects ${plantClause}`, params);
+        // Standards
+        const stdRes = await database_js_1.pool.query(`SELECT 
+        COUNT(*) AS total_standards,
+        COUNT(CASE WHEN status = 'Active' THEN 1 END) AS active_standards
+      FROM ci_standards ${plantClause}`, params);
+        // Verified Solutions
+        const solRes = await database_js_1.pool.query(`SELECT COUNT(*) AS total_solutions FROM ci_verified_solutions`);
+        const proj = projRes.rows[0] || {};
+        const rca = rcaRes.rows[0] || {};
+        const rel = relRes.rows[0] || {};
+        const loss = lossRes.rows[0] || {};
+        const capa = capaRes.rows[0] || {};
+        const capex = capexRes.rows[0] || {};
+        const std = stdRes.rows[0] || {};
+        const sol = solRes.rows[0] || {};
         return {
             financials: {
-                projectedSavings: Number(proj.projected_total),
-                realizedSavings: Number(proj.realized_total),
-                totalLossUSD: Number(loss.total_loss_usd),
-                totalHoursLost: Number(loss.total_hours_lost),
+                projectedSavings: Number(proj.projected_total || 0),
+                realizedSavings: Number(proj.realized_total || 0),
+                totalLossUSD: Number(loss.total_loss_usd || 0),
+                totalHoursLost: Number(loss.total_hours_lost || 0),
             },
             reliability: {
-                badActorsCount: Number(rel.bad_actors_count),
-                avgMtbfHrs: Math.round(Number(rel.avg_mtbf)),
-                avgMttrMin: Math.round(Number(rel.avg_mttr)),
+                badActorsCount: Number(rel.bad_actors_count || 0),
+                avgMtbfHrs: Math.round(Number(rel.avg_mtbf || 0)),
+                avgMttrMin: Math.round(Number(rel.avg_mttr || 0)),
             },
             rca: {
-                totalRCA: Number(rca.total_rca),
-                openRCA: Number(rca.open_rca),
-                validatedRCA: Number(rca.validated_rca),
-                closedRCA: Number(rca.closed_rca),
+                totalRCA: Number(rca.total_rca || 0),
+                openRCA: Number(rca.open_rca || 0),
+                validatedRCA: Number(rca.validated_rca || 0),
+                closedRCA: Number(rca.closed_rca || 0),
             },
             projects: {
-                total: Number(proj.total_projects),
-                completed: Number(proj.completed_projects),
+                total: Number(proj.total_projects || 0),
+                completed: Number(proj.completed_projects || 0),
+                pendingBenefits: Number(proj.pending_benefits || 0),
             },
             capa: {
-                total: Number(capa.total_capa),
-                pending: Number(capa.pending_capa),
-                verified: Number(capa.verified_capa),
+                total: Number(capa.total_capa || 0),
+                pending: Number(capa.pending_capa || 0),
+                verified: Number(capa.verified_capa || 0),
+                overdue: Number(capa.overdue_capa || 0),
+            },
+            capex: {
+                total: Number(capex.total_capex || 0),
+                open: Number(capex.open_capex || 0),
+            },
+            standards: {
+                total: Number(std.total_standards || 0),
+                active: Number(std.active_standards || 0),
+            },
+            solutions: {
+                total: Number(sol.total_solutions || 0),
             },
         };
     }
@@ -121,11 +173,12 @@ class CIService {
             return undefined;
         return this.mapInvestigation(res.rows[0]);
     }
-    async createInvestigation(data, userName) {
+    async createInvestigation(data, userContext) {
         const nextSeqRes = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_rca_investigations");
         const count = Number(nextSeqRes.rows[0].count) + 1;
         const year = new Date().getFullYear();
         const newId = data.id || `RCA-${year}-${String(count).padStart(3, "0")}`;
+        const userName = userContext?.userName || "Lead CI Engineer";
         const res = await database_js_1.pool.query(`INSERT INTO ci_rca_investigations (
         id, plant_id, title, asset_id, asset_name, line_id, line_name,
         source_breakdown_id, source_work_order_id, severity, status,
@@ -134,7 +187,7 @@ class CIService {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
       RETURNING *`, [
             newId,
-            data.plantId || "PLT-01",
+            data.plantId || userContext?.plantId || "PLT-01",
             data.title || "Critical Component Failure Investigation",
             data.assetId || "AST-001",
             data.assetName || "Primary Production Asset",
@@ -146,16 +199,25 @@ class CIService {
             data.status || "Open",
             data.currentPhase || "Event",
             data.problemStatement || "Problem statement pending technical review.",
-            data.leadInvestigator || userName || "David Kim (Lead CI Engineer)",
-            JSON.stringify(data.teamMembers || [userName || "David Kim (Lead CI)"]),
+            data.leadInvestigator || userName,
+            JSON.stringify(data.teamMembers || [userName]),
             data.eventDate || new Date().toISOString().substring(0, 10),
             data.daysActive || 1,
             JSON.stringify(data.whyTree || []),
             JSON.stringify(data.eightD || {}),
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: data.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_RCA_INITIATED",
+            entityType: "RCA Investigation",
+            entityId: newId,
+            newValues: { id: newId, title: data.title, assetId: data.assetId },
+        });
         return this.mapInvestigation(res.rows[0]);
     }
-    async updateInvestigation(id, data) {
+    async updateInvestigation(id, data, userContext) {
         const current = await this.getInvestigation(id);
         if (!current)
             throw new Error(`RCA Investigation ${id} not found`);
@@ -188,9 +250,19 @@ class CIService {
             JSON.stringify(updated.eightD || {}),
             id,
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: current.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_RCA_UPDATED",
+            entityType: "RCA Investigation",
+            entityId: id,
+            oldValues: current,
+            newValues: data,
+        });
         return this.mapInvestigation(res.rows[0]);
     }
-    async advanceInvestigationPhase(id, nextPhase) {
+    async advanceInvestigationPhase(id, nextPhase, userContext) {
         let newStatus;
         if (nextPhase === "Occurrence Cause" || nextPhase === "Escape Cause") {
             newStatus = "Root Cause Validated";
@@ -211,12 +283,42 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         if (res.rows.length === 0)
             throw new Error(`RCA Investigation ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: res.rows[0]?.plant_id || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_RCA_PHASE_ADVANCED",
+            entityType: "RCA Investigation",
+            entityId: id,
+            newValues: { currentPhase: nextPhase, status: newStatus },
+        });
         return this.mapInvestigation(res.rows[0]);
     }
-    async deleteInvestigation(id) {
-        await database_js_1.pool.query("DELETE FROM ci_rca_evidence WHERE rca_id = $1", [id]);
-        await database_js_1.pool.query("DELETE FROM ci_rca_hypotheses WHERE rca_id = $1", [id]);
-        await database_js_1.pool.query("DELETE FROM ci_rca_investigations WHERE id = $1", [id]);
+    async deleteInvestigation(id, userContext) {
+        const client = await database_js_1.pool.connect();
+        try {
+            await client.query("BEGIN");
+            await client.query("DELETE FROM ci_rca_evidence WHERE rca_id = $1", [id]);
+            await client.query("DELETE FROM ci_rca_hypotheses WHERE rca_id = $1", [id]);
+            await client.query("UPDATE ci_capa_actions SET rca_id = NULL WHERE rca_id = $1", [id]);
+            await client.query("DELETE FROM ci_rca_investigations WHERE id = $1", [id]);
+            await client.query("COMMIT");
+        }
+        catch (e) {
+            await client.query("ROLLBACK");
+            throw e;
+        }
+        finally {
+            client.release();
+        }
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_RCA_DELETED",
+            entityType: "RCA Investigation",
+            entityId: id,
+        });
         return { id, message: "Investigation and linked items deleted successfully" };
     }
     async getRCASummary(plantId) {
@@ -228,12 +330,21 @@ class CIService {
         const critical = list.filter((i) => i.severity === "Critical").length;
         const avgDays = total > 0 ? Math.round(list.reduce((acc, i) => acc + (i.daysActive || 0), 0) / total) : 0;
         return {
-            total,
-            active,
-            closed,
-            validated,
-            critical,
-            avgDays,
+            totalInvestigations: total,
+            activeInvestigations: active,
+            validatedRootCauses: validated,
+            criticalIncidents: critical,
+            avgDaysToRootCause: avgDays,
+            phaseDistribution: {
+                event: list.filter((i) => i.currentPhase === "Event").length,
+                evidence: list.filter((i) => i.currentPhase === "Evidence").length,
+                hypothesis: list.filter((i) => i.currentPhase === "Hypothesis & Tests").length,
+                occurrence: list.filter((i) => i.currentPhase === "Occurrence Cause").length,
+                escape: list.filter((i) => i.currentPhase === "Escape Cause").length,
+                capa: list.filter((i) => i.currentPhase === "CAPA").length,
+                verification: list.filter((i) => i.currentPhase === "Verification").length,
+                closed: closed,
+            },
         };
     }
     // ============================================================================
@@ -263,30 +374,48 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapEvidence);
     }
-    async createEvidence(data, userName) {
+    async createEvidence(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_rca_evidence");
         const count = Number(seq.rows[0].count) + 1;
         const newId = data.id || `EVD-${String(count).padStart(2, "0")}`;
+        const userName = userContext?.userName || "Lead CI Engineer";
         const res = await database_js_1.pool.query(`INSERT INTO ci_rca_evidence (id, rca_id, type, title, details, file_url, uploaded_by, date)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`, [
             newId,
             data.rcaId || "RCA-2026-001",
-            data.type || "SCADA Trend",
-            data.title || "Evidence Attachment",
-            data.details || "Technical inspection notes recorded.",
+            data.type || "Physical Photo",
+            data.title || "Observation Evidence",
+            data.details || "Details pending input.",
             data.fileUrl || null,
-            data.uploadedBy || userName || "David Kim",
+            data.uploadedBy || userName,
             data.date || new Date().toISOString().substring(0, 10),
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_EVIDENCE_ATTACHED",
+            entityType: "RCA Evidence",
+            entityId: newId,
+            newValues: { rcaId: data.rcaId, title: data.title, type: data.type },
+        });
         return this.mapEvidence(res.rows[0]);
     }
-    async deleteEvidence(id) {
+    async deleteEvidence(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_rca_evidence WHERE id = $1", [id]);
-        return { id, message: "Evidence record removed" };
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_EVIDENCE_DELETED",
+            entityType: "RCA Evidence",
+            entityId: id,
+        });
+        return { id, message: "Evidence item removed" };
     }
     // ============================================================================
-    // 4. HYPOTHESES & CAUSE VALIDATION
+    // 4. HYPOTHESES & VALIDATION
     // ============================================================================
     mapHypothesis(r) {
         return {
@@ -312,7 +441,7 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapHypothesis);
     }
-    async createHypothesis(data) {
+    async createHypothesis(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_rca_hypotheses");
         const count = Number(seq.rows[0].count) + 1;
         const newId = data.id || `HYP-${String(count).padStart(2, "0")}`;
@@ -328,23 +457,55 @@ class CIService {
             data.validatedBy || null,
             data.validatedAt || null,
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_HYPOTHESIS_FORMULATED",
+            entityType: "RCA Hypothesis",
+            entityId: newId,
+            newValues: { rcaId: data.rcaId, statement: data.statement },
+        });
         return this.mapHypothesis(res.rows[0]);
     }
-    async validateHypothesis(id, validationStatus, evidenceResult, validatedBy) {
+    async validateHypothesis(id, validationStatus, evidenceResult, userContext) {
         const timestamp = new Date().toISOString().substring(0, 16).replace("T", " ");
+        const userName = userContext?.userName || "Lead CI Engineer";
         const res = await database_js_1.pool.query(`UPDATE ci_rca_hypotheses SET
         validation_status = $1,
         evidence_result = COALESCE($2, evidence_result),
         validated_by = $3,
         validated_at = $4
        WHERE id = $5
-       RETURNING *`, [validationStatus, evidenceResult || null, validatedBy || "Lead CI Engineer", timestamp, id]);
+       RETURNING *`, [validationStatus, evidenceResult || null, userName, timestamp, id]);
         if (res.rows.length === 0)
             throw new Error(`Hypothesis ${id} not found`);
-        return this.mapHypothesis(res.rows[0]);
+        const hyp = res.rows[0];
+        if (validationStatus === "Confirmed Root Cause" && hyp.rca_id) {
+            await this.advanceInvestigationPhase(hyp.rca_id, "CAPA", userContext);
+            await database_js_1.pool.query(`UPDATE ci_rca_investigations SET status = 'Root Cause Validated' WHERE id = $1`, [hyp.rca_id]);
+        }
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_HYPOTHESIS_VALIDATED",
+            entityType: "RCA Hypothesis",
+            entityId: id,
+            newValues: { validationStatus, evidenceResult, validatedBy: userName },
+        });
+        return this.mapHypothesis(hyp);
     }
-    async deleteHypothesis(id) {
+    async deleteHypothesis(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_rca_hypotheses WHERE id = $1", [id]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_HYPOTHESIS_DELETED",
+            entityType: "RCA Hypothesis",
+            entityId: id,
+        });
         return { id, message: "Hypothesis removed" };
     }
     // ============================================================================
@@ -389,28 +550,28 @@ class CIService {
             query += ` AND status = $${idx++}`;
             params.push(filters.status);
         }
-        query += " ORDER BY created_at DESC";
+        query += " ORDER BY due_date ASC, created_at DESC";
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapCapa);
     }
-    async createCapaAction(data) {
+    async createCapaAction(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_capa_actions");
         const count = Number(seq.rows[0].count) + 1;
         const year = new Date().getFullYear();
         const newId = data.id || `CAPA-${year}-${String(count).padStart(3, "0")}`;
         const res = await database_js_1.pool.query(`INSERT INTO ci_capa_actions (
-        id, rca_id, project_id, description, action_type, owner, due_date,
-        priority, status, completion_date, evidence_notes, effectiveness_result,
-        verified_by, verified_at
+        id, rca_id, project_id, description, action_type, owner,
+        due_date, priority, status, completion_date, evidence_notes,
+        effectiveness_result, verified_by, verified_at
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`, [
             newId,
             data.rcaId || null,
             data.projectId || null,
-            data.description || "CAPA Action Item description",
+            data.description || "Action item description",
             data.actionType || "Corrective",
-            data.owner || "Maintenance Lead",
-            data.dueDate || new Date(Date.now() + 14 * 86400000).toISOString().substring(0, 10),
+            data.owner || userContext?.userName || "Maintenance Lead",
+            data.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
             data.priority || "Medium",
             data.status || "Open",
             data.completionDate || null,
@@ -419,35 +580,79 @@ class CIService {
             data.verifiedBy || null,
             data.verifiedAt || null,
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPA_CREATED",
+            entityType: "CAPA Action",
+            entityId: newId,
+            newValues: { id: newId, description: data.description, owner: data.owner, dueDate: data.dueDate },
+        });
         return this.mapCapa(res.rows[0]);
     }
-    async updateCapaStatus(id, status, completionDate, evidenceNotes) {
-        const res = await database_js_1.pool.query(`UPDATE ci_capa_actions SET
-        status = $1,
-        completion_date = COALESCE($2, completion_date),
-        evidence_notes = COALESCE($3, evidence_notes)
-       WHERE id = $4
-       RETURNING *`, [status, completionDate || null, evidenceNotes || null, id]);
+    async updateCapaStatus(id, status, completionDate, evidenceNotes, userContext) {
+        let query = "UPDATE ci_capa_actions SET status = $1";
+        const params = [status];
+        let idx = 2;
+        if (completionDate) {
+            query += `, completion_date = $${idx++}`;
+            params.push(completionDate);
+        }
+        if (evidenceNotes) {
+            query += `, evidence_notes = $${idx++}`;
+            params.push(evidenceNotes);
+        }
+        query += ` WHERE id = $${idx} RETURNING *`;
+        params.push(id);
+        const res = await database_js_1.pool.query(query, params);
         if (res.rows.length === 0)
-            throw new Error(`CAPA ${id} not found`);
+            throw new Error(`CAPA Action ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPA_STATUS_UPDATED",
+            entityType: "CAPA Action",
+            entityId: id,
+            newValues: { status, completionDate, evidenceNotes },
+        });
         return this.mapCapa(res.rows[0]);
     }
-    async verifyCapaEffectiveness(id, effectivenessResult, verifiedBy) {
+    async verifyCapaEffectiveness(id, effectivenessResult, userContext) {
         const timestamp = new Date().toISOString().substring(0, 16).replace("T", " ");
+        const userName = userContext?.userName || "Quality Manager";
         const res = await database_js_1.pool.query(`UPDATE ci_capa_actions SET
         status = 'Verified',
         effectiveness_result = $1,
         verified_by = $2,
         verified_at = $3
        WHERE id = $4
-       RETURNING *`, [effectivenessResult, verifiedBy || "Quality Manager", timestamp, id]);
+       RETURNING *`, [effectivenessResult, userName, timestamp, id]);
         if (res.rows.length === 0)
-            throw new Error(`CAPA ${id} not found`);
+            throw new Error(`CAPA Action ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPA_EFFECTIVENESS_VERIFIED",
+            entityType: "CAPA Action",
+            entityId: id,
+            newValues: { effectivenessResult, verifiedBy: userName },
+        });
         return this.mapCapa(res.rows[0]);
     }
-    async deleteCapaAction(id) {
+    async deleteCapaAction(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_capa_actions WHERE id = $1", [id]);
-        return { id, message: "CAPA Action removed" };
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPA_DELETED",
+            entityType: "CAPA Action",
+            entityId: id,
+        });
+        return { id, message: "CAPA Action deleted" };
     }
     // ============================================================================
     // 6. LOSS ANALYSIS
@@ -479,14 +684,14 @@ class CIService {
             params.push(plantId);
         }
         if (category && category !== "ALL") {
-            query += ` AND category = $${idx++}`;
-            params.push(category);
+            query += ` AND category ILIKE $${idx++}`;
+            params.push(`%${category}%`);
         }
         query += " ORDER BY date DESC, created_at DESC";
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapLoss);
     }
-    async createLoss(data) {
+    async createLoss(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_losses");
         const count = Number(seq.rows[0].count) + 1;
         const newId = data.id || `LOSS-${String(count).padStart(2, "0")}`;
@@ -498,7 +703,7 @@ class CIService {
       RETURNING *`, [
             newId,
             data.category || "Downtime Loss",
-            data.plantId || "PLT-01",
+            data.plantId || userContext?.plantId || "PLT-01",
             data.lineId || "LIN-01",
             data.assetId || "AST-001",
             data.eventName || "Loss Event",
@@ -510,35 +715,54 @@ class CIService {
             data.trend || "Tracked",
             data.date || new Date().toISOString().substring(0, 10),
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: data.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_LOSS_RECORDED",
+            entityType: "Loss Record",
+            entityId: newId,
+            newValues: { id: newId, category: data.category, financialImpactUSD: data.financialImpactUSD },
+        });
         return this.mapLoss(res.rows[0]);
     }
-    async deleteLoss(id) {
+    async deleteLoss(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_losses WHERE id = $1", [id]);
-        return { id, message: "Loss record deleted" };
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_LOSS_DELETED",
+            entityType: "Loss Record",
+            entityId: id,
+        });
+        return { id, message: "Loss incident deleted" };
     }
     async getLossSummary(plantId) {
-        const losses = await this.listLosses(plantId);
-        const totalHours = losses.reduce((sum, l) => sum + l.hoursLost, 0);
-        const totalUSD = losses.reduce((sum, l) => sum + l.financialImpactUSD, 0);
-        const categories = ["Downtime Loss", "Quality / Defect Loss", "Scrap / Rework Loss", "Production Loss", "Yield Loss"];
-        const breakdown = categories.map((cat) => {
-            const items = losses.filter((l) => l.category === cat);
-            return {
-                category: cat,
-                count: items.length,
-                hoursLost: items.reduce((sum, l) => sum + l.hoursLost, 0),
-                financialImpactUSD: items.reduce((sum, l) => sum + l.financialImpactUSD, 0),
+        const list = await this.listLosses(plantId);
+        const totalUSD = list.reduce((acc, l) => acc + l.financialImpactUSD, 0);
+        const totalHours = list.reduce((acc, l) => acc + l.hoursLost, 0);
+        const totalUnits = list.reduce((acc, l) => acc + l.unitsLost, 0);
+        const categories = ["Downtime", "Quality", "Production", "Yield", "Scrap"];
+        const breakdown = {};
+        categories.forEach((cat) => {
+            const filtered = list.filter((l) => l.category.toLowerCase().includes(cat.toLowerCase()));
+            breakdown[cat] = {
+                totalUSD: filtered.reduce((acc, l) => acc + l.financialImpactUSD, 0),
+                hours: filtered.reduce((acc, l) => acc + l.hoursLost, 0),
+                count: filtered.length,
             };
         });
         return {
-            totalHoursLost: Number(totalHours.toFixed(2)),
-            totalFinancialImpactUSD: Number(totalUSD.toFixed(2)),
-            recordsCount: losses.length,
+            totalUSD,
+            totalHours,
+            totalUnits,
+            incidentsCount: list.length,
             breakdown,
         };
     }
     // ============================================================================
-    // 7. CI PROJECTS & BENEFITS VERIFICATION (21 CFR PART 11)
+    // 7. CI PROJECTS & 21 CFR PART 11 BENEFITS
     // ============================================================================
     mapProject(r) {
         return {
@@ -554,12 +778,12 @@ class CIService {
             startDate: r.start_date,
             targetDate: r.target_date,
             status: r.status,
-            progress: Number(r.progress),
+            progress: Number(r.progress || 0),
             baselineMetric: r.baseline_metric,
             targetMetric: r.target_metric,
             currentMetric: r.current_metric,
-            projectedSavingsAnnual: Number(r.projected_savings_annual),
-            realizedSavingsYTD: Number(r.realized_savings_ytd),
+            projectedSavingsAnnual: Number(r.projected_savings_annual || 0),
+            realizedSavingsYTD: Number(r.realized_savings_ytd || 0),
             benefitStatus: r.benefit_status,
             lockedBy: r.locked_by,
             lockedAt: r.locked_at,
@@ -584,7 +808,7 @@ class CIService {
             return undefined;
         return this.mapProject(res.rows[0]);
     }
-    async createProject(input) {
+    async createProject(input, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_projects");
         const count = Number(seq.rows[0].count) + 1;
         const newId = input.id || `PRJ-CI-${String(count).padStart(3, "0")}`;
@@ -597,14 +821,14 @@ class CIService {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       RETURNING *`, [
             newId,
-            input.name || "Continuous Improvement Project",
+            input.name || "Continuous Improvement Kaizen Event",
             input.type || "Kaizen Event",
-            input.plantId || "PLT-01",
+            input.plantId || userContext?.plantId || "PLT-01",
             input.lineId || "LIN-01",
             input.assetId || null,
             input.linkedRcaId || null,
             input.sponsor || "Operations Director",
-            input.owner || "David Kim (Lead CI)",
+            input.owner || userContext?.userName || "Lead CI Engineer",
             input.startDate || new Date().toISOString().substring(0, 10),
             input.targetDate || new Date(Date.now() + 60 * 86400000).toISOString().substring(0, 10),
             input.status || "In Progress",
@@ -618,9 +842,18 @@ class CIService {
             input.lockedBy || null,
             input.lockedAt || null,
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: input.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_PROJECT_CREATED",
+            entityType: "CI Project",
+            entityId: newId,
+            newValues: { id: newId, name: input.name, projectedSavings: input.projectedSavingsAnnual },
+        });
         return this.mapProject(res.rows[0]);
     }
-    async updateProject(id, input) {
+    async updateProject(id, input, userContext) {
         const current = await this.getProject(id);
         if (!current)
             throw new Error(`Project ${id} not found`);
@@ -654,35 +887,72 @@ class CIService {
             updated.targetDate,
             id,
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: current.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_PROJECT_UPDATED",
+            entityType: "CI Project",
+            entityId: id,
+            newValues: input,
+        });
         return this.mapProject(res.rows[0]);
     }
-    async deleteProject(id) {
+    async deleteProject(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_projects WHERE id = $1", [id]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_PROJECT_DELETED",
+            entityType: "CI Project",
+            entityId: id,
+        });
         return { id, message: "Project deleted successfully" };
     }
-    async verifyAndLockBenefit(id, userName) {
+    async verifyAndLockBenefit(id, userContext) {
         const timestamp = new Date().toISOString().substring(0, 16).replace("T", " ");
+        const userName = userContext?.userName || "Plant Director";
         const res = await database_js_1.pool.query(`UPDATE ci_projects SET
         benefit_status = 'Verified & Locked',
         status = 'Completed',
         locked_by = $1,
         locked_at = $2
        WHERE id = $3
-       RETURNING *`, [userName || "Plant Director", timestamp, id]);
+       RETURNING *`, [userName, timestamp, id]);
         if (res.rows.length === 0)
             throw new Error(`Project ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_BENEFIT_LOCKED",
+            entityType: "CI Project Benefit",
+            entityId: id,
+            newValues: { lockedBy: userName, lockedAt: timestamp },
+        });
         return this.mapProject(res.rows[0]);
     }
-    async unlockBenefit(id, justification, userName) {
+    async unlockBenefit(id, justification, userContext) {
+        const userName = userContext?.userName || "Lead CI";
         const res = await database_js_1.pool.query(`UPDATE ci_projects SET
         benefit_status = 'Pending Verification',
         locked_by = NULL,
         locked_at = NULL,
         unlock_reason = $1
        WHERE id = $2
-       RETURNING *`, [justification || `Unlocked by ${userName || "Lead CI"} for metric recalculation`, id]);
+       RETURNING *`, [justification || `Unlocked by ${userName} for metric recalculation`, id]);
         if (res.rows.length === 0)
             throw new Error(`Project ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_BENEFIT_UNLOCKED",
+            entityType: "CI Project Benefit",
+            entityId: id,
+            newValues: { justification },
+        });
         return this.mapProject(res.rows[0]);
     }
     async getBenefitsSummary(plantId) {
@@ -739,10 +1009,10 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapStandard);
     }
-    async createStandard(data) {
+    async createStandard(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_standards");
         const count = Number(seq.rows[0].count) + 1;
-        const newId = data.id || `STD-ENG-${String(count).padStart(3, "0")}`;
+        const newId = data.id || `STD-SOP-${String(count).padStart(3, "0")}`;
         const res = await database_js_1.pool.query(`INSERT INTO ci_standards (
         id, title, type, version, plant_id, line_id, asset_id,
         source_project_id, source_rca_id, owner, status,
@@ -753,37 +1023,68 @@ class CIService {
             data.title || "Controlled Operating Procedure",
             data.type || "Controlled SOP",
             data.version || "v1.0",
-            data.plantId || "PLT-01",
-            data.lineId || null,
+            data.plantId || userContext?.plantId || "PLT-01",
+            data.lineId || "LIN-01",
             data.assetId || null,
             data.sourceProjectId || null,
             data.sourceRcaId || null,
-            data.owner || "Engineering Committee",
+            data.owner || userContext?.userName || "Engineering Quality Committee",
             data.status || "Active",
             data.effectiveDate || new Date().toISOString().substring(0, 10),
             data.reviewDate || new Date(Date.now() + 365 * 86400000).toISOString().substring(0, 10),
-            data.approvedBy || "Plant Director",
+            data.approvedBy || userContext?.userName || "Lead CI Engineer",
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: data.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_STANDARD_CREATED",
+            entityType: "Controlled Standard",
+            entityId: newId,
+            newValues: { id: newId, title: data.title, type: data.type },
+        });
         return this.mapStandard(res.rows[0]);
     }
-    async updateStandard(id, data) {
-        const res = await database_js_1.pool.query(`UPDATE ci_standards SET
-        title = COALESCE($1, title),
-        version = COALESCE($2, version),
-        status = COALESCE($3, status),
-        review_date = COALESCE($4, review_date)
-       WHERE id = $5
-       RETURNING *`, [data.title || null, data.version || null, data.status || null, data.reviewDate || null, id]);
-        if (res.rows.length === 0)
+    async updateStandard(id, data, userContext) {
+        const currentRes = await database_js_1.pool.query("SELECT * FROM ci_standards WHERE id = $1", [id]);
+        if (currentRes.rows.length === 0)
             throw new Error(`Standard ${id} not found`);
+        const current = this.mapStandard(currentRes.rows[0]);
+        const updated = { ...current, ...data };
+        const res = await database_js_1.pool.query(`UPDATE ci_standards SET
+        title = $1,
+        type = $2,
+        version = $3,
+        owner = $4,
+        status = $5,
+        review_date = $6
+       WHERE id = $7
+       RETURNING *`, [updated.title, updated.type, updated.version, updated.owner, updated.status, updated.reviewDate, id]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: current.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_STANDARD_REVISED",
+            entityType: "Controlled Standard",
+            entityId: id,
+            newValues: data,
+        });
         return this.mapStandard(res.rows[0]);
     }
-    async deleteStandard(id) {
+    async deleteStandard(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_standards WHERE id = $1", [id]);
-        return { id, message: "Standard document deleted" };
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_STANDARD_DELETED",
+            entityType: "Controlled Standard",
+            entityId: id,
+        });
+        return { id, message: "Standard removed" };
     }
     // ============================================================================
-    // 9. VERIFIED SOLUTIONS (KNOWLEDGE BASE)
+    // 9. VERIFIED SOLUTIONS KNOWLEDGE BASE
     // ============================================================================
     mapSolution(r) {
         return {
@@ -819,10 +1120,10 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapSolution);
     }
-    async createSolution(data) {
+    async createSolution(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_verified_solutions");
         const count = Number(seq.rows[0].count) + 1;
-        const newId = data.id || `VSOL-${String(count).padStart(3, "0")}`;
+        const newId = data.id || `VS-${String(count).padStart(3, "0")}`;
         const res = await database_js_1.pool.query(`INSERT INTO ci_verified_solutions (
         id, asset_id, asset_name, failure_mode, symptom, root_cause,
         solution_steps, parts_used, source_rca_id, verified_by,
@@ -831,25 +1132,42 @@ class CIService {
       RETURNING *`, [
             newId,
             data.assetId || "AST-001",
-            data.assetName || "Primary Asset",
-            data.failureMode || "General Failure Mode",
-            data.symptom || "Observed physical symptom",
-            data.rootCause || "Validated Root Cause",
-            data.solutionSteps || "Standard technical resolution steps",
+            data.assetName || "Primary Production Asset",
+            data.failureMode || "Recurrent Failure Mode",
+            data.symptom || "Equipment malfunction observed",
+            data.rootCause || "Underlying root cause determined through systematic RCA",
+            data.solutionSteps || "Perform standard troubleshooting and maintenance repair.",
             data.partsUsed || null,
             data.sourceRcaId || null,
-            data.verifiedBy || "Maintenance Lead",
+            data.verifiedBy || userContext?.userName || "Lead CI Specialist",
             data.verifiedDate || new Date().toISOString().substring(0, 10),
             data.status || "Published",
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_SOLUTION_CREATED",
+            entityType: "Verified Solution",
+            entityId: newId,
+            newValues: { id: newId, failureMode: data.failureMode, assetId: data.assetId },
+        });
         return this.mapSolution(res.rows[0]);
     }
-    async deleteSolution(id) {
+    async deleteSolution(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_verified_solutions WHERE id = $1", [id]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_SOLUTION_DELETED",
+            entityType: "Verified Solution",
+            entityId: id,
+        });
         return { id, message: "Verified solution removed" };
     }
     // ============================================================================
-    // 10. ENGINEERING CAPEX REDESIGN
+    // 10. ENGINEERING CAPEX
     // ============================================================================
     mapCapex(r) {
         return {
@@ -883,7 +1201,7 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapCapex);
     }
-    async createCapex(data) {
+    async createCapex(data, userContext) {
         const seq = await database_js_1.pool.query("SELECT COUNT(*) FROM ci_capex_projects");
         const count = Number(seq.rows[0].count) + 1;
         const year = new Date().getFullYear();
@@ -897,7 +1215,7 @@ class CIService {
       RETURNING *`, [
             newId,
             data.name || "Engineering Redesign Capex",
-            data.plantId || "PLT-01",
+            data.plantId || userContext?.plantId || "PLT-01",
             data.lineId || "LIN-01",
             data.assetId || "AST-001",
             data.linkedRcaId || null,
@@ -907,15 +1225,32 @@ class CIService {
             Number(data.actualCost) || 0,
             data.engineeringJustification || "Machine modification to prevent recurrent failure mode.",
             data.status || "Budget Approved",
-            data.owner || "David Kim (Lead CI)",
+            data.owner || userContext?.userName || "Lead CI Engineer",
             data.targetCommissionDate || new Date(Date.now() + 90 * 86400000).toISOString().substring(0, 10),
             data.dossierRef || `DOS-ENG-${newId}`,
             data.approvalStatus || "Approved by Plant GM",
         ]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: data.plantId || userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPEX_CREATED",
+            entityType: "Capex Project",
+            entityId: newId,
+            newValues: { id: newId, name: data.name, budget: data.budget },
+        });
         return this.mapCapex(res.rows[0]);
     }
-    async deleteCapex(id) {
+    async deleteCapex(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_capex_projects WHERE id = $1", [id]);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPEX_DELETED",
+            entityType: "Capex Project",
+            entityId: id,
+        });
         return { id, message: "Capex proposal removed" };
     }
     // ============================================================================
@@ -956,17 +1291,34 @@ class CIService {
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapReliability);
     }
-    async launchRcaFromBadActor(assetId, userName) {
+    async launchRcaFromBadActor(assetId, userContext) {
         const relRes = await database_js_1.pool.query("SELECT * FROM ci_reliability_records WHERE asset_id = $1 LIMIT 1", [assetId]);
-        const asset = relRes.rows[0] || {
-            asset_id: assetId,
-            asset_name: `Asset ${assetId}`,
-            line_id: "LIN-01",
-            line_name: "Line 1 — Bottling",
-            plant_id: "PLT-01",
-            bad_actor_reason: "Repeat breakdown trigger",
-        };
-        return this.createInvestigation({
+        let asset = relRes.rows[0];
+        if (!asset) {
+            const assetDb = await database_js_1.pool.query("SELECT * FROM assets WHERE id::text = $1 OR asset_code = $1 LIMIT 1", [assetId]);
+            if (assetDb.rows[0]) {
+                const a = assetDb.rows[0];
+                asset = {
+                    asset_id: a.asset_code || a.id,
+                    asset_name: a.name,
+                    line_id: a.line_id || "LIN-01",
+                    line_name: "Line 1 — Production",
+                    plant_id: a.plant_id || "PLT-01",
+                    bad_actor_reason: "High failure rate trigger",
+                };
+            }
+            else {
+                asset = {
+                    asset_id: assetId,
+                    asset_name: `Asset ${assetId}`,
+                    line_id: "LIN-01",
+                    line_name: "Line 1 — Bottling",
+                    plant_id: userContext?.plantId || "PLT-01",
+                    bad_actor_reason: "Repeat breakdown trigger",
+                };
+            }
+        }
+        const created = await this.createInvestigation({
             title: `Bad Actor Systematic RCA: ${asset.asset_name} (${asset.asset_id})`,
             assetId: asset.asset_id,
             assetName: asset.asset_name,
@@ -977,8 +1329,18 @@ class CIService {
             currentPhase: "Event",
             status: "Open",
             problemStatement: `Automated Bad Actor escalation triggered due to recurrent breakdowns: ${asset.bad_actor_reason || "3+ incidents in 30 days."}`,
-            leadInvestigator: userName || "David Kim (Lead CI Engineer)",
-        }, userName);
+            leadInvestigator: userContext?.userName || "Lead CI Engineer",
+        }, userContext);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: asset.plant_id,
+            userId: userContext?.userId,
+            action: "CI_BAD_ACTOR_RCA_LAUNCHED",
+            entityType: "RCA Investigation",
+            entityId: created.id,
+            newValues: { assetId: asset.asset_id, rcaId: created.id },
+        });
+        return created;
     }
 }
 exports.CIService = CIService;

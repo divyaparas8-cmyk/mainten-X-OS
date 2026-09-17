@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { db } from "../../config/database.js";
-import { users, roles, userRoles, tenants, plants } from "../../db/schema/index.js";
-import { eq } from "drizzle-orm";
+import { users, roles, userRoles, tenants, plants, permissions, rolePermissions } from "../../db/schema/index.js";
+import { eq, or } from "drizzle-orm";
 import { UnauthorizedError, NotFoundError } from "../../shared/errors/AppError.js";
 import { LoginInput } from "./auth.schema.js";
 
@@ -46,18 +46,50 @@ export class AuthService {
     const userRoleRecords = await db.select().from(userRoles).where(eq(userRoles.userId, user.id));
     let primaryRole = "admin";
     let roleName = "Administrator";
+    let roleId: string | undefined;
 
     if (userRoleRecords.length > 0) {
       const [roleRecord] = await db.select().from(roles).where(eq(roles.id, userRoleRecords[0].roleId)).limit(1);
       if (roleRecord) {
         primaryRole = roleRecord.code;
         roleName = roleRecord.name;
+        roleId = roleRecord.id;
       }
     }
 
     if (user.isMasterAdmin) {
       primaryRole = "master_admin";
       roleName = "Master Administrator";
+    }
+
+    // Query active permissions for role from PostgreSQL
+    let userPermissions: string[] = [];
+    if (user.isMasterAdmin || primaryRole === "master_admin" || primaryRole === "admin") {
+      userPermissions = ["*"];
+    } else {
+      try {
+        const permsQuery = await db
+          .select({
+            code: permissions.code,
+            module: permissions.module,
+            action: permissions.action,
+          })
+          .from(rolePermissions)
+          .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
+          .innerJoin(roles, eq(rolePermissions.roleId, roles.id))
+          .where(
+            or(
+              roleId ? eq(roles.id, roleId) : undefined,
+              eq(roles.code, primaryRole),
+              primaryRole === "qa_manager" ? eq(roles.code, "quality") : undefined,
+              primaryRole === "quality" ? eq(roles.code, "qa_manager") : undefined
+            )
+          );
+
+        userPermissions = permsQuery.map((p) => p.code);
+      } catch (e: any) {
+        console.warn("Error fetching user role permissions:", e.message);
+      }
     }
 
     // Get default plant
@@ -73,7 +105,9 @@ export class AuthService {
         tenantId: user.tenantId,
         plantId: input.plantId || defaultPlant?.id,
         role: primaryRole,
+        roleId,
         roleName,
+        permissions: userPermissions,
         isMasterAdmin: user.isMasterAdmin,
         avatarUrl: user.avatarUrl,
       },

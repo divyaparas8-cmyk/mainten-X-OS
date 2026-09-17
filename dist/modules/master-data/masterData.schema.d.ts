@@ -197,8 +197,8 @@ export declare const createRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-    routingCode?: string | null | undefined;
     revision?: string | undefined;
+    routingCode?: string | null | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -268,8 +268,8 @@ export declare const updateRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-    routingCode?: string | null | undefined;
     revision?: string | undefined;
+    routingCode?: string | null | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -293,8 +293,8 @@ export declare const updateRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-    routingCode?: string | null | undefined;
     revision?: string | undefined;
+    routingCode?: string | null | undefined;
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;

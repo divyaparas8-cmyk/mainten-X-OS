@@ -25,10 +25,10 @@ export declare const registerSchema: z.ZodObject<{
     email: string;
     firstName: string;
     lastName: string;
+    role: string;
     password: string;
     tenantName: string;
     tenantSlug: string;
-    role: string;
 }, {
     email: string;
     firstName: string;

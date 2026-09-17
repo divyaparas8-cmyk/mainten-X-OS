@@ -73,6 +73,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.updateUserStatus.bind(adminController)
   );
 
+  fastify.put(
+    "/users/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Edit Enterprise User Details",
+      },
+    },
+    adminController.editUser.bind(adminController)
+  );
+
+  fastify.delete(
+    "/users/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Enterprise User Account",
+      },
+    },
+    adminController.deleteUser.bind(adminController)
+  );
+
   fastify.post(
     "/users/bulk-status",
     {
@@ -118,6 +140,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.resendInvitation.bind(adminController)
   );
 
+  fastify.put(
+    "/invitations/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update User Invitation (Role, Department, Status, Email)",
+      },
+    },
+    adminController.updateInvitation.bind(adminController)
+  );
+
   fastify.delete(
     "/invitations/:id",
     {
@@ -141,6 +174,39 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.getActivityLogs.bind(adminController)
   );
 
+  fastify.post(
+    "/activity",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create New Audit Activity Log",
+      },
+    },
+    adminController.createActivityLog.bind(adminController)
+  );
+
+  fastify.put(
+    "/activity/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Audit Activity Log",
+      },
+    },
+    adminController.updateActivityLog.bind(adminController)
+  );
+
+  fastify.delete(
+    "/activity/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Audit Activity Log",
+      },
+    },
+    adminController.deleteActivityLog.bind(adminController)
+  );
+
   // Roles & Permissions Governance
   fastify.get(
     "/roles",
@@ -162,6 +228,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     },
     adminController.createRole.bind(adminController)
+  );
+
+  fastify.put(
+    "/roles/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Enterprise RBAC Role",
+      },
+    },
+    adminController.updateRole.bind(adminController)
+  );
+
+  fastify.delete(
+    "/roles/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Enterprise RBAC Role",
+      },
+    },
+    adminController.deleteRole.bind(adminController)
   );
 
   fastify.get(
@@ -219,6 +307,39 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.getApprovalRules.bind(adminController)
   );
 
+  fastify.post(
+    "/approval-rules",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Electronic Approval Governance Rule",
+      },
+    },
+    adminController.createApprovalRule.bind(adminController)
+  );
+
+  fastify.put(
+    "/approval-rules/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Electronic Approval Governance Rule",
+      },
+    },
+    adminController.updateApprovalRule.bind(adminController)
+  );
+
+  fastify.delete(
+    "/approval-rules/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Electronic Approval Governance Rule",
+      },
+    },
+    adminController.deleteApprovalRule.bind(adminController)
+  );
+
   fastify.get(
     "/data-health/scan",
     {
@@ -228,6 +349,61 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     },
     adminController.scanDataHealth.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/remediate",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Remediate Data Health Anomaly in Database",
+      },
+    },
+    adminController.remediateDataHealth.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/delete",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Data Health Anomaly Record",
+      },
+    },
+    adminController.deleteDataHealth.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/:category",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Data Health Record in Database",
+      },
+    },
+    adminController.createDataHealth.bind(adminController)
+  );
+
+  fastify.put(
+    "/data-health/:category/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Data Health Record in Database",
+      },
+    },
+    adminController.updateDataHealth.bind(adminController)
+  );
+
+  fastify.delete(
+    "/data-health/:category/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Data Health Record from Database",
+      },
+    },
+    adminController.deleteDataHealth.bind(adminController)
   );
 
   // ── INTEGRATIONS: IOT GATEWAYS ─────────────────────────────────────
@@ -298,6 +474,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.getERPStatus.bind(adminController)
   );
 
+  fastify.put(
+    "/integrations/erp",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update SAP S/4HANA ERP Connection Parameters",
+      },
+    },
+    adminController.updateERPConfig.bind(adminController)
+  );
+
   fastify.post(
     "/integrations/erp/sync",
     {
@@ -307,6 +494,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
       },
     },
     adminController.syncERP.bind(adminController)
+  );
+
+  fastify.get(
+    "/integrations/erp/events",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Recent ERP Synchronization Events",
+      },
+    },
+    adminController.getERPEvents.bind(adminController)
+  );
+
+  fastify.delete(
+    "/integrations/erp/events/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete ERP Synchronization Event",
+      },
+    },
+    adminController.deleteERPEvent.bind(adminController)
   );
 
   // ── INTEGRATIONS: BARCODE SYMBOLOGY ───────────────────────────────
@@ -377,6 +586,17 @@ export async function adminRoutes(fastify: FastifyInstance) {
     adminController.createApiKey.bind(adminController)
   );
 
+  fastify.put(
+    "/integrations/apis/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Enterprise Integration API Key",
+      },
+    },
+    adminController.updateApiKey.bind(adminController)
+  );
+
   fastify.delete(
     "/integrations/apis/:id",
     {
@@ -387,7 +607,278 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     adminController.revokeApiKey.bind(adminController)
   );
+
+  // ── 8. SECURITY POLICIES ──────────────────────────────────────────
+  fastify.get(
+    "/security/policies",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Enterprise Security & Authentication Policies",
+      },
+    },
+    adminController.getSecurityPolicies.bind(adminController)
+  );
+
+  fastify.post(
+    "/security/policies",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Save Enterprise Security & Authentication Policies",
+      },
+    },
+    adminController.saveSecurityPolicies.bind(adminController)
+  );
+
+  // ── 9. SYSTEM CONFIGURATION ───────────────────────────────────────
+  fastify.get(
+    "/config",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Global System Parameters & Configuration",
+      },
+    },
+    adminController.getSystemConfig.bind(adminController)
+  );
+
+  fastify.post(
+    "/config",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Save Global System Parameters & Configuration",
+      },
+    },
+    adminController.saveSystemConfig.bind(adminController)
+  );
+
+  // ── 10. AUDIT LOGS ────────────────────────────────────────────────
+  fastify.get(
+    "/audit-logs",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Master Governance Audit Ledger",
+      },
+    },
+    adminController.getAuditLogs.bind(adminController)
+  );
+
+  fastify.post(
+    "/audit-logs",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Audit Log Record",
+      },
+    },
+    adminController.createAuditLog.bind(adminController)
+  );
+
+  fastify.patch(
+    "/audit-logs/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Audit Log Record",
+      },
+    },
+    adminController.updateAuditLog.bind(adminController)
+  );
+
+  fastify.delete(
+    "/audit-logs/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Audit Log Record",
+      },
+    },
+    adminController.deleteAuditLog.bind(adminController)
+  );
+
+  // ── 7. DATA REMEDIATION ───────────────────────────────────────────
+  fastify.get(
+    "/data-health/remediation-log",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Self-Healing Execution Log",
+      },
+    },
+    adminController.getRemediationLog.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/execute-remediation",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Execute Automated Data Remediation Engine",
+      },
+    },
+    adminController.executeRemediationEngine.bind(adminController)
+  );
+
+  fastify.delete(
+    "/data-health/remediation-log/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Remediation Execution Log Item",
+      },
+    },
+    adminController.deleteRemediationLog.bind(adminController)
+  );
+
+  fastify.post(
+    "/data-health/remediation-log",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Remediation Execution Log Item in Database",
+      },
+    },
+    adminController.createRemediationLog.bind(adminController)
+  );
+
+  fastify.put(
+    "/data-health/remediation-log/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Remediation Execution Log Item in Database",
+      },
+    },
+    adminController.updateRemediationLog.bind(adminController)
+  );
+
+  // ── 11. DATA MIGRATION ────────────────────────────────────────────
+  fastify.get(
+    "/migration/batches",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Migration Ingestion Batches",
+      },
+    },
+    adminController.getMigrationBatches.bind(adminController)
+  );
+
+  fastify.post(
+    "/migration/batches",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create or Ingest Migration Batch",
+      },
+    },
+    adminController.createMigrationBatch.bind(adminController)
+  );
+
+  fastify.put(
+    "/migration/batches/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Migration Batch Record",
+      },
+    },
+    adminController.updateMigrationBatch.bind(adminController)
+  );
+
+  fastify.post(
+    "/migration/execute",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Execute and Commit Migration Batch",
+      },
+    },
+    adminController.executeMigrationBatch.bind(adminController)
+  );
+
+  fastify.delete(
+    "/migration/batches/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Migration Batch Record",
+      },
+    },
+    adminController.deleteMigrationBatch.bind(adminController)
+  );
+
+  // ── 12. SYSTEM REPORTS ────────────────────────────────────────────
+  fastify.get(
+    "/system-reports",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get System Governance & Infrastructure Reports Metrics",
+      },
+    },
+    adminController.getSystemReports.bind(adminController)
+  );
+
+  fastify.get(
+    "/system-reports/items",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Get Saved System Governance Reports",
+      },
+    },
+    adminController.getSystemGovernanceReports.bind(adminController)
+  );
+
+  fastify.post(
+    "/system-reports/items",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Create Saved System Governance Report Snapshot",
+      },
+    },
+    adminController.createSystemReport.bind(adminController)
+  );
+
+  fastify.put(
+    "/system-reports/items/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Update Saved System Governance Report Snapshot",
+      },
+    },
+    adminController.updateSystemReport.bind(adminController)
+  );
+
+  fastify.delete(
+    "/system-reports/items/:id",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Delete Saved System Governance Report Snapshot",
+      },
+    },
+    adminController.deleteSystemReport.bind(adminController)
+  );
+
+  fastify.post(
+    "/system-reports/export",
+    {
+      schema: {
+        tags: ["System Administration"],
+        summary: "Export Executive System Health & Compliance Report",
+      },
+    },
+    adminController.exportSystemReport.bind(adminController)
+  );
 }
+
 
 
 

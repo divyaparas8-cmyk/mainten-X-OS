@@ -1,6 +1,6 @@
 import { pool } from "./config/database.js";
 
-async function migrateIntegrations() {
+export async function migrateIntegrations() {
   console.log("=== [MIGRATION] Starting Third-Party Integrations Database Migration ===");
   const client = await pool.connect();
 
@@ -101,7 +101,7 @@ async function migrateIntegrations() {
     `);
 
     // 5. IoT Gateways Table
-    console.log("Creating 'iot_gateways' table if not exists...");
+    console.log("Creating/Adjusting 'iot_gateways' table if not exists...");
     await client.query(`
       CREATE TABLE IF NOT EXISTS iot_gateways (
         id VARCHAR(100) PRIMARY KEY,
@@ -118,6 +118,31 @@ async function migrateIntegrations() {
       );
     `);
 
+    // Harmonize legacy column names or types if table existed previously
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='gateway_name') 
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='name') THEN
+          ALTER TABLE iot_gateways RENAME COLUMN gateway_name TO name;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='ip_address')
+           AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='endpoint_url') THEN
+          ALTER TABLE iot_gateways RENAME COLUMN ip_address TO endpoint_url;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='gateway_id') THEN
+          ALTER TABLE iot_gateways ALTER COLUMN gateway_id DROP NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='iot_gateways' AND column_name='plant_id') THEN
+          ALTER TABLE iot_gateways ALTER COLUMN plant_id DROP NOT NULL;
+        END IF;
+      END $$;
+
+      ALTER TABLE iot_gateways ADD COLUMN IF NOT EXISTS name VARCHAR(255);
+      ALTER TABLE iot_gateways ADD COLUMN IF NOT EXISTS endpoint_url VARCHAR(255);
+      ALTER TABLE iot_gateways ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+    `);
+
     // Seed default gateways if table empty
     const { rows: gwRows } = await client.query(`SELECT count(*) FROM iot_gateways`);
     if (parseInt(gwRows[0].count, 10) === 0) {
@@ -132,6 +157,26 @@ async function migrateIntegrations() {
       `);
     }
 
+    // 6. User Invitations Table
+    console.log("Creating 'user_invitations' table if not exists...");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_invitations (
+        id VARCHAR(50) PRIMARY KEY,
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        email VARCHAR(255) NOT NULL,
+        role VARCHAR(255) NOT NULL DEFAULT 'Quality Analyst',
+        department VARCHAR(255) DEFAULT 'Quality',
+        invited_by VARCHAR(255) DEFAULT 'Alexander Vance',
+        sent_date VARCHAR(20) NOT NULL,
+        status VARCHAR(50) DEFAULT 'Pending' NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_user_invitations_tenant ON user_invitations(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_user_invitations_email ON user_invitations(email);
+      CREATE INDEX IF NOT EXISTS idx_user_invitations_status ON user_invitations(status);
+    `);
+
     await client.query("COMMIT");
     console.log("=== [MIGRATION] Migration successfully committed! ===");
   } catch (err: any) {
@@ -140,11 +185,16 @@ async function migrateIntegrations() {
     throw err;
   } finally {
     client.release();
-    await pool.end();
+    if (process.argv[1]?.includes("migrate-integrations")) {
+      await pool.end();
+    }
   }
 }
 
-migrateIntegrations().catch((err) => {
-  console.error("Migration execution failed:", err);
-  process.exit(1);
-});
+if (process.argv[1]?.includes("migrate-integrations")) {
+  migrateIntegrations().catch((err) => {
+    console.error("Migration execution failed:", err);
+    process.exit(1);
+  });
+}
+

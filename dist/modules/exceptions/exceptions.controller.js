@@ -6,7 +6,7 @@ const responseFormatter_js_1 = require("../../shared/utils/responseFormatter.js"
 class ExceptionsController {
     async getExceptions(request, reply) {
         const { plantId, severity, category } = request.query;
-        const data = await exceptions_service_js_1.exceptionsService.listExceptions(plantId || request.user.plantId, severity, category);
+        const data = await exceptions_service_js_1.exceptionsService.listExceptions(plantId || request.user?.plantId, severity, category);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async getException(request, reply) {
@@ -23,7 +23,7 @@ class ExceptionsController {
             impactDescription: body.impactDescription || body.description,
             owner: body.owner,
             escalationLevel: body.escalationLevel,
-            plantId: body.plantId || request.user.plantId,
+            plantId: body.plantId || request.user?.plantId,
         });
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Exception alert logged in Control Tower"));
     }

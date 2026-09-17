@@ -1,9 +1,55 @@
 import { FastifyInstance } from "fastify";
 import { masterDataController } from "./masterData.controller.js";
 import { authenticate } from "../../middleware/authenticate.js";
+import { authorize } from "../../middleware/authorize.js";
 
 export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", authenticate);
+
+  // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+  fastify.addHook("preHandler", async (request, reply) => {
+    const user = (request as any).user;
+    if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+      return;
+    }
+
+    const url = request.url.split("?")[0];
+    const method = request.method.toUpperCase();
+
+    let requiredPerm: string | string[] | null = null;
+
+    if (url.includes("/boms")) {
+      if (method === "POST") requiredPerm = ["bom___recipe.create", "bom_recipe.create"];
+      else if (method === "PUT" || method === "PATCH") requiredPerm = ["bom___recipe.edit", "bom_recipe.edit"];
+      else if (method === "DELETE") requiredPerm = ["bom___recipe.delete", "bom_recipe.delete"];
+      else if (method === "GET") requiredPerm = ["bom___recipe.view", "bom_recipe.view"];
+    } else if (url.includes("/skus")) {
+      if (method === "POST") requiredPerm = "sku_master.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "sku_master.edit";
+      else if (method === "DELETE") requiredPerm = "sku_master.delete";
+      else if (method === "GET") requiredPerm = "sku_master.view";
+    } else if (url.includes("/work-centers") || url.includes("/lines")) {
+      if (method === "POST") requiredPerm = "work_centers___lines.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "work_centers___lines.edit";
+      else if (method === "DELETE") requiredPerm = "work_centers___lines.delete";
+    } else if (url.includes("/assets")) {
+      if (method === "POST") requiredPerm = "machine_assets.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "machine_assets.edit";
+      else if (method === "DELETE") requiredPerm = "machine_assets.delete";
+    } else if (url.includes("/quality-specs")) {
+      if (method === "POST") requiredPerm = "quality_specs.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "quality_specs.edit";
+      else if (method === "DELETE") requiredPerm = "quality_specs.delete";
+    } else if (url.includes("/employee-skills") || url.includes("/employees")) {
+      if (method === "POST") requiredPerm = "employees___skills.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "employees___skills.edit";
+      else if (method === "DELETE") requiredPerm = "employees___skills.delete";
+    }
+
+    if (requiredPerm) {
+      await authorize(requiredPerm)(request, reply);
+    }
+  });
 
   // 1. Companies & Legal Entities
   fastify.get("/companies", { schema: { tags: ["Master Data"], summary: "List Enterprise Companies & Legal Entities" } }, masterDataController.getCompanies.bind(masterDataController));
@@ -48,7 +94,6 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.put("/routings/:id", { schema: { tags: ["Master Data"], summary: "Update Routing Master" } }, masterDataController.updateRouting.bind(masterDataController));
   fastify.patch("/routings/:id/status", { schema: { tags: ["Master Data"], summary: "Update Routing Approval/Active Status" } }, masterDataController.updateRoutingStatus.bind(masterDataController));
   fastify.delete("/routings/:id", { schema: { tags: ["Master Data"], summary: "Delete Routing Master" } }, masterDataController.deleteRouting.bind(masterDataController));
-
 
   // 8. Product Families
   fastify.get("/product-families", { schema: { tags: ["Master Data"], summary: "List Product Families" } }, masterDataController.getProductFamilies.bind(masterDataController));
@@ -96,11 +141,13 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.put("/skus/:id", { schema: { tags: ["Master Data"], summary: "Update SKU master record" } }, masterDataController.updateSku.bind(masterDataController));
   fastify.delete("/skus/:id", { schema: { tags: ["Master Data"], summary: "Delete SKU from master" } }, masterDataController.deleteSku.bind(masterDataController));
 
+  // BOMs & Recipe Master
   fastify.get("/boms", { schema: { tags: ["Master Data"], summary: "List BOMs & Formulations" } }, masterDataController.getBoms.bind(masterDataController));
   fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterDataController.createBom.bind(masterDataController));
   fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterDataController.updateBom.bind(masterDataController));
   fastify.delete("/boms/:id", { schema: { tags: ["Master Data"], summary: "Delete BOM Recipe Formula" } }, masterDataController.deleteBom.bind(masterDataController));
 
+  // 13. Assets, Categories & Machine Capability
   fastify.get("/asset-types", { schema: { tags: ["Master Data"], summary: "List Asset Categories / Types" } }, masterDataController.getAssetTypes.bind(masterDataController));
   fastify.post("/asset-types", { schema: { tags: ["Master Data"], summary: "Create Asset Category / Type" } }, masterDataController.createAssetType.bind(masterDataController));
   fastify.delete("/asset-types/:id", { schema: { tags: ["Master Data"], summary: "Delete Asset Category / Type" } }, masterDataController.deleteAssetType.bind(masterDataController));
@@ -115,19 +162,46 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.patch("/assets/:id", { schema: { tags: ["Master Data"], summary: "Partial Update Equipment Asset Record" } }, masterDataController.updateAsset.bind(masterDataController));
   fastify.delete("/assets/:id", { schema: { tags: ["Master Data"], summary: "Delete Equipment Asset" } }, masterDataController.deleteAsset.bind(masterDataController));
   fastify.get("/asset-details", { schema: { tags: ["Master Data"], summary: "Get Equipment Asset Details & Specifications" } }, masterDataController.getAssets.bind(masterDataController));
+
   fastify.get("/staff", { schema: { tags: ["Master Data"], summary: "List Operators & Shift Crew" } }, masterDataController.getStaff.bind(masterDataController));
   fastify.post("/staff", { schema: { tags: ["Master Data"], summary: "Register New Shift Supervisor / Staff Member" } }, masterDataController.createStaff.bind(masterDataController));
   fastify.put("/staff/:id", { schema: { tags: ["Master Data"], summary: "Update Staff Member Qualifications & Profile" } }, masterDataController.updateStaff.bind(masterDataController));
   fastify.delete("/staff/:id", { schema: { tags: ["Master Data"], summary: "Remove Staff Member" } }, masterDataController.deleteStaff.bind(masterDataController));
+
+  // 14. Quality Specifications & Parameter Master
   fastify.get("/quality-specs", { schema: { tags: ["Master Data"], summary: "List QA & CCP Specifications" } }, masterDataController.getQualitySpecs.bind(masterDataController));
-  fastify.post("/quality-specs", { schema: { tags: ["Master Data"], summary: "Register QA & CCP Specification" } }, masterDataController.createQualitySpec.bind(masterDataController));
+  fastify.post("/quality-specs", { schema: { tags: ["Master Data"], summary: "Create QA & CCP Specification" } }, masterDataController.createQualitySpec.bind(masterDataController));
   fastify.put("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Update QA & CCP Specification" } }, masterDataController.updateQualitySpec.bind(masterDataController));
-  fastify.delete("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Remove QA & CCP Specification" } }, masterDataController.deleteQualitySpec.bind(masterDataController));
+  fastify.delete("/quality-specs/:id", { schema: { tags: ["Master Data"], summary: "Delete QA & CCP Specification" } }, masterDataController.deleteQualitySpec.bind(masterDataController));
+
+  // 18. HACCP CCP Limits
+  fastify.get("/ccp-limits", { schema: { tags: ["Master Data"], summary: "List HACCP CCP Limits" } }, masterDataController.getCCPLimits.bind(masterDataController));
+  fastify.post("/ccp-limits", { schema: { tags: ["Master Data"], summary: "Create HACCP CCP Limit" } }, masterDataController.createCCPLimit.bind(masterDataController));
+  fastify.put("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Update HACCP CCP Limit" } }, masterDataController.updateCCPLimit.bind(masterDataController));
+  fastify.delete("/ccp-limits/:id", { schema: { tags: ["Master Data"], summary: "Delete HACCP CCP Limit" } }, masterDataController.deleteCCPLimit.bind(masterDataController));
+
+  // 19. Storage Resources & Warehouse Master
+  fastify.get("/storage-resources", { schema: { tags: ["Master Data"], summary: "List Storage Resources" } }, masterDataController.getStorageResources.bind(masterDataController));
+  fastify.post("/storage-resources", { schema: { tags: ["Master Data"], summary: "Create Storage Resource" } }, masterDataController.createStorageResource.bind(masterDataController));
+  fastify.put("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Update Storage Resource" } }, masterDataController.updateStorageResource.bind(masterDataController));
+  fastify.delete("/storage-resources/:id", { schema: { tags: ["Master Data"], summary: "Delete Storage Resource" } }, masterDataController.deleteStorageResource.bind(masterDataController));
 
   // 15. Labour Standards
   fastify.get("/labour-standards", { schema: { tags: ["Master Data"], summary: "List Labour Standards" } }, masterDataController.getLabourStandards.bind(masterDataController));
   fastify.post("/labour-standards", { schema: { tags: ["Master Data"], summary: "Create Labour Standard" } }, masterDataController.createLabourStandard.bind(masterDataController));
   fastify.put("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Update Labour Standard" } }, masterDataController.updateLabourStandard.bind(masterDataController));
   fastify.delete("/labour-standards/:id", { schema: { tags: ["Master Data"], summary: "Delete Labour Standard" } }, masterDataController.deleteLabourStandard.bind(masterDataController));
+
+  // 17. Employee Skills & Qualifications Matrix
+  fastify.get("/employee-skills", { schema: { tags: ["Master Data"], summary: "List Employee Skill Qualification Matrix" } }, masterDataController.getEmployeeSkills.bind(masterDataController));
+  fastify.post("/employee-skills", { schema: { tags: ["Master Data"], summary: "Onboard Employee with Skill Competencies" } }, masterDataController.createEmployeeSkill.bind(masterDataController));
+  fastify.put("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Skill Matrix" } }, masterDataController.updateEmployeeSkill.bind(masterDataController));
+  fastify.delete("/employee-skills/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Skill Record" } }, masterDataController.deleteEmployeeSkill.bind(masterDataController));
+
+  // Aliases for seamless API compatibility
+  fastify.get("/employees", { schema: { tags: ["Master Data"], summary: "List Employees Matrix" } }, masterDataController.getEmployeeSkills.bind(masterDataController));
+  fastify.post("/employees", { schema: { tags: ["Master Data"], summary: "Create Employee Record" } }, masterDataController.createEmployeeSkill.bind(masterDataController));
+  fastify.put("/employees/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Record" } }, masterDataController.updateEmployeeSkill.bind(masterDataController));
+  fastify.delete("/employees/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Record" } }, masterDataController.deleteEmployeeSkill.bind(masterDataController));
 }
 

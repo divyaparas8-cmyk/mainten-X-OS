@@ -32,6 +32,7 @@ export declare class ProductionService {
         status: string;
         updatedAt: Date;
     }>;
+    deleteOrder(tenantId: string, orderId: string): Promise<any>;
     listBatches(tenantId: string): Promise<any[]>;
     advanceBatchStep(tenantId: string, batchId: string, input: any, userId?: string): Promise<{
         id: string;
@@ -73,7 +74,7 @@ export declare class ProductionService {
     logDowntime(tenantId: string, plantId: string, input: any, userId?: string): Promise<any>;
     listHbLogs(plantId?: string): Promise<any[]>;
     createHbLog(input: any): Promise<any>;
-    getOEEAnalytics(plantId?: string, period?: string): Promise<{
+    getOEEAnalytics(plantId?: string, period?: string, tenantId?: string): Promise<{
         plantCode: string;
         period: string;
         overallOEE: number;
@@ -122,8 +123,8 @@ export declare class ProductionService {
     }>;
     listMachines(plantId?: string): Promise<any[]>;
     updateMachineStatus(id: string, newStatus: string): Promise<any>;
-    listShiftHandoffs(plantId?: string): Promise<any[]>;
-    createShiftHandoff(input: any): Promise<any>;
+    listShiftHandoffs(plantId?: string, tenantId?: string): Promise<any[]>;
+    createShiftHandoff(input: any, tenantId?: string, plantId?: string): Promise<any>;
     getShiftPerformance(plantId?: string): Promise<{
         plantCode: string;
         shiftA: {

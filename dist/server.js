@@ -3,10 +3,74 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const app_js_1 = require("./app.js");
 const env_js_1 = require("./config/env.js");
 const database_js_1 = require("./config/database.js");
+const migrate_integrations_js_1 = require("./migrate-integrations.js");
+const migrate_quality_sanitation_js_1 = require("./db/migrate-quality-sanitation.js");
+const migrate_quality_checks_js_1 = require("./db/migrate-quality-checks.js");
+const migrate_quality_events_js_1 = require("./db/migrate-quality-events.js");
+const migrate_batch_quality_js_1 = require("./db/migrate-batch-quality.js");
+const migrate_qa_release_js_1 = require("./db/migrate-qa-release.js");
+const migrate_qa_disposition_js_1 = require("./db/migrate-qa-disposition.js");
+const migrate_qa_governance_js_1 = require("./db/migrate-qa-governance.js");
 async function start() {
     const app = await (0, app_js_1.buildApp)();
     // Check database connection
     await (0, database_js_1.checkDatabaseConnection)();
+    // Ensure third-party & IoT schema migrations (e.g. machine_telemetry, iot_gateways) are applied
+    try {
+        await (0, migrate_integrations_js_1.migrateIntegrations)();
+    }
+    catch (err) {
+        console.warn("⚠️ Integrations auto-migration check warning:", err.message);
+    }
+    // Ensure Quality & Sanitation DB tables (preop_checks, sanitation_cip_steps, allergen_audits, line_readiness, cleaning_verifications) are verified
+    try {
+        await (0, migrate_quality_sanitation_js_1.runQualitySanitationMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ Quality & Sanitation auto-migration check warning:", err.message);
+    }
+    // Ensure Quality Checks DB tables (ccp_checks, process_checks, quality_specs) are verified
+    try {
+        await (0, migrate_quality_checks_js_1.runQualityChecksMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ Quality Checks auto-migration check warning:", err.message);
+    }
+    // Ensure Quality Events DB tables (deviations, quality_holds, ncrs, quality_investigations) are verified
+    try {
+        await (0, migrate_quality_events_js_1.runQualityEventsMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ Quality Events auto-migration check warning:", err.message);
+    }
+    // Ensure Batch Quality DB tables (batch_quality_reviews, batch_history, batch_quality_records) are verified
+    try {
+        await (0, migrate_batch_quality_js_1.runBatchQualityMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ Batch Quality auto-migration check warning:", err.message);
+    }
+    // Ensure QA Release DB tables (qa_release_queue, qa_approved_releases, quality_holds) are verified
+    try {
+        await (0, migrate_qa_release_js_1.runQaReleaseMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ QA Release auto-migration check warning:", err.message);
+    }
+    // Ensure QA Disposition DB tables (qa_disposition_records) are verified
+    try {
+        await (0, migrate_qa_disposition_js_1.runQaDispositionMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ QA Disposition auto-migration check warning:", err.message);
+    }
+    // Ensure QA Governance DB tables (capa_records, qa_audit_trail, qa_reports, qa_notifications, qa_profiles) are verified
+    try {
+        await (0, migrate_qa_governance_js_1.runQaGovernanceMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ QA Governance auto-migration check warning:", err.message);
+    }
     try {
         const address = await app.listen({
             port: env_js_1.env.PORT,

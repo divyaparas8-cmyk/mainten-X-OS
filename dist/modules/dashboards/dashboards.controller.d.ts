@@ -12,12 +12,15 @@ export declare class DashboardsController {
     getHbLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     saveHbRecord(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateHbRecord(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteHbRecord(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     recalculateCatchUp(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     bulkReconcileShift(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getDowntimeLogs(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     logBreakdown(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     acknowledgeDowntime(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     dispatchTech(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    resolveDowntime(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteDowntimeLog(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getChangeoverStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     startChangeover(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     completeChangeoverStep(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -84,6 +87,7 @@ export declare class DashboardsController {
     getSupervisorDashboard(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeSupervisorShift(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     resequenceSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     pauseSupervisorDeptSchedule(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -93,6 +97,7 @@ export declare class DashboardsController {
     updateSupervisorWorkforceEmployee(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     assignSupervisorWorkforceSkill(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     assignSupervisorWorkforceTraining(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteSupervisorWorkforceEmployee(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorLabourTime(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeSupervisorOvertime(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     rebalanceSupervisorCrew(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -112,9 +117,12 @@ export declare class DashboardsController {
     assignSupervisorStaffingPersonnel(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     assignSupervisorStaffingStation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     closeSupervisorStaffingShift(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteSupervisorStaffing(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     setSupervisorProductionSpeedLimit(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorDowntimePareto(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSupervisorProductionRun(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorHolds(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorHold(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     addSupervisorHoldNote(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     requestSupervisorHoldRework(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeSupervisorHoldRelease(request: FastifyRequest, reply: FastifyReply): Promise<never>;
@@ -122,20 +130,30 @@ export declare class DashboardsController {
     getSupervisorRecoveryCountermeasures(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeSupervisorRecoveryCountermeasure(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     authorizeAllSupervisorRecoveryCountermeasures(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorRecoveryCountermeasure(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteSupervisorRecoveryCountermeasure(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorApprovals(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     approveSupervisorApproval(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     rejectSupervisorApproval(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     clarifySupervisorApproval(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     bulkApproveSupervisorApprovals(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorApproval(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteSupervisorApproval(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorReportsList(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     printSupervisorReport(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorNotificationsList(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     markSupervisorNotificationRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     deleteSupervisorNotification(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     markAllSupervisorNotificationsRead(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     clearAllSupervisorNotifications(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createSupervisorNotification(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getSupervisorProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateSupervisorProfile(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getLabourAllocations(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    deleteLabourAllocation(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const dashboardsController: DashboardsController;
 //# sourceMappingURL=dashboards.controller.d.ts.map

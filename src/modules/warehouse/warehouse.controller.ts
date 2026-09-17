@@ -20,6 +20,11 @@ export class WarehouseController {
     return reply.status(201).send(formatSuccess(data, "Inventory lot registered & initial receipt transaction logged"));
   }
 
+  async deleteLot(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteLot(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async recordTransaction(request: FastifyRequest, reply: FastifyReply) {
     const raw = (request.body as any) || {};
     const effectiveType = raw.type || raw.transactionType || "RECEIPT";
@@ -164,10 +169,16 @@ export class WarehouseController {
     return reply.send(formatSuccess(data, `Supplier ${data.name} is now ${data.status}`));
   }
 
+  async deleteSupplier(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteSupplier(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async getSupplierScorecard(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const data = await warehouseService.getSupplierScorecard(request.user.tenantId, request.params.id);
     return reply.send(formatSuccess(data, data.message));
   }
+
 
   // ==========================================
   // WMS OPERATIONS CONTROLLER
@@ -181,6 +192,16 @@ export class WarehouseController {
   async dockCheckIn(request: FastifyRequest, reply: FastifyReply) {
     const data = await warehouseService.dockCheckIn(request.user.tenantId, request.body || {});
     return reply.status(201).send(formatSuccess(data, `Inbound shipment ${data.id} checked in to ${data.dock}`));
+  }
+
+  async updateWmsReceiving(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.updateWmsReceiving(request.user.tenantId, request.params.id, request.body || {});
+    return reply.send(formatSuccess(data, `Inbound shipment ${request.params.id} updated`));
+  }
+
+  async deleteWmsReceiving(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteWmsReceiving(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
   }
 
   async inspectAndAccept(request: FastifyRequest, reply: FastifyReply) {
@@ -230,6 +251,21 @@ export class WarehouseController {
   async listLocations(request: FastifyRequest, reply: FastifyReply) {
     const data = await warehouseService.listLocations(request.user.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  async createLocation(request: FastifyRequest, reply: FastifyReply) {
+    const data = await warehouseService.createLocation(request.user.tenantId, request.body || {});
+    return reply.status(201).send(formatSuccess(data, `Storage bin location ${data.location} created`));
+  }
+
+  async updateLocation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.updateLocation(request.user.tenantId, request.params.id, request.body || {});
+    return reply.send(formatSuccess(data, `Storage bin location ${data.location} updated`));
+  }
+
+  async deleteLocation(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteLocation(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
   }
 
   async getBinsLocations(request: FastifyRequest, reply: FastifyReply) {
@@ -307,12 +343,27 @@ export class WarehouseController {
   // ==========================================
 
   async getTraceability(request: FastifyRequest<{ Querystring: { lot?: string }; Params: { lotNumber?: string } }>, reply: FastifyReply) {
-    const lotNumber = request.params?.lotNumber || (request.query as any)?.lot || (request.query as any)?.lotNumber;
+    const lotNumber = request.params?.lotNumber || (request.query as any)?.lot || (request.query as any)?.lotNumber || "";
     if (!lotNumber) {
       return reply.send(formatSuccess(null));
     }
     const data = await warehouseService.getTraceability(request.user.tenantId, lotNumber);
     return reply.send(formatSuccess(data));
+  }
+
+  async createTraceabilityBatch(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createTraceabilityBatch(request.user.tenantId, request.body || {});
+    return reply.status(201).send(formatSuccess(data, `Batch ${data.batchNumber} created in database`));
+  }
+
+  async updateTraceabilityBatch(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.updateTraceabilityBatch(request.user.tenantId, request.params.id, request.body || {});
+    return reply.send(formatSuccess(data, `Batch updated in database`));
+  }
+
+  async deleteTraceabilityBatch(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteTraceabilityBatch(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, `Batch deleted from database`));
   }
 
   async simulateRecall(request: FastifyRequest, reply: FastifyReply) {
@@ -347,8 +398,23 @@ export class WarehouseController {
   }
 
   async getFinishedGoods(request: FastifyRequest, reply: FastifyReply) {
-    const data = await warehouseService.getFinishedGoods(request.user.tenantId, request.query || {});
+    const data = await warehouseService.getFinishedGoods(request.user?.tenantId, request.query || {});
     return reply.send(formatSuccess(data));
+  }
+
+  async createFinishedGood(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createFinishedGood(request.user?.tenantId, request.body || {});
+    return reply.status(201).send(formatSuccess(data, `Finished Good ${data.sku} created in database`));
+  }
+
+  async updateFinishedGood(request: FastifyRequest<{ Params: { id: string }; Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.updateFinishedGood(request.user?.tenantId, request.params.id, request.body || {});
+    return reply.send(formatSuccess(data, `Finished Good updated successfully`));
+  }
+
+  async deleteFinishedGood(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteFinishedGood(request.user?.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, `Finished Good deleted from database`));
   }
 
   // ==========================================
@@ -370,9 +436,15 @@ export class WarehouseController {
     return reply.send(formatSuccess(data, `Shipment ${request.params.id} updated successfully`));
   }
 
-  async dispatchShipmentOrder(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const data = await warehouseService.dispatchShipmentOrder(request.user.tenantId, request.params.id);
-    return reply.send(formatSuccess(data, `Shipment ${request.params.id} dispatched successfully`));
+  async dispatchShipmentOrder(request: FastifyRequest<{ Params?: { id?: string }; Body?: any }>, reply: FastifyReply) {
+    const id = request.params?.id || (request.body as any)?.id || (request.body as any)?.shipmentId;
+    const data = await warehouseService.dispatchShipmentOrder(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, `Shipment ${id} dispatched successfully`));
+  }
+
+  async deleteShipmentOrder(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.deleteShipmentOrder(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, `Shipment ${request.params.id} deleted successfully`));
   }
   // ==========================================
   // PICKING & PALLETS CONTROLLERS
@@ -486,6 +558,69 @@ export class WarehouseController {
     const status = (request.body as any)?.status;
     const data = await warehouseService.toggleWarehouseCertification(request.user.tenantId, certId, status);
     return reply.send(formatSuccess(data, data.message));
+  }
+
+  // =========================================================================
+  // MATERIAL PROCESSING & PACKAGING EXECUTION FLOW CONTROLLERS
+  // =========================================================================
+
+  async issueRawMaterialForProcessing(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.issueRawMaterialToProcessing(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getWipLots(request: FastifyRequest, reply: FastifyReply) {
+    const data = await warehouseService.getWipLots(request.user.tenantId, request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createWipLot(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createWipLot(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async stagePackagingMaterial(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.stagePackagingMaterial(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getSeparatedMovements(request: FastifyRequest<{ Querystring: { category?: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.getSeparatedMovements(
+      request.user.tenantId,
+      request.user.plantId,
+      request.query?.category
+    );
+    return reply.send(formatSuccess(data));
+  }
+
+  async createPackagingFinishedGoods(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createPackagingFinishedGoods(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getFlowSummary(request: FastifyRequest, reply: FastifyReply) {
+    const data = await warehouseService.getFlowSummary(request.user.tenantId, request.user.plantId);
+    return reply.send(formatSuccess(data));
   }
 }
 

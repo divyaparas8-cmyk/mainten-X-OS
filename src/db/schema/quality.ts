@@ -307,7 +307,7 @@ export const batchQualityRecords = pgTable("batch_quality_records", {
   recordId: varchar("record_id", { length: 50 }).notNull(),
   batch: varchar("batch", { length: 100 }).notNull(),
   type: varchar("type", { length: 255 }).notNull(),
-  result: varchar("status", { length: 50 }).default("PASS"),
+  result: varchar("result", { length: 50 }).default("PASS"),
   date: varchar("date", { length: 50 }).notNull(),
   officer: varchar("officer", { length: 150 }).default("Dr. Rachel Thorne"),
   details: text("details").default(""),

@@ -62,4 +62,3 @@ exports.tenantModules = (0, pg_core_1.pgTable)("tenant_modules", {
 }, (table) => [
     (0, pg_core_1.unique)("tenant_module_idx").on(table.tenantId, table.moduleKey),
 ]);
-//# sourceMappingURL=masterAdmin.js.map

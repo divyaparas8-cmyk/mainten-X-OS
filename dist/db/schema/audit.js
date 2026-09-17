@@ -29,4 +29,3 @@ exports.digitalSignatures = (0, pg_core_1.pgTable)("digital_signatures", {
     comments: (0, pg_core_1.text)("comments"),
     signedAt: (0, pg_core_1.timestamp)("signed_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=audit.js.map

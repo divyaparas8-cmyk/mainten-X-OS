@@ -28,10 +28,28 @@ class CIService {
     // ============================================================================
     // 1. DASHBOARD SUMMARY
     // ============================================================================
-    async getDashboardSummary(plantId) {
-        const isPlantFilter = plantId && plantId !== "ALL";
-        const plantClause = isPlantFilter ? "WHERE plant_id = $1" : "";
+    async getDashboardSummary(plantId, stage) {
+        const isPlantFilter = plantId && plantId !== "ALL" && plantId !== "PLT-01";
+        const isStageFilter = stage && stage !== "ALL";
+        let plantClause = isPlantFilter ? "WHERE plant_id = $1" : "";
         const params = isPlantFilter ? [plantId] : [];
+        // Filter clauses for stage-aware tables
+        let stageRcaClause = "";
+        let stageRelClause = "";
+        let stageLossClause = "";
+        const stageParams = [...params];
+        if (isStageFilter) {
+            stageParams.push(stage);
+            const stageParamIdx = stageParams.length;
+            stageRcaClause = isPlantFilter ? `WHERE plant_id = $1 AND stage = $${stageParamIdx}` : `WHERE stage = $${stageParamIdx}`;
+            stageRelClause = isPlantFilter ? `WHERE plant_id = $1 AND stage = $${stageParamIdx}` : `WHERE stage = $${stageParamIdx}`;
+            stageLossClause = isPlantFilter ? `WHERE plant_id = $1 AND stage = $${stageParamIdx}` : `WHERE stage = $${stageParamIdx}`;
+        }
+        else {
+            stageRcaClause = plantClause;
+            stageRelClause = plantClause;
+            stageLossClause = plantClause;
+        }
         // Projects savings
         const projRes = await database_js_1.pool.query(`SELECT 
         COALESCE(SUM(projected_savings_annual), 0) AS projected_total,
@@ -46,19 +64,39 @@ class CIService {
         COUNT(CASE WHEN status = 'Open' OR status = 'In Progress' THEN 1 END) AS open_rca,
         COUNT(CASE WHEN status = 'Root Cause Validated' THEN 1 END) AS validated_rca,
         COUNT(CASE WHEN status = 'Closed' THEN 1 END) AS closed_rca
-      FROM ci_rca_investigations ${plantClause}`, params);
+      FROM ci_rca_investigations ${stageRcaClause}`, stageParams);
         // Reliability & Bad Actors
         const relRes = await database_js_1.pool.query(`SELECT 
         COUNT(*) AS total_assets,
         COUNT(CASE WHEN is_bad_actor = true THEN 1 END) AS bad_actors_count,
         COALESCE(AVG(mtbf_hrs), 0) AS avg_mtbf,
         COALESCE(AVG(mttr_min), 0) AS avg_mttr
-      FROM ci_reliability_records ${plantClause}`, params);
+      FROM ci_reliability_records ${stageRelClause}`, stageParams);
+        // Stage-specific breakdown for split Processing vs Packaging visibility
+        const stageRelRes = await database_js_1.pool.query(`SELECT 
+        stage,
+        COUNT(*) AS total_assets,
+        COUNT(CASE WHEN is_bad_actor = true THEN 1 END) AS bad_actors_count,
+        COALESCE(AVG(mtbf_hrs), 0) AS avg_mtbf,
+        COALESCE(AVG(mttr_min), 0) AS avg_mttr
+      FROM ci_reliability_records ${plantClause}
+      GROUP BY stage`, params);
+        const procRel = stageRelRes.rows.find((r) => (r.stage || "").toUpperCase() === "PROCESSING") || {};
+        const packRel = stageRelRes.rows.find((r) => (r.stage || "").toUpperCase() === "PACKAGING") || {};
         // Losses
         const lossRes = await database_js_1.pool.query(`SELECT 
         COALESCE(SUM(hours_lost), 0) AS total_hours_lost,
         COALESCE(SUM(financial_impact_usd), 0) AS total_loss_usd
-      FROM ci_losses ${plantClause}`, params);
+      FROM ci_losses ${stageLossClause}`, stageParams);
+        const stageLossRes = await database_js_1.pool.query(`SELECT 
+        stage,
+        COALESCE(SUM(hours_lost), 0) AS hours_lost,
+        COALESCE(SUM(financial_impact_usd), 0) AS loss_usd,
+        COALESCE(SUM(units_lost), 0) AS units_lost
+      FROM ci_losses ${plantClause}
+      GROUP BY stage`, params);
+        const procLoss = stageLossRes.rows.find((r) => (r.stage || "").toUpperCase() === "PROCESSING") || {};
+        const packLoss = stageLossRes.rows.find((r) => (r.stage || "").toUpperCase() === "PACKAGING") || {};
         // CAPA actions
         const capaRes = await database_js_1.pool.query(`SELECT 
         COUNT(*) AS total_capa,
@@ -97,6 +135,24 @@ class CIService {
                 badActorsCount: Number(rel.bad_actors_count || 0),
                 avgMtbfHrs: Math.round(Number(rel.avg_mtbf || 0)),
                 avgMttrMin: Math.round(Number(rel.avg_mttr || 0)),
+            },
+            stageBreakdown: {
+                processing: {
+                    avgMtbfHrs: Math.round(Number(procRel.avg_mtbf || 0)),
+                    avgMttrMin: Math.round(Number(procRel.avg_mttr || 0)),
+                    badActorsCount: Number(procRel.bad_actors_count || 0),
+                    totalLossUSD: Number(procLoss.loss_usd || 0),
+                    hoursLost: Number(procLoss.hours_lost || 0),
+                    unitsLost: Number(procLoss.units_lost || 0),
+                },
+                packaging: {
+                    avgMtbfHrs: Math.round(Number(packRel.avg_mtbf || 0)),
+                    avgMttrMin: Math.round(Number(packRel.avg_mttr || 0)),
+                    badActorsCount: Number(packRel.bad_actors_count || 0),
+                    totalLossUSD: Number(packLoss.loss_usd || 0),
+                    hoursLost: Number(packLoss.hours_lost || 0),
+                    unitsLost: Number(packLoss.units_lost || 0),
+                },
             },
             rca: {
                 totalRCA: Number(rca.total_rca || 0),
@@ -145,6 +201,7 @@ class CIService {
             severity: r.severity,
             status: r.status,
             currentPhase: r.current_phase,
+            stage: r.stage || "PACKAGING",
             problemStatement: r.problem_statement,
             leadInvestigator: r.lead_investigator,
             teamMembers: typeof r.team_members === "string" ? JSON.parse(r.team_members) : (r.team_members || []),
@@ -156,12 +213,17 @@ class CIService {
             updatedAt: r.updated_at,
         };
     }
-    async listInvestigations(plantId) {
-        let query = "SELECT * FROM ci_rca_investigations";
+    async listInvestigations(plantId, stage) {
+        let query = "SELECT * FROM ci_rca_investigations WHERE 1=1";
         const params = [];
-        if (plantId && plantId !== "ALL") {
-            query += " WHERE plant_id = $1";
+        let idx = 1;
+        if (plantId && plantId !== "ALL" && plantId !== "PLT-01") {
+            query += ` AND plant_id = $${idx++}`;
             params.push(plantId);
+        }
+        if (stage && stage !== "ALL") {
+            query += ` AND stage = $${idx++}`;
+            params.push(stage);
         }
         query += " ORDER BY created_at DESC";
         const res = await database_js_1.pool.query(query, params);
@@ -180,15 +242,16 @@ class CIService {
         const newId = data.id || `RCA-${year}-${String(count).padStart(3, "0")}`;
         const userName = userContext?.userName || "Lead CI Engineer";
         const res = await database_js_1.pool.query(`INSERT INTO ci_rca_investigations (
-        id, plant_id, title, asset_id, asset_name, line_id, line_name,
+        id, plant_id, title, stage, asset_id, asset_name, line_id, line_name,
         source_breakdown_id, source_work_order_id, severity, status,
         current_phase, problem_statement, lead_investigator, team_members,
         event_date, days_active, why_tree, eight_d
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
       RETURNING *`, [
             newId,
             data.plantId || userContext?.plantId || "PLT-01",
             data.title || "Critical Component Failure Investigation",
+            data.stage || "PACKAGING",
             data.assetId || "AST-001",
             data.assetName || "Primary Production Asset",
             data.lineId || "LIN-01",
@@ -202,7 +265,7 @@ class CIService {
             data.leadInvestigator || userName,
             JSON.stringify(data.teamMembers || [userName]),
             data.eventDate || new Date().toISOString().substring(0, 10),
-            data.daysActive || 1,
+            data.daysActive || 0,
             JSON.stringify(data.whyTree || []),
             JSON.stringify(data.eightD || {}),
         ]);
@@ -402,6 +465,47 @@ class CIService {
         });
         return this.mapEvidence(res.rows[0]);
     }
+    async updateEvidence(id, data, userContext) {
+        const fields = [];
+        const values = [];
+        let idx = 1;
+        if (data.rcaId !== undefined) {
+            fields.push(`rca_id = $${idx++}`);
+            values.push(data.rcaId);
+        }
+        if (data.type !== undefined) {
+            fields.push(`type = $${idx++}`);
+            values.push(data.type);
+        }
+        if (data.title !== undefined) {
+            fields.push(`title = $${idx++}`);
+            values.push(data.title);
+        }
+        if (data.details !== undefined) {
+            fields.push(`details = $${idx++}`);
+            values.push(data.details);
+        }
+        if (data.fileUrl !== undefined) {
+            fields.push(`file_url = $${idx++}`);
+            values.push(data.fileUrl);
+        }
+        if (fields.length === 0) {
+            const existing = await database_js_1.pool.query("SELECT * FROM ci_rca_evidence WHERE id = $1", [id]);
+            return this.mapEvidence(existing.rows[0]);
+        }
+        values.push(id);
+        const res = await database_js_1.pool.query(`UPDATE ci_rca_evidence SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`, values);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_EVIDENCE_UPDATED",
+            entityType: "RCA Evidence",
+            entityId: id,
+            newValues: data,
+        });
+        return this.mapEvidence(res.rows[0]);
+    }
     async deleteEvidence(id, userContext) {
         await database_js_1.pool.query("DELETE FROM ci_rca_evidence WHERE id = $1", [id]);
         await this.logAudit({
@@ -521,6 +625,7 @@ class CIService {
             owner: r.owner,
             dueDate: r.due_date,
             priority: r.priority,
+            stage: r.stage || "PACKAGING",
             status: r.status,
             completionDate: r.completion_date,
             evidenceNotes: r.evidence_notes,
@@ -550,6 +655,10 @@ class CIService {
             query += ` AND status = $${idx++}`;
             params.push(filters.status);
         }
+        if (filters?.stage && filters.stage !== "ALL") {
+            query += ` AND stage = $${idx++}`;
+            params.push(filters.stage);
+        }
         query += " ORDER BY due_date ASC, created_at DESC";
         const res = await database_js_1.pool.query(query, params);
         return res.rows.map(this.mapCapa);
@@ -561,18 +670,19 @@ class CIService {
         const newId = data.id || `CAPA-${year}-${String(count).padStart(3, "0")}`;
         const res = await database_js_1.pool.query(`INSERT INTO ci_capa_actions (
         id, rca_id, project_id, description, action_type, owner,
-        due_date, priority, status, completion_date, evidence_notes,
+        due_date, priority, stage, status, completion_date, evidence_notes,
         effectiveness_result, verified_by, verified_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       RETURNING *`, [
             newId,
             data.rcaId || null,
             data.projectId || null,
             data.description || "Action item description",
             data.actionType || "Corrective",
-            data.owner || userContext?.userName || "Maintenance Lead",
-            data.dueDate || new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10),
+            data.owner || userContext?.userName || "Lead CI Engineer",
+            data.dueDate || new Date().toISOString().substring(0, 10),
             data.priority || "Medium",
+            data.stage || "PACKAGING",
             data.status || "Open",
             data.completionDate || null,
             data.evidenceNotes || null,
@@ -588,6 +698,64 @@ class CIService {
             entityType: "CAPA Action",
             entityId: newId,
             newValues: { id: newId, description: data.description, owner: data.owner, dueDate: data.dueDate },
+        });
+        return this.mapCapa(res.rows[0]);
+    }
+    async updateCapaAction(id, data, userContext) {
+        const fields = [];
+        const params = [];
+        let idx = 1;
+        if (data.description !== undefined) {
+            fields.push(`description = $${idx++}`);
+            params.push(data.description);
+        }
+        if (data.owner !== undefined) {
+            fields.push(`owner = $${idx++}`);
+            params.push(data.owner);
+        }
+        if (data.dueDate !== undefined) {
+            fields.push(`due_date = $${idx++}`);
+            params.push(data.dueDate);
+        }
+        if (data.priority !== undefined) {
+            fields.push(`priority = $${idx++}`);
+            params.push(data.priority);
+        }
+        if (data.status !== undefined) {
+            fields.push(`status = $${idx++}`);
+            params.push(data.status);
+        }
+        if (data.rcaId !== undefined) {
+            fields.push(`rca_id = $${idx++}`);
+            params.push(data.rcaId);
+        }
+        if (data.completionDate !== undefined) {
+            fields.push(`completion_date = $${idx++}`);
+            params.push(data.completionDate);
+        }
+        if (data.evidenceNotes !== undefined) {
+            fields.push(`evidence_notes = $${idx++}`);
+            params.push(data.evidenceNotes);
+        }
+        if (data.effectivenessResult !== undefined) {
+            fields.push(`effectiveness_result = $${idx++}`);
+            params.push(data.effectivenessResult);
+        }
+        if (fields.length === 0)
+            throw new Error("No fields provided to update");
+        const query = `UPDATE ci_capa_actions SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`;
+        params.push(id);
+        const res = await database_js_1.pool.query(query, params);
+        if (res.rows.length === 0)
+            throw new Error(`CAPA Action ${id} not found`);
+        await this.logAudit({
+            tenantId: userContext?.tenantId,
+            plantId: userContext?.plantId,
+            userId: userContext?.userId,
+            action: "CI_CAPA_UPDATED",
+            entityType: "CAPA Action",
+            entityId: id,
+            newValues: data,
         });
         return this.mapCapa(res.rows[0]);
     }
@@ -665,6 +833,7 @@ class CIService {
             lineId: r.line_id,
             assetId: r.asset_id,
             eventName: r.event_name,
+            stage: r.stage || "PACKAGING",
             hoursLost: Number(r.hours_lost),
             unitsLost: Number(r.units_lost),
             financialImpactUSD: Number(r.financial_impact_usd),
@@ -675,17 +844,21 @@ class CIService {
             createdAt: r.created_at,
         };
     }
-    async listLosses(plantId, category) {
+    async listLosses(plantId, category, stage) {
         let query = "SELECT * FROM ci_losses WHERE 1=1";
         const params = [];
         let idx = 1;
-        if (plantId && plantId !== "ALL") {
+        if (plantId && plantId !== "ALL" && plantId !== "PLT-01") {
             query += ` AND plant_id = $${idx++}`;
             params.push(plantId);
         }
         if (category && category !== "ALL") {
             query += ` AND category ILIKE $${idx++}`;
             params.push(`%${category}%`);
+        }
+        if (stage && stage !== "ALL") {
+            query += ` AND stage = $${idx++}`;
+            params.push(stage);
         }
         query += " ORDER BY date DESC, created_at DESC";
         const res = await database_js_1.pool.query(query, params);
@@ -696,16 +869,17 @@ class CIService {
         const count = Number(seq.rows[0].count) + 1;
         const newId = data.id || `LOSS-${String(count).padStart(2, "0")}`;
         const res = await database_js_1.pool.query(`INSERT INTO ci_losses (
-        id, category, plant_id, line_id, asset_id, event_name,
+        id, category, plant_id, line_id, asset_id, stage, event_name,
         hours_lost, units_lost, financial_impact_usd, linked_rca_id,
         linked_project_id, trend, date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`, [
             newId,
             data.category || "Downtime Loss",
             data.plantId || userContext?.plantId || "PLT-01",
             data.lineId || "LIN-01",
             data.assetId || "AST-001",
+            data.stage || "PACKAGING",
             data.eventName || "Loss Event",
             Number(data.hoursLost) || 0,
             Number(data.unitsLost) || 0,
@@ -1264,6 +1438,7 @@ class CIService {
             lineId: r.line_id,
             lineName: r.line_name,
             plantId: r.plant_id,
+            stage: r.stage || "PACKAGING",
             failuresCount: Number(r.failures_count),
             totalDowntimeMin: Number(r.total_downtime_min),
             mtbfHrs: Number(r.mtbf_hrs),
@@ -1276,13 +1451,17 @@ class CIService {
             createdAt: r.created_at,
         };
     }
-    async listReliabilityRecords(plantId, onlyBadActors) {
+    async listReliabilityRecords(plantId, onlyBadActors, stage) {
         let query = "SELECT * FROM ci_reliability_records WHERE 1=1";
         const params = [];
         let idx = 1;
-        if (plantId && plantId !== "ALL") {
+        if (plantId && plantId !== "ALL" && plantId !== "PLT-01") {
             query += ` AND plant_id = $${idx++}`;
             params.push(plantId);
+        }
+        if (stage && stage !== "ALL") {
+            query += ` AND stage = $${idx++}`;
+            params.push(stage);
         }
         if (onlyBadActors) {
             query += ` AND is_bad_actor = true`;
@@ -1345,4 +1524,3 @@ class CIService {
 }
 exports.CIService = CIService;
 exports.ciService = new CIService();
-//# sourceMappingURL=ci.service.js.map

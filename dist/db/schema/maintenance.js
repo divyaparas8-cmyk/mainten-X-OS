@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calibrations = exports.spareConsumption = exports.spareParts = exports.pmSchedules = exports.workOrders = exports.failureCodes = void 0;
+exports.maintenanceReports = exports.calibrations = exports.spareConsumption = exports.spareParts = exports.pmSchedules = exports.workOrders = exports.failureCodes = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -85,4 +85,22 @@ exports.calibrations = (0, pg_core_1.pgTable)("calibrations", {
     accuracyError: (0, pg_core_1.numeric)("accuracy_error", { precision: 6, scale: 3 }).default("0.02"),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("VALID").notNull(), // "VALID", "DUE_SOON", "EXPIRED"
 });
-//# sourceMappingURL=maintenance.js.map
+exports.maintenanceReports = (0, pg_core_1.pgTable)("maintenance_reports", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
+    plantId: (0, pg_core_1.uuid)("plant_id"),
+    reportCode: (0, pg_core_1.varchar)("report_code", { length: 50 }).notNull().unique(),
+    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
+    category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(),
+    description: (0, pg_core_1.text)("description"),
+    frequency: (0, pg_core_1.varchar)("frequency", { length: 50 }).default("Monthly").notNull(),
+    targetModule: (0, pg_core_1.varchar)("target_module", { length: 50 }).default("assets").notNull(),
+    dataPoints: (0, pg_core_1.integer)("data_points").default(0),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active").notNull(),
+    lastGeneratedAt: (0, pg_core_1.timestamp)("last_generated_at"),
+    lastExportFormat: (0, pg_core_1.varchar)("last_export_format", { length: 20 }).default("CSV"),
+    regulatoryStandard: (0, pg_core_1.varchar)("regulatory_standard", { length: 100 }).default("ISO 55001 / FDA CFR 21"),
+    createdBy: (0, pg_core_1.varchar)("created_by", { length: 100 }).default("System"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});

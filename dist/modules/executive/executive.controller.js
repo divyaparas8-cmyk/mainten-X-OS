@@ -172,4 +172,3 @@ class ExecutiveController {
 }
 exports.ExecutiveController = ExecutiveController;
 exports.executiveController = new ExecutiveController();
-//# sourceMappingURL=executive.controller.js.map

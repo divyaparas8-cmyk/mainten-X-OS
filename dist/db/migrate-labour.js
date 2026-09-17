@@ -95,4 +95,3 @@ if (process.argv[1]?.includes("migrate-labour")) {
         process.exit(1);
     });
 }
-//# sourceMappingURL=migrate-labour.js.map

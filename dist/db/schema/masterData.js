@@ -402,4 +402,3 @@ exports.storageResources = (0, pg_core_1.pgTable)("storage_resources", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
-//# sourceMappingURL=masterData.js.map

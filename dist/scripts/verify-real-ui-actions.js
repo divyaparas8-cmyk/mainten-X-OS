@@ -591,4 +591,3 @@ runValidation().catch((err) => {
     console.error("Fatal error during validation:", err);
     process.exit(1);
 });
-//# sourceMappingURL=verify-real-ui-actions.js.map

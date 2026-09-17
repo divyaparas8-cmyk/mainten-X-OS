@@ -41,4 +41,3 @@ async function runMigration() {
     }
 }
 runMigration();
-//# sourceMappingURL=migrate-suppliers.js.map

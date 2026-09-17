@@ -50,4 +50,3 @@ async function catalogTables() {
     await database_js_1.pool.end();
 }
 catalogTables().catch(console.error);
-//# sourceMappingURL=catalog-55-tables.js.map

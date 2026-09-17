@@ -43,4 +43,3 @@ async function main() {
     console.log(JSON.stringify(updateData, null, 2));
 }
 main().catch(console.error);
-//# sourceMappingURL=test-sku-update.js.map

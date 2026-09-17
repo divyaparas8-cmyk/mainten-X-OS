@@ -1330,4 +1330,3 @@ class MasterAdminService {
 }
 exports.MasterAdminService = MasterAdminService;
 exports.masterAdminService = new MasterAdminService();
-//# sourceMappingURL=master.service.js.map

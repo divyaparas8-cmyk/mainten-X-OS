@@ -486,4 +486,3 @@ class WarehouseController {
 }
 exports.WarehouseController = WarehouseController;
 exports.warehouseController = new WarehouseController();
-//# sourceMappingURL=warehouse.controller.js.map

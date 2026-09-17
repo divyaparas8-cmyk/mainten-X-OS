@@ -20,4 +20,3 @@ function formatError(message, code = "ERROR", details) {
         },
     };
 }
-//# sourceMappingURL=responseFormatter.js.map

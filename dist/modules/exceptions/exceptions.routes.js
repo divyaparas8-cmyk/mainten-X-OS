@@ -11,4 +11,3 @@ async function exceptionsRoutes(fastify) {
     fastify.patch("/:id/assign", { schema: { tags: ["Exceptions & Alerts"], summary: "Assign and Escalate Exception" } }, exceptions_controller_js_1.exceptionsController.assignException.bind(exceptions_controller_js_1.exceptionsController));
     fastify.patch("/:id/resolve", { schema: { tags: ["Exceptions & Alerts"], summary: "Resolve Exception" } }, exceptions_controller_js_1.exceptionsController.resolveException.bind(exceptions_controller_js_1.exceptionsController));
 }
-//# sourceMappingURL=exceptions.routes.js.map

@@ -53,4 +53,3 @@ class IoTController {
 }
 exports.IoTController = IoTController;
 exports.iotController = new IoTController();
-//# sourceMappingURL=iot.controller.js.map

@@ -96,4 +96,3 @@ async function runDetailedAudit() {
     }
 }
 runDetailedAudit().catch(console.error);
-//# sourceMappingURL=audit-73-tables.js.map

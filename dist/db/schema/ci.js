@@ -20,6 +20,7 @@ exports.ciRcaInvestigations = (0, pg_core_1.pgTable)("ci_rca_investigations", {
     currentPhase: (0, pg_core_1.varchar)("current_phase", { length: 100 }).default("Event").notNull(), // "Event", "Evidence", "Hypothesis & Tests", "Occurrence Cause", "Escape Cause", "CAPA", "Verification", "Closed"
     problemStatement: (0, pg_core_1.text)("problem_statement").notNull(),
     leadInvestigator: (0, pg_core_1.varchar)("lead_investigator", { length: 255 }).notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     teamMembers: (0, pg_core_1.jsonb)("team_members").default([]),
     eventDate: (0, pg_core_1.varchar)("event_date", { length: 50 }).notNull(),
     daysActive: (0, pg_core_1.integer)("days_active").default(0),
@@ -62,6 +63,7 @@ exports.ciCapaActions = (0, pg_core_1.pgTable)("ci_capa_actions", {
     owner: (0, pg_core_1.varchar)("owner", { length: 255 }).notNull(),
     dueDate: (0, pg_core_1.varchar)("due_date", { length: 50 }).notNull(),
     priority: (0, pg_core_1.varchar)("priority", { length: 50 }).default("Medium").notNull(), // "Critical", "High", "Medium"
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Open").notNull(), // "Open", "In Progress", "Completed", "Verified"
     completionDate: (0, pg_core_1.varchar)("completion_date", { length: 50 }),
     evidenceNotes: (0, pg_core_1.text)("evidence_notes"),
@@ -104,6 +106,7 @@ exports.ciLosses = (0, pg_core_1.pgTable)("ci_losses", {
     lineId: (0, pg_core_1.varchar)("line_id", { length: 100 }).notNull(),
     assetId: (0, pg_core_1.varchar)("asset_id", { length: 100 }).notNull(),
     eventName: (0, pg_core_1.varchar)("event_name", { length: 255 }).notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     hoursLost: (0, pg_core_1.numeric)("hours_lost", { precision: 8, scale: 2 }).default("0.00").notNull(),
     unitsLost: (0, pg_core_1.integer)("units_lost").default(0).notNull(),
     financialImpactUSD: (0, pg_core_1.numeric)("financial_impact_usd", { precision: 12, scale: 2 }).default("0.00").notNull(),
@@ -181,9 +184,9 @@ exports.ciReliabilityRecords = (0, pg_core_1.pgTable)("ci_reliability_records", 
     mttrMin: (0, pg_core_1.integer)("mttr_min").default(0).notNull(),
     lastFailureDate: (0, pg_core_1.varchar)("last_failure_date", { length: 50 }).notNull(),
     failureCategory: (0, pg_core_1.varchar)("failure_category", { length: 100 }).notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     criticality: (0, pg_core_1.varchar)("criticality", { length: 50 }).default("Medium").notNull(), // "Critical", "High", "Medium"
     isBadActor: (0, pg_core_1.boolean)("is_bad_actor").default(false).notNull(),
     badActorReason: (0, pg_core_1.text)("bad_actor_reason"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=ci.js.map

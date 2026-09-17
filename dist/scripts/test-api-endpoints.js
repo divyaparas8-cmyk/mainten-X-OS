@@ -48,4 +48,3 @@ async function testEndpoints() {
     }
 }
 testEndpoints();
-//# sourceMappingURL=test-api-endpoints.js.map

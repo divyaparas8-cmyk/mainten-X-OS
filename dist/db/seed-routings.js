@@ -215,4 +215,3 @@ async function seedRoutings() {
     }
 }
 seedRoutings();
-//# sourceMappingURL=seed-routings.js.map

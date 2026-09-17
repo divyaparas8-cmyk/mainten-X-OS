@@ -42,4 +42,3 @@ function scanRoutes() {
     console.log("\nSaved routes inventory to src/scripts/routes-inventory.json");
 }
 scanRoutes();
-//# sourceMappingURL=inventory-routes.js.map

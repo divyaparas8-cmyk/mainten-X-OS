@@ -27,4 +27,3 @@ async function listAllTables() {
     }
 }
 listAllTables().catch(console.error);
-//# sourceMappingURL=list-all-tables.js.map

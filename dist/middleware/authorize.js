@@ -79,4 +79,3 @@ function authorizeRoles(allowedRoles) {
         throw new AppError_js_1.ForbiddenError(`Access denied for role [${user.role}]. Required: [${allowedRoles.join(", ")}]`);
     };
 }
-//# sourceMappingURL=authorize.js.map

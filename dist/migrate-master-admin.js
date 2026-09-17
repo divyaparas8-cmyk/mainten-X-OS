@@ -228,4 +228,3 @@ if (process.argv[1]?.includes("migrate-master-admin")) {
         process.exit(1);
     });
 }
-//# sourceMappingURL=migrate-master-admin.js.map

@@ -87,4 +87,3 @@ exports.shiftLogs = (0, pg_core_1.pgTable)("shift_logs", {
     scrapUnitsProduced: (0, pg_core_1.integer)("scrap_units_produced").default(0).notNull(),
     loggedAt: (0, pg_core_1.timestamp)("logged_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=production.js.map

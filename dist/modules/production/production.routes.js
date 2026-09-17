@@ -58,4 +58,3 @@ async function productionRoutes(fastify) {
     fastify.post("/shift-handoffs", { schema: { tags: ["Production & MES"], summary: "Create Shift Handoff Log" } }, production_controller_js_1.productionController.createShiftHandoff.bind(production_controller_js_1.productionController));
     fastify.get("/shift-performance", { schema: { tags: ["Production & MES"], summary: "Get Multi-Shift Output Performance" } }, production_controller_js_1.productionController.getShiftPerformance.bind(production_controller_js_1.productionController));
 }
-//# sourceMappingURL=production.routes.js.map

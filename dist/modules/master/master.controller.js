@@ -203,4 +203,3 @@ class MasterAdminController {
 }
 exports.MasterAdminController = MasterAdminController;
 exports.masterAdminController = new MasterAdminController();
-//# sourceMappingURL=master.controller.js.map

@@ -106,4 +106,3 @@ class RazorpayAdapter {
 }
 exports.RazorpayAdapter = RazorpayAdapter;
 exports.razorpayAdapter = new RazorpayAdapter();
-//# sourceMappingURL=razorpay.adapter.js.map

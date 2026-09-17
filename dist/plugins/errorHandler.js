@@ -36,4 +36,3 @@ function errorHandler(error, request, reply) {
     const isProd = process.env.NODE_ENV === "production";
     return reply.status(500).send((0, responseFormatter_js_1.formatError)(isProd ? "An internal server error occurred" : error.message, "INTERNAL_SERVER_ERROR"));
 }
-//# sourceMappingURL=errorHandler.js.map

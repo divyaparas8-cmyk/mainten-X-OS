@@ -220,7 +220,38 @@ class MaintenanceController {
         const data = await maintenance_service_js_1.maintenanceService.addWorkOrderComment(tenantId, id, request.body);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Comment logged to work order activity trail"));
     }
+    async getReports(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const data = await maintenance_service_js_1.maintenanceService.listReports(tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async getReportsSummary(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const data = await maintenance_service_js_1.maintenanceService.getReportsSummary(tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createReport(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const userId = request.user?.userId;
+        const data = await maintenance_service_js_1.maintenanceService.createReport(tenantId, request.body, userId);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Maintenance report template created successfully"));
+    }
+    async updateReport(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const data = await maintenance_service_js_1.maintenanceService.updateReport(tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Maintenance report template updated successfully"));
+    }
+    async deleteReport(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const data = await maintenance_service_js_1.maintenanceService.deleteReport(tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Maintenance report template deleted successfully"));
+    }
+    async generateReport(request, reply) {
+        const tenantId = request.user?.tenantId;
+        const format = request.body?.format || "CSV";
+        const data = await maintenance_service_js_1.maintenanceService.generateReport(tenantId, request.params.id, format);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Report data generated successfully"));
+    }
 }
 exports.MaintenanceController = MaintenanceController;
 exports.maintenanceController = new MaintenanceController();
-//# sourceMappingURL=maintenance.controller.js.map

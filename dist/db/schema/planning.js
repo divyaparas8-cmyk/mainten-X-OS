@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
+exports.serviceRisks = exports.pmScheduleVersions = exports.promotionCampaigns = exports.purchaseRequisitions = exports.mrpRequirements = exports.apsSchedules = exports.forecasts = exports.customerOrders = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 const masterData_1 = require("./masterData");
@@ -104,4 +104,38 @@ exports.promotionCampaigns = (0, pg_core_1.pgTable)("promotion_campaigns", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=planning.js.map
+exports.pmScheduleVersions = (0, pg_core_1.pgTable)("pm_schedule_versions", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
+    versionId: (0, pg_core_1.varchar)("version_id", { length: 100 }).notNull(),
+    title: (0, pg_core_1.varchar)("title", { length: 255 }).notNull(),
+    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Draft").notNull(),
+    createdBy: (0, pg_core_1.varchar)("created_by", { length: 255 }).default("Elena Rostova (Lead Planner)"),
+    ordersCount: (0, pg_core_1.integer)("orders_count").default(4),
+    totalPlannedHours: (0, pg_core_1.numeric)("total_planned_hours", { precision: 8, scale: 2 }).default("80.00"),
+    utilizationPercent: (0, pg_core_1.numeric)("utilization_percent", { precision: 5, scale: 2 }).default("90.00"),
+    reason: (0, pg_core_1.text)("reason"),
+    changesDescription: (0, pg_core_1.text)("changes_description"),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});
+exports.serviceRisks = (0, pg_core_1.pgTable)("service_risks", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }).notNull(),
+    plantId: (0, pg_core_1.uuid)("plant_id").references(() => tenants_1.plants.id, { onDelete: "cascade" }),
+    riskCode: (0, pg_core_1.varchar)("risk_code", { length: 50 }).notNull(),
+    customer: (0, pg_core_1.varchar)("customer", { length: 255 }).notNull(),
+    orderRef: (0, pg_core_1.varchar)("order_ref", { length: 100 }),
+    riskTitle: (0, pg_core_1.text)("risk_title").notNull(),
+    potentialPenalty: (0, pg_core_1.varchar)("potential_penalty", { length: 255 }),
+    financialExposure: (0, pg_core_1.numeric)("financial_exposure", { precision: 12, scale: 2 }).default("0.00"),
+    severity: (0, pg_core_1.varchar)("severity", { length: 50 }).default("High Risk"),
+    impact: (0, pg_core_1.text)("impact"),
+    recommendation: (0, pg_core_1.text)("recommendation"),
+    isMitigated: (0, pg_core_1.boolean)("is_mitigated").default(false),
+    mitigatedAt: (0, pg_core_1.timestamp)("mitigated_at"),
+    mitigatedBy: (0, pg_core_1.varchar)("mitigated_by", { length: 255 }),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+});

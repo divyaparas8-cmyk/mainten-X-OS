@@ -64,4 +64,3 @@ async function iotRoutes(fastify) {
         }, iot_controller_js_1.iotController.stopSimulator.bind(iot_controller_js_1.iotController));
     });
 }
-//# sourceMappingURL=iot.routes.js.map

@@ -98,4 +98,3 @@ async function buildApp() {
     }
     return app;
 }
-//# sourceMappingURL=app.js.map

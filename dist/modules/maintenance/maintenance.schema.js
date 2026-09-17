@@ -64,4 +64,3 @@ exports.updateWorkOrderStatusSchema = zod_1.z.object({
     }, zod_1.z.string().min(1).default("OPEN")),
     actualHours: zod_1.z.coerce.number().optional(),
 });
-//# sourceMappingURL=maintenance.schema.js.map

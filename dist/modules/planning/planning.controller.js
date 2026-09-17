@@ -55,6 +55,18 @@ class PlanningController {
         const data = await planning_service_js_1.planningService.listDemandHistory(request.user.tenantId, request.user.plantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
+    async createDemandHistory(request, reply) {
+        const data = await planning_service_js_1.planningService.createDemandHistory(request.user.tenantId, request.body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Demand history record created successfully"));
+    }
+    async updateDemandHistory(request, reply) {
+        const data = await planning_service_js_1.planningService.updateDemandHistory(request.user.tenantId, request.params.id, request.body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Demand history record updated successfully"));
+    }
+    async deleteDemandHistory(request, reply) {
+        const data = await planning_service_js_1.planningService.deleteDemandHistory(request.user.tenantId, request.params.id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Demand history record deleted successfully"));
+    }
     // Promotions & Uplift
     async getPromotions(request, reply) {
         const data = await planning_service_js_1.planningService.listPromotions(request.user.tenantId, request.user.plantId);
@@ -387,7 +399,21 @@ class PlanningController {
         });
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Recovery plan calculated & applied"));
     }
+    // ─── Processing Batches ───────────────────────────────────────────────────
+    async getProcessingBatches(request, reply) {
+        const data = await planning_service_js_1.planningService.getProcessingBatches(request.user.tenantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createProcessingBatch(request, reply) {
+        const body = request.body || {};
+        const data = await planning_service_js_1.planningService.createProcessingBatch(request.user.tenantId, request.user.plantId || "83c90534-4761-495c-b2bf-6a61de2260c4", body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async linkBatchToPackagingOrder(request, reply) {
+        const body = request.body || {};
+        const data = await planning_service_js_1.planningService.linkBatchToPackagingOrder(body.batchId, body.productionOrderId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
 }
 exports.PlanningController = PlanningController;
 exports.planningController = new PlanningController();
-//# sourceMappingURL=planning.controller.js.map

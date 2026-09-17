@@ -51,4 +51,3 @@ class BillingController {
 }
 exports.BillingController = BillingController;
 exports.billingController = new BillingController();
-//# sourceMappingURL=billing.controller.js.map

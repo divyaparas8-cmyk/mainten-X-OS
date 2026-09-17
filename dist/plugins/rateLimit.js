@@ -13,4 +13,3 @@ exports.default = (0, fastify_plugin_1.default)(async (fastify) => {
         allowList: ["127.0.0.1", "localhost"],
     });
 });
-//# sourceMappingURL=rateLimit.js.map

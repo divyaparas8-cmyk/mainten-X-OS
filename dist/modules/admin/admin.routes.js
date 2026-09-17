@@ -490,4 +490,3 @@ async function adminRoutes(fastify) {
         },
     }, admin_controller_js_1.adminController.exportSystemReport.bind(admin_controller_js_1.adminController));
 }
-//# sourceMappingURL=admin.routes.js.map

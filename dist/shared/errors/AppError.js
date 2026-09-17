@@ -51,4 +51,3 @@ class BusinessRuleError extends AppError {
     }
 }
 exports.BusinessRuleError = BusinessRuleError;
-//# sourceMappingURL=AppError.js.map

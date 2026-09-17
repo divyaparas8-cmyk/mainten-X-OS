@@ -120,4 +120,3 @@ async function qualityRoutes(fastify) {
     fastify.post("/profile/update", { schema: { tags: ["Quality & QMS"], summary: "Update QA Lead Profile Credentials" } }, quality_controller_js_1.qualityController.updateQualityProfile.bind(quality_controller_js_1.qualityController));
     fastify.post("/profile/verify-cert", { schema: { tags: ["Quality & QMS"], summary: "Verify QA Certification with GFSI / SQF Registry" } }, quality_controller_js_1.qualityController.verifyQualityCert.bind(quality_controller_js_1.qualityController));
 }
-//# sourceMappingURL=quality.routes.js.map

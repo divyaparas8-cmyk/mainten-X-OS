@@ -25,4 +25,3 @@ function calculateExponentialSmoothingForecast(input) {
         mapeAccuracy: 94.6,
     };
 }
-//# sourceMappingURL=forecastEngine.js.map

@@ -44,4 +44,3 @@ class OpcUaAdapter {
     }
 }
 exports.OpcUaAdapter = OpcUaAdapter;
-//# sourceMappingURL=opcua.adapter.js.map

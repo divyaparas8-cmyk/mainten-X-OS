@@ -23,4 +23,3 @@ class TraceabilityController {
 }
 exports.TraceabilityController = TraceabilityController;
 exports.traceabilityController = new TraceabilityController();
-//# sourceMappingURL=traceability.controller.js.map

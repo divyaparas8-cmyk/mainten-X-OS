@@ -107,4 +107,3 @@ class SimulatorAdapter {
     }
 }
 exports.SimulatorAdapter = SimulatorAdapter;
-//# sourceMappingURL=simulator.adapter.js.map

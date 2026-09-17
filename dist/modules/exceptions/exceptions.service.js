@@ -7,16 +7,20 @@ class ExceptionsService {
         const client = await database_js_1.pool.connect();
         try {
             let query = `
-        SELECT id, title, severity, category, 
+        SELECT id, title, severity, category, stage,
                asset_or_order as "assetOrOrder", 
                impact_description as "impactDescription",
                owner, escalation_level as "escalationLevel",
                status, resolution_notes as "resolutionNotes",
                resolved_at as "resolvedAt", created_at as "createdAt"
         FROM pm_exceptions
-        WHERE (plant_id = $1 OR $1 IS NULL)
+        WHERE 1=1
       `;
-            const params = [plantId || 'PLT-01'];
+            const params = [];
+            if (plantId && plantId !== 'ALL' && plantId !== 'PLT-01') {
+                params.push(plantId);
+                query += ` AND plant_id = $${params.length}`;
+            }
             if (severity && severity !== 'ALL') {
                 params.push(severity);
                 query += ` AND severity = $${params.length}`;
@@ -37,7 +41,7 @@ class ExceptionsService {
         const client = await database_js_1.pool.connect();
         try {
             const res = await client.query(`
-        SELECT id, title, severity, category, 
+        SELECT id, title, severity, category, stage,
                asset_or_order as "assetOrOrder", 
                impact_description as "impactDescription",
                owner, escalation_level as "escalationLevel",
@@ -58,15 +62,16 @@ class ExceptionsService {
             const countRes = await client.query(`SELECT count(*) FROM pm_exceptions;`);
             const newId = `EX-2026-${100 + Number(countRes.rows[0].count) + 1}`;
             const res = await client.query(`
-        INSERT INTO pm_exceptions (id, plant_id, title, severity, category, asset_or_order, impact_description, owner, escalation_level, status)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active')
-        RETURNING id, title, severity, category, asset_or_order as "assetOrOrder", impact_description as "impactDescription", owner, escalation_level as "escalationLevel", status;
+        INSERT INTO pm_exceptions (id, plant_id, title, severity, category, stage, asset_or_order, impact_description, owner, escalation_level, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'Active')
+        RETURNING id, title, severity, category, stage, asset_or_order as "assetOrOrder", impact_description as "impactDescription", owner, escalation_level as "escalationLevel", status;
       `, [
                 newId,
                 input.plantId || 'PLT-01',
                 input.title,
                 input.severity || 'P2',
                 input.category || 'Equipment Stoppage',
+                input.stage || 'PACKAGING',
                 input.assetOrOrder || '',
                 input.impactDescription || input.title,
                 input.owner || 'Unassigned',
@@ -117,4 +122,3 @@ class ExceptionsService {
 }
 exports.ExceptionsService = ExceptionsService;
 exports.exceptionsService = new ExceptionsService();
-//# sourceMappingURL=exceptions.service.js.map

@@ -47,4 +47,3 @@ async function main() {
     console.log(JSON.stringify(postData?.data || postData, null, 2));
 }
 main().catch(console.error);
-//# sourceMappingURL=test-bom-update.js.map

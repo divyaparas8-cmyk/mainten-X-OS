@@ -57,5 +57,10 @@ async function maintenanceRoutes(fastify) {
     fastify.get("/rca/investigations", { schema: { tags: ["Maintenance & CMMS"], summary: "List RCA Investigations" } }, maintenance_controller_js_1.maintenanceController.getRCAInvestigations.bind(maintenance_controller_js_1.maintenanceController));
     fastify.post("/rca/investigations", { schema: { tags: ["Maintenance & CMMS"], summary: "Create RCA Investigation" } }, maintenance_controller_js_1.maintenanceController.createRCAInvestigation.bind(maintenance_controller_js_1.maintenanceController));
     fastify.post("/reliability/export", { schema: { tags: ["Maintenance & CMMS"], summary: "Export Reliability Report" } }, maintenance_controller_js_1.maintenanceController.exportReliabilityReport.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.get("/reports", { schema: { tags: ["Maintenance & CMMS"], summary: "List Maintenance Report Templates" } }, maintenance_controller_js_1.maintenanceController.getReports.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.get("/reports/summary", { schema: { tags: ["Maintenance & CMMS"], summary: "Get Maintenance Reports Summary Metrics" } }, maintenance_controller_js_1.maintenanceController.getReportsSummary.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.post("/reports", { schema: { tags: ["Maintenance & CMMS"], summary: "Create Maintenance Report Template" } }, maintenance_controller_js_1.maintenanceController.createReport.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.put("/reports/:id", { schema: { tags: ["Maintenance & CMMS"], summary: "Update Maintenance Report Template" } }, maintenance_controller_js_1.maintenanceController.updateReport.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.delete("/reports/:id", { schema: { tags: ["Maintenance & CMMS"], summary: "Delete Maintenance Report Template" } }, maintenance_controller_js_1.maintenanceController.deleteReport.bind(maintenance_controller_js_1.maintenanceController));
+    fastify.post("/reports/:id/generate", { schema: { tags: ["Maintenance & CMMS"], summary: "Generate Live Maintenance Report Data & Export" } }, maintenance_controller_js_1.maintenanceController.generateReport.bind(maintenance_controller_js_1.maintenanceController));
 }
-//# sourceMappingURL=maintenance.routes.js.map

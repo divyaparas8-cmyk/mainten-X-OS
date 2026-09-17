@@ -211,4 +211,3 @@ class MachineDataService {
 }
 exports.MachineDataService = MachineDataService;
 exports.machineDataService = new MachineDataService();
-//# sourceMappingURL=machineData.service.js.map

@@ -77,4 +77,3 @@ async function testAllServices() {
     await database_js_1.pool.end();
 }
 testAllServices().catch(console.error);
-//# sourceMappingURL=test-services.js.map

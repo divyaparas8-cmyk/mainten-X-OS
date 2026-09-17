@@ -17,4 +17,3 @@ function calculateOEE(input) {
         overallOEEPercent: Number((overallOEE * 100).toFixed(1)),
     };
 }
-//# sourceMappingURL=oeeEngine.js.map

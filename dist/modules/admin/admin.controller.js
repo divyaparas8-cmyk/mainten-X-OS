@@ -456,4 +456,3 @@ class AdminController {
 }
 exports.AdminController = AdminController;
 exports.adminController = new AdminController();
-//# sourceMappingURL=admin.controller.js.map

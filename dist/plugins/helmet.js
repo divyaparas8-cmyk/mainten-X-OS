@@ -11,4 +11,3 @@ exports.default = (0, fastify_plugin_1.default)(async (fastify) => {
         crossOriginResourcePolicy: { policy: "cross-origin" },
     });
 });
-//# sourceMappingURL=helmet.js.map

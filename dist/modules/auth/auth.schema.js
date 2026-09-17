@@ -23,4 +23,3 @@ exports.digitalSignOffSchema = zod_1.z.object({
     meaning: zod_1.z.string().default("DIGITAL_SIGN_OFF"),
     comments: zod_1.z.string().optional(),
 });
-//# sourceMappingURL=auth.schema.js.map

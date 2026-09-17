@@ -35,4 +35,3 @@ async function runMigration() {
     }
 }
 runMigration();
-//# sourceMappingURL=migrate-promotions.js.map

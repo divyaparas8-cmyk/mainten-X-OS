@@ -57,4 +57,3 @@ exports.createRoutingSchema = zod_1.z.object({
     steps: zod_1.z.array(exports.routingStepSchema).optional().default([]),
 });
 exports.updateRoutingSchema = exports.createRoutingSchema.partial();
-//# sourceMappingURL=masterData.schema.js.map

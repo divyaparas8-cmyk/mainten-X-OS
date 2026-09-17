@@ -47,4 +47,3 @@ async function executiveRoutes(fastify) {
     fastify.get("/profile", { schema: { tags: ["Executive"], summary: "Get Executive User Profile" } }, executive_controller_js_1.executiveController.getProfile.bind(executive_controller_js_1.executiveController));
     fastify.put("/profile", { schema: { tags: ["Executive"], summary: "Update Executive User Profile" } }, executive_controller_js_1.executiveController.updateProfile.bind(executive_controller_js_1.executiveController));
 }
-//# sourceMappingURL=executive.routes.js.map

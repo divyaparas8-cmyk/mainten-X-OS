@@ -42,4 +42,3 @@ async function authRoutes(fastify) {
         },
     }, auth_controller_js_1.authController.logout.bind(auth_controller_js_1.authController));
 }
-//# sourceMappingURL=auth.routes.js.map

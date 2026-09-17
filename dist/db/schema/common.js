@@ -83,4 +83,3 @@ exports.shiftApprovals = (0, pg_core_1.pgTable)("shift_approvals", {
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
     approvedAt: (0, pg_core_1.timestamp)("approved_at", { withTimezone: true }),
 });
-//# sourceMappingURL=common.js.map

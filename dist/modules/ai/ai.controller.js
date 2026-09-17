@@ -30,4 +30,3 @@ class AIController {
 }
 exports.AIController = AIController;
 exports.aiController = new AIController();
-//# sourceMappingURL=ai.controller.js.map

@@ -122,4 +122,3 @@ class AuthController {
 }
 exports.AuthController = AuthController;
 exports.authController = new AuthController();
-//# sourceMappingURL=auth.controller.js.map

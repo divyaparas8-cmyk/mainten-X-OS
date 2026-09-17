@@ -17,16 +17,16 @@ class CIController {
     // 1. DASHBOARD
     // ============================================================================
     async getDashboardSummary(request, reply) {
-        const plantId = request.query?.plantId;
-        const data = await ci_service_js_1.ciService.getDashboardSummary(plantId);
+        const { plantId, stage } = request.query || {};
+        const data = await ci_service_js_1.ciService.getDashboardSummary(plantId, stage);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     // ============================================================================
     // 2. RCA INVESTIGATIONS
     // ============================================================================
     async getInvestigations(request, reply) {
-        const plantId = request.query?.plantId;
-        const data = await ci_service_js_1.ciService.listInvestigations(plantId);
+        const { plantId, stage } = request.query || {};
+        const data = await ci_service_js_1.ciService.listInvestigations(plantId, stage);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async getInvestigation(request, reply) {
@@ -78,6 +78,11 @@ class CIController {
         const data = await ci_service_js_1.ciService.createEvidence(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Evidence logged successfully"));
     }
+    async updateEvidence(request, reply) {
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateEvidence(request.params.id, request.body, ctx);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Evidence updated"));
+    }
     async deleteEvidence(request, reply) {
         const ctx = this.getUserContext(request);
         const data = await ci_service_js_1.ciService.deleteEvidence(request.params.id, ctx);
@@ -122,6 +127,11 @@ class CIController {
         const data = await ci_service_js_1.ciService.createCapaAction(request.body, ctx);
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "CAPA Action created successfully"));
     }
+    async updateCapaAction(request, reply) {
+        const ctx = this.getUserContext(request);
+        const data = await ci_service_js_1.ciService.updateCapaAction(request.params.id, request.body, ctx);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "CAPA Action updated successfully"));
+    }
     async updateCapaStatus(request, reply) {
         const { status, completionDate, evidenceNotes } = request.body || {};
         if (!status) {
@@ -146,8 +156,8 @@ class CIController {
     // 6. LOSS ANALYSIS
     // ============================================================================
     async getLosses(request, reply) {
-        const { plantId, category } = request.query || {};
-        const data = await ci_service_js_1.ciService.listLosses(plantId, category);
+        const { plantId, category, stage } = request.query || {};
+        const data = await ci_service_js_1.ciService.listLosses(plantId, category, stage);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async createLoss(request, reply) {
@@ -274,8 +284,8 @@ class CIController {
     // 11. RELIABILITY & BAD ACTORS
     // ============================================================================
     async getReliabilityRecords(request, reply) {
-        const { plantId, onlyBadActors } = request.query || {};
-        const data = await ci_service_js_1.ciService.listReliabilityRecords(plantId, onlyBadActors === "true");
+        const { plantId, onlyBadActors, stage } = request.query || {};
+        const data = await ci_service_js_1.ciService.listReliabilityRecords(plantId, onlyBadActors === "true", stage);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async launchRcaFromBadActor(request, reply) {
@@ -286,4 +296,3 @@ class CIController {
 }
 exports.CIController = CIController;
 exports.ciController = new CIController();
-//# sourceMappingURL=ci.controller.js.map

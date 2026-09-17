@@ -74,4 +74,3 @@ async function verifyBackendRoutings() {
     }
 }
 verifyBackendRoutings();
-//# sourceMappingURL=test-routings-api.js.map

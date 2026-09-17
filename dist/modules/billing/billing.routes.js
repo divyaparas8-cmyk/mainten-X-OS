@@ -41,4 +41,3 @@ async function billingRoutes(fastify) {
         }, billing_controller_js_1.billingController.getSubscription.bind(billing_controller_js_1.billingController));
     });
 }
-//# sourceMappingURL=billing.routes.js.map

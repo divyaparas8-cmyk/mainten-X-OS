@@ -200,4 +200,3 @@ async function masterDataRoutes(fastify) {
     fastify.put("/employees/:id", { schema: { tags: ["Master Data"], summary: "Update Employee Record" } }, masterData_controller_js_1.masterDataController.updateEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
     fastify.delete("/employees/:id", { schema: { tags: ["Master Data"], summary: "Delete Employee Record" } }, masterData_controller_js_1.masterDataController.deleteEmployeeSkill.bind(masterData_controller_js_1.masterDataController));
 }
-//# sourceMappingURL=masterData.routes.js.map

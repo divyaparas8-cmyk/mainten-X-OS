@@ -42,4 +42,3 @@ exports.iotGateways = (0, pg_core_1.pgTable)("iot_gateways", {
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
-//# sourceMappingURL=iot.js.map

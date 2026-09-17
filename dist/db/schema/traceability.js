@@ -29,4 +29,3 @@ exports.recallEvents = (0, pg_core_1.pgTable)("recall_events", {
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SIMULATION_COMPLETED").notNull(), // "SIMULATION_COMPLETED", "FORMAL_RECALL_ACTIVE", "CLOSED"
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=traceability.js.map

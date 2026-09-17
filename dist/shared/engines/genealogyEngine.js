@@ -77,4 +77,3 @@ function buildSampleTraceabilityTree(lotNumber) {
         ],
     };
 }
-//# sourceMappingURL=genealogyEngine.js.map

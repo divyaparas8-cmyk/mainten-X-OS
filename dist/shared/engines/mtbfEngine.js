@@ -14,4 +14,3 @@ function calculateReliability(input) {
         availabilityPercent: availability,
     };
 }
-//# sourceMappingURL=mtbfEngine.js.map

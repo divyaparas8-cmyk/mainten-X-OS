@@ -60,4 +60,3 @@ async function masterRoutes(fastify) {
     fastify.get("/settings", master_controller_js_1.masterAdminController.getSettings.bind(master_controller_js_1.masterAdminController));
     fastify.put("/settings", master_controller_js_1.masterAdminController.updateSettings.bind(master_controller_js_1.masterAdminController));
 }
-//# sourceMappingURL=master.routes.js.map

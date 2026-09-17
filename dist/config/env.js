@@ -57,4 +57,3 @@ if (!parsedEnv.success) {
     process.exit(1);
 }
 exports.env = parsedEnv.data;
-//# sourceMappingURL=env.js.map

@@ -21,4 +21,3 @@ main().catch((err) => {
     console.error("Error:", err);
     process.exit(1);
 });
-//# sourceMappingURL=clean-dummy-tickets.js.map

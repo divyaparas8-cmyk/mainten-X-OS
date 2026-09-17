@@ -14,6 +14,7 @@ exports.pmHbLogs = (0, pg_core_1.pgTable)("pm_hb_logs", {
     actualUnits: (0, pg_core_1.integer)("actual_units").notNull(),
     delta: (0, pg_core_1.integer)("delta").notNull(),
     cumulativeDelta: (0, pg_core_1.integer)("cumulative_delta").notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     varianceReason: (0, pg_core_1.text)("variance_reason"),
     correctiveAction: (0, pg_core_1.text)("corrective_action"),
     shiftCode: (0, pg_core_1.varchar)("shift_code", { length: 50 }).default("Shift A").notNull(),
@@ -107,6 +108,7 @@ exports.pmMachineTelemetry = (0, pg_core_1.pgTable)("pm_machine_telemetry", {
     machineCode: (0, pg_core_1.varchar)("machine_code", { length: 100 }).notNull(),
     name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
     lineId: (0, pg_core_1.varchar)("line_id", { length: 100 }).notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("RUNNING").notNull(), // "RUNNING", "STOPPED", "CHANGEOVER", "MAINTENANCE"
     speedBph: (0, pg_core_1.integer)("speed_bph").default(4200).notNull(),
     ratedSpeedBph: (0, pg_core_1.integer)("rated_speed_bph").default(4500).notNull(),
@@ -118,6 +120,7 @@ exports.pmMachineTelemetry = (0, pg_core_1.pgTable)("pm_machine_telemetry", {
     efficiencyPercent: (0, pg_core_1.numeric)("efficiency_percent", { precision: 5, scale: 2 }).default("94.20").notNull(),
     currentOrder: (0, pg_core_1.varchar)("current_order", { length: 100 }).default("PO-2026-001"),
     operator: (0, pg_core_1.varchar)("operator", { length: 255 }).default("Rajesh Sharma"),
+    processParameters: (0, pg_core_1.jsonb)("process_parameters"),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 // 8. Exception Control Tower Logs
@@ -126,6 +129,7 @@ exports.pmExceptions = (0, pg_core_1.pgTable)("pm_exceptions", {
     tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_js_1.tenants.id, { onDelete: "cascade" }),
     plantId: (0, pg_core_1.varchar)("plant_id", { length: 100 }).default("PLT-01").notNull(),
     title: (0, pg_core_1.varchar)("title", { length: 255 }).notNull(),
+    stage: (0, pg_core_1.varchar)("stage", { length: 50 }).default("PACKAGING").notNull(),
     severity: (0, pg_core_1.varchar)("severity", { length: 50 }).notNull(), // "P1", "P2", "P3", "P4"
     category: (0, pg_core_1.varchar)("category", { length: 100 }).notNull(), // "Equipment Stoppage", "Quality Deviation", etc.
     assetOrOrder: (0, pg_core_1.varchar)("asset_or_order", { length: 255 }),
@@ -138,4 +142,3 @@ exports.pmExceptions = (0, pg_core_1.pgTable)("pm_exceptions", {
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
-//# sourceMappingURL=plantManager.js.map

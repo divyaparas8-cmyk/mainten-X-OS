@@ -21,4 +21,3 @@ var database_js_1 = require("../config/database.js");
 Object.defineProperty(exports, "db", { enumerable: true, get: function () { return database_js_1.db; } });
 Object.defineProperty(exports, "pool", { enumerable: true, get: function () { return database_js_1.pool; } });
 Object.defineProperty(exports, "checkDatabaseConnection", { enumerable: true, get: function () { return database_js_1.checkDatabaseConnection; } });
-//# sourceMappingURL=index.js.map

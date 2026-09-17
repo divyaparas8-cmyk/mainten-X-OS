@@ -99,4 +99,3 @@ exports.systemGovernanceReports = (0, pg_core_1.pgTable)("system_governance_repo
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow(),
 });
-//# sourceMappingURL=datahealth.js.map

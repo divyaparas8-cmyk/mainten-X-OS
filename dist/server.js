@@ -100,4 +100,3 @@ async function start() {
     }
 }
 start();
-//# sourceMappingURL=server.js.map

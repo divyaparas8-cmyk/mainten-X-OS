@@ -48,4 +48,3 @@ exports.paymentWebhooks = (0, pg_core_1.pgTable)("payment_webhooks", {
     processedAt: (0, pg_core_1.timestamp)("processed_at", { withTimezone: true }).defaultNow().notNull(),
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
-//# sourceMappingURL=billing.js.map

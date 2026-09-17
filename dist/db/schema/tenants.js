@@ -43,4 +43,3 @@ exports.departments = (0, pg_core_1.pgTable)("departments", {
     isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
-//# sourceMappingURL=tenants.js.map

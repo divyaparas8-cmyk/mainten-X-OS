@@ -179,4 +179,3 @@ if (process.argv[1]?.includes("migrate-quality-checks")) {
         process.exit(1);
     });
 }
-//# sourceMappingURL=migrate-quality-checks.js.map

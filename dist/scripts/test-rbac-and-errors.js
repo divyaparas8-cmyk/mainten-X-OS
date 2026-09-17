@@ -159,4 +159,3 @@ async function testRbacAndErrors() {
     process.exit(0);
 }
 testRbacAndErrors().catch(console.error);
-//# sourceMappingURL=test-rbac-and-errors.js.map

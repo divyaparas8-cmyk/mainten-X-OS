@@ -47,4 +47,3 @@ class TraceabilityService {
 }
 exports.TraceabilityService = TraceabilityService;
 exports.traceabilityService = new TraceabilityService();
-//# sourceMappingURL=traceability.service.js.map

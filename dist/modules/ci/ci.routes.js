@@ -28,6 +28,7 @@ async function ciRoutes(fastify) {
     // 4. Evidence Locker
     fastify.get("/rca/evidence", { schema: { tags: ["RCA 2.0"], summary: "List RCA Evidence Items" } }, ci_controller_js_1.ciController.getEvidence.bind(ci_controller_js_1.ciController));
     fastify.post("/rca/evidence", { schema: { tags: ["RCA 2.0"], summary: "Log RCA Evidence Item" } }, ci_controller_js_1.ciController.createEvidence.bind(ci_controller_js_1.ciController));
+    fastify.put("/rca/evidence/:id", { schema: { tags: ["RCA 2.0"], summary: "Update RCA Evidence Item" } }, ci_controller_js_1.ciController.updateEvidence.bind(ci_controller_js_1.ciController));
     fastify.delete("/rca/evidence/:id", { schema: { tags: ["RCA 2.0"], summary: "Delete RCA Evidence Item" } }, ci_controller_js_1.ciController.deleteEvidence.bind(ci_controller_js_1.ciController));
     // 5. Hypotheses & Validation Tests
     fastify.get("/rca/hypotheses", { schema: { tags: ["RCA 2.0"], summary: "List RCA Hypotheses" } }, ci_controller_js_1.ciController.getHypotheses.bind(ci_controller_js_1.ciController));
@@ -37,6 +38,7 @@ async function ciRoutes(fastify) {
     // 6. CAPA Action Items
     fastify.get("/capa/actions", { schema: { tags: ["CAPA"], summary: "List CAPA Actions" } }, ci_controller_js_1.ciController.getCapaActions.bind(ci_controller_js_1.ciController));
     fastify.post("/capa/actions", { schema: { tags: ["CAPA"], summary: "Create CAPA Action" } }, ci_controller_js_1.ciController.createCapaAction.bind(ci_controller_js_1.ciController));
+    fastify.put("/capa/actions/:id", { schema: { tags: ["CAPA"], summary: "Update CAPA Action" } }, ci_controller_js_1.ciController.updateCapaAction.bind(ci_controller_js_1.ciController));
     fastify.patch("/capa/actions/:id/status", { schema: { tags: ["CAPA"], summary: "Update CAPA Action Status" } }, ci_controller_js_1.ciController.updateCapaStatus.bind(ci_controller_js_1.ciController));
     fastify.post("/capa/actions/:id/verify", { schema: { tags: ["CAPA"], summary: "Verify CAPA Effectiveness" } }, ci_controller_js_1.ciController.verifyCapaEffectiveness.bind(ci_controller_js_1.ciController));
     fastify.delete("/capa/actions/:id", { schema: { tags: ["CAPA"], summary: "Delete CAPA Action" } }, ci_controller_js_1.ciController.deleteCapaAction.bind(ci_controller_js_1.ciController));
@@ -62,4 +64,3 @@ async function ciRoutes(fastify) {
     fastify.get("/reliability", { schema: { tags: ["Reliability"], summary: "List Reliability & Bad Actor Records" } }, ci_controller_js_1.ciController.getReliabilityRecords.bind(ci_controller_js_1.ciController));
     fastify.post("/reliability/:assetId/launch-rca", { schema: { tags: ["Reliability"], summary: "Launch Systematic RCA from Bad Actor Asset" } }, ci_controller_js_1.ciController.launchRcaFromBadActor.bind(ci_controller_js_1.ciController));
 }
-//# sourceMappingURL=ci.routes.js.map

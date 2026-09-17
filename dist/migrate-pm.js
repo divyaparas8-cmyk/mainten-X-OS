@@ -171,4 +171,3 @@ migratePM().catch((err) => {
     console.error(err);
     process.exit(1);
 });
-//# sourceMappingURL=migrate-pm.js.map

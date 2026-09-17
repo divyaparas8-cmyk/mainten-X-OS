@@ -224,4 +224,3 @@ async function migrateCI() {
 migrateCI()
     .then(() => process.exit(0))
     .catch(() => process.exit(1));
-//# sourceMappingURL=migrate-ci.js.map

@@ -510,4 +510,3 @@ class MasterDataController {
 }
 exports.MasterDataController = MasterDataController;
 exports.masterDataController = new MasterDataController();
-//# sourceMappingURL=masterData.controller.js.map

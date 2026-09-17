@@ -42,4 +42,3 @@ class ExceptionsController {
 }
 exports.ExceptionsController = ExceptionsController;
 exports.exceptionsController = new ExceptionsController();
-//# sourceMappingURL=exceptions.controller.js.map

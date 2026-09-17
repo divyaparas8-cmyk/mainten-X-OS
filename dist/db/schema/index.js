@@ -33,4 +33,3 @@ __exportStar(require("./masterAdmin.js"), exports);
 __exportStar(require("./integrations.js"), exports);
 __exportStar(require("./datahealth.js"), exports);
 __exportStar(require("../relations.js"), exports);
-//# sourceMappingURL=index.js.map

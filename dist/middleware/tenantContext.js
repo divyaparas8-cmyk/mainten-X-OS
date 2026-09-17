@@ -8,4 +8,3 @@ async function tenantContext(request, reply) {
         throw new AppError_js_1.UnauthorizedError("Tenant context missing from session");
     }
 }
-//# sourceMappingURL=tenantContext.js.map

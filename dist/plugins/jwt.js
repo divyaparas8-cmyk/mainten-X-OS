@@ -14,4 +14,3 @@ exports.default = (0, fastify_plugin_1.default)(async (fastify) => {
         },
     });
 });
-//# sourceMappingURL=jwt.js.map

@@ -45,4 +45,3 @@ class ModbusAdapter {
     }
 }
 exports.ModbusAdapter = ModbusAdapter;
-//# sourceMappingURL=modbus.adapter.js.map

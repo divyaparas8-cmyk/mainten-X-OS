@@ -75,4 +75,3 @@ async function searchRoutes(fastify) {
         return reply.send((0, responseFormatter_js_1.formatSuccess)(matches));
     });
 }
-//# sourceMappingURL=search.routes.js.map

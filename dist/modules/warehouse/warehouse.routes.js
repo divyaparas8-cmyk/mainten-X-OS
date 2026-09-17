@@ -150,4 +150,3 @@ async function warehouseRoutes(fastify) {
     fastify.post("/profile/certifications/toggle", { schema: { tags: ["Warehouse & Profile"], summary: "Toggle Warehouse Certification Status" } }, warehouse_controller_js_1.warehouseController.toggleWarehouseCertification.bind(warehouse_controller_js_1.warehouseController));
     fastify.post("/profile/certifications/:id/toggle", { schema: { tags: ["Warehouse & Profile"], summary: "Toggle Specific Certification Status" } }, warehouse_controller_js_1.warehouseController.toggleWarehouseCertification.bind(warehouse_controller_js_1.warehouseController));
 }
-//# sourceMappingURL=warehouse.routes.js.map

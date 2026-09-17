@@ -42,4 +42,3 @@ class MqttAdapter {
     }
 }
 exports.MqttAdapter = MqttAdapter;
-//# sourceMappingURL=mqtt.adapter.js.map

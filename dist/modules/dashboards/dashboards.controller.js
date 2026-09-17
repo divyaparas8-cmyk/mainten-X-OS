@@ -35,7 +35,37 @@ class DashboardsController {
     async proposeLineSpeedUp(request, reply) {
         const body = request.body;
         const data = await dashboards_service_js_1.dashboardsService.proposeLineSpeedUp(request.user.tenantId, body);
-        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Speed-up proposal submitted for supervisor approval."));
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Line speed proposal submitted to Supervisor."));
+    }
+    async logBatchWeighing(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.logBatchIngredientWeighing(request.user.tenantId, body || {});
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async advanceRecipeStep(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.advanceRecipeStep(request.user.tenantId, body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async logCcpCheck(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.logCcpCheck(request.user.tenantId, body || {});
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async saveLineClearance(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.saveLineClearance(request.user.tenantId, body || {});
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async saveSealVerification(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.saveSealVerification(request.user.tenantId, body || {});
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async logWipConsumption(request, reply) {
+        const body = request.body;
+        const data = await dashboards_service_js_1.dashboardsService.logWipConsumption(request.user.tenantId, body || {});
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // Plant Manager Command Center
     async getCommandCenter(request, reply) {
@@ -137,6 +167,16 @@ class DashboardsController {
     async getStaffingRoster(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.getStaffingRoster(request.user.tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async addStaffOperator(request, reply) {
+        const body = request.body || {};
+        const data = await dashboards_service_js_1.dashboardsService.addStaffOperator(request.user.tenantId, body);
+        return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async deleteStaffOperator(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteStaffOperator(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async swapStaffingStations(request, reply) {
         const body = request.body || {};
@@ -279,7 +319,8 @@ class DashboardsController {
     }
     // ─── Operator Work Instructions & SOPs ─────────────────────────────────────
     async getWorkInstructions(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getWorkInstructions(request.user.tenantId);
+        const { orderNumber } = request.query || {};
+        const data = await dashboards_service_js_1.dashboardsService.getWorkInstructions(request.user.tenantId, orderNumber);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async acknowledgeWorkInstructions(request, reply) {
@@ -289,7 +330,8 @@ class DashboardsController {
     }
     // ─── Operator Production Entry ─────────────────────────────────────────────
     async getProductionEntryStatus(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getProductionEntryStatus(request.user.tenantId);
+        const { orderNumber } = request.query || {};
+        const data = await dashboards_service_js_1.dashboardsService.getProductionEntryStatus(request.user.tenantId, orderNumber);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async submitProductionLog(request, reply) {
@@ -352,6 +394,11 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.confirmMaterialReceipt(request.user.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    async deleteMaterialRequisition(request, reply) {
+        const { id } = request.params;
+        const data = await dashboards_service_js_1.dashboardsService.deleteMaterialRequisition(request.user.tenantId, id);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
     // ─── Operator Barcode & QR Scan ─────────────────────────────────────────────
     async getBarcodeScanStatus(request, reply) {
         const data = await dashboards_service_js_1.dashboardsService.getBarcodeScanStatus(request.user.tenantId);
@@ -369,27 +416,32 @@ class DashboardsController {
     }
     // ─── Operator Report Issue & Safety Exception ──────────────────────────────
     async getReportIssueStatus(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getReportIssueStatus(request.user.tenantId);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.getReportIssueStatus(tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async submitReportIssue(request, reply) {
         const body = request.body || {};
-        const data = await dashboards_service_js_1.dashboardsService.submitReportIssue(request.user.tenantId, body);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.submitReportIssue(tenantId, body);
         return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async triggerEmergencyCall(request, reply) {
         const body = request.body || {};
-        const data = await dashboards_service_js_1.dashboardsService.triggerEmergencyCall(request.user.tenantId, body);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.triggerEmergencyCall(tenantId, body);
         return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Operator Shift Handoff ─────────────────────────────────────────────────
     async getShiftHandoffs(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.getShiftHandoffs(request.user.tenantId);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.getShiftHandoffs(tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
     async submitShiftHandoff(request, reply) {
         const body = request.body || {};
-        const data = await dashboards_service_js_1.dashboardsService.submitShiftHandoff(request.user.tenantId, body);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.submitShiftHandoff(tenantId, body);
         return reply.code(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Operator Notifications ─────────────────────────────────────────────────
@@ -399,20 +451,24 @@ class DashboardsController {
     }
     async markOperatorNotificationRead(request, reply) {
         const { id } = request.params;
-        const data = await dashboards_service_js_1.dashboardsService.markOperatorNotificationRead(request.user.tenantId, parseInt(id, 10));
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.markOperatorNotificationRead(tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async markAllOperatorNotificationsRead(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.markAllOperatorNotificationsRead(request.user.tenantId);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.markAllOperatorNotificationsRead(tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async deleteOperatorNotification(request, reply) {
         const { id } = request.params;
-        const data = await dashboards_service_js_1.dashboardsService.deleteOperatorNotification(request.user.tenantId, parseInt(id, 10));
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.deleteOperatorNotification(tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     async clearAllOperatorNotifications(request, reply) {
-        const data = await dashboards_service_js_1.dashboardsService.clearAllOperatorNotifications(request.user.tenantId);
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.clearAllOperatorNotifications(tenantId);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Operator Profile ────────────────────────────────────────────────────────
@@ -785,7 +841,68 @@ class DashboardsController {
         const data = await dashboards_service_js_1.dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
+    // ─── Processing Operator Handlers ─────────────────────────────────────────
+    async advanceProcessingRecipeStep(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.advanceProcessingRecipeStep(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async weighProcessingIngredient(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.weighProcessingIngredient(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async logProcessingParameters(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.logProcessingParameters(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async signoffCcp(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.signoffCcp(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async completeBatchAndCreateWip(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.completeBatchAndCreateWip(tenantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    // ─── Packaging Operator Handlers ──────────────────────────────────────────
+    async selectWipLotForPackaging(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.selectWipLotForPackaging(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async consumePackagingMaterials(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.consumePackagingMaterials(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async logPackagingOutputCases(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.logPackagingOutputCases(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async verifySealAndLabel(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.verifySealAndLabel(tenantId, body);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async finishRunAndCreateFgPallet(request, reply) {
+        const body = request.body || {};
+        const tenantId = request.user?.tenantId || request.user?.tenant_id || "";
+        const data = await dashboards_service_js_1.dashboardsService.finishRunAndCreateFgPallet(tenantId, body);
+        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
 }
 exports.DashboardsController = DashboardsController;
 exports.dashboardsController = new DashboardsController();
-//# sourceMappingURL=dashboards.controller.js.map

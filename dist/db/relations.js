@@ -89,4 +89,3 @@ exports.inventoryTransactionsRelations = (0, drizzle_orm_1.relations)(warehouse_
     lot: one(warehouse_js_1.inventoryLots, { fields: [warehouse_js_1.inventoryTransactions.lotId], references: [warehouse_js_1.inventoryLots.id] }),
     performedByUser: one(users_js_1.users, { fields: [warehouse_js_1.inventoryTransactions.performedBy], references: [users_js_1.users.id] }),
 }));
-//# sourceMappingURL=relations.js.map

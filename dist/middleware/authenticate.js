@@ -109,4 +109,3 @@ async function authenticate(request, _reply) {
         isMasterAdmin: true,
     };
 }
-//# sourceMappingURL=authenticate.js.map

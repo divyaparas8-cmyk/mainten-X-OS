@@ -9,4 +9,3 @@ exports.authConfig = {
     jwtRefreshExpiresIn: env_js_1.env.JWT_REFRESH_EXPIRES_IN,
     bcryptSaltRounds: 10,
 };
-//# sourceMappingURL=auth.js.map

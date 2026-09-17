@@ -292,7 +292,7 @@ exports.batchQualityRecords = (0, pg_core_1.pgTable)("batch_quality_records", {
     recordId: (0, pg_core_1.varchar)("record_id", { length: 50 }).notNull(),
     batch: (0, pg_core_1.varchar)("batch", { length: 100 }).notNull(),
     type: (0, pg_core_1.varchar)("type", { length: 255 }).notNull(),
-    result: (0, pg_core_1.varchar)("status", { length: 50 }).default("PASS"),
+    result: (0, pg_core_1.varchar)("result", { length: 50 }).default("PASS"),
     date: (0, pg_core_1.varchar)("date", { length: 50 }).notNull(),
     officer: (0, pg_core_1.varchar)("officer", { length: 150 }).default("Dr. Rachel Thorne"),
     details: (0, pg_core_1.text)("details").default(""),
@@ -420,4 +420,3 @@ exports.qaCertifications = (0, pg_core_1.pgTable)("qa_certifications", {
     verifiedAt: (0, pg_core_1.timestamp)("verified_at", { withTimezone: true }).defaultNow(),
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
-//# sourceMappingURL=quality.js.map

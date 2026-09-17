@@ -28,4 +28,3 @@ exports.createTransactionSchema = zod_1.z.object({
     referenceId: zod_1.z.string().optional(),
     notes: zod_1.z.string().optional(),
 });
-//# sourceMappingURL=warehouse.schema.js.map

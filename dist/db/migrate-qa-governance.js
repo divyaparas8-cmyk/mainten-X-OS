@@ -246,4 +246,3 @@ async function runQaGovernanceMigration() {
         client.release();
     }
 }
-//# sourceMappingURL=migrate-qa-governance.js.map

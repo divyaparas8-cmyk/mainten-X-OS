@@ -17,4 +17,3 @@ async function main() {
     await pool.end();
 }
 main().catch(console.error);
-//# sourceMappingURL=check-plan-audit.js.map

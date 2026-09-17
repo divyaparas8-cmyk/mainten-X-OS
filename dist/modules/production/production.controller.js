@@ -117,4 +117,3 @@ class ProductionController {
 }
 exports.ProductionController = ProductionController;
 exports.productionController = new ProductionController();
-//# sourceMappingURL=production.controller.js.map

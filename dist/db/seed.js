@@ -345,4 +345,3 @@ async function runDatabaseSeed() {
 if (process.argv[1]?.includes("seed.ts")) {
     runDatabaseSeed().then(() => database_js_1.pool.end());
 }
-//# sourceMappingURL=seed.js.map

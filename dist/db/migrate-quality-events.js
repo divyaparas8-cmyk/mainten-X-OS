@@ -228,4 +228,3 @@ async function runQualityEventsMigration() {
         client.release();
     }
 }
-//# sourceMappingURL=migrate-quality-events.js.map

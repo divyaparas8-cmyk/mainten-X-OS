@@ -12,4 +12,3 @@ main().catch((err) => {
     console.error("Error deleting audit logs:", err);
     process.exit(1);
 });
-//# sourceMappingURL=clear-audit-logs.js.map

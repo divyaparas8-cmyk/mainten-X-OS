@@ -62,4 +62,3 @@ async function checkDatabaseConnection() {
         return false;
     }
 }
-//# sourceMappingURL=database.js.map

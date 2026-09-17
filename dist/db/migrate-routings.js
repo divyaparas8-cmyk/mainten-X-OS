@@ -56,4 +56,3 @@ async function runMigration() {
     }
 }
 runMigration();
-//# sourceMappingURL=migrate-routings.js.map

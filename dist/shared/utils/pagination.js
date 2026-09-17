@@ -25,4 +25,3 @@ function buildPaginationMeta(total, page, limit) {
         totalPages: Math.ceil(total / limit),
     };
 }
-//# sourceMappingURL=pagination.js.map

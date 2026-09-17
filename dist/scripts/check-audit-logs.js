@@ -8,4 +8,3 @@ async function main() {
     await database_js_1.pool.end();
 }
 main().catch(console.error);
-//# sourceMappingURL=check-audit-logs.js.map

@@ -202,60 +202,7 @@ let materialReservationsStore = [
 // Outbound shipments state
 let outboundShipments = [];
 // Historical Demand state
-let demandHistory = [
-    {
-        id: "DH-01",
-        period: "2026-08 (August 2026)",
-        skuId: "SKU-001",
-        productCode: "SKU-5001",
-        productName: "500ml Sparkling Citrus Soda",
-        uom: "Bottles",
-        forecastedVolume: 180000,
-        actualShippedVolume: 184500,
-        variance: "+2.5%",
-        modelAccuracy: "97.5%",
-        otifCompliance: "98.8%"
-    },
-    {
-        id: "DH-02",
-        period: "2026-08 (August 2026)",
-        skuId: "SKU-002",
-        productCode: "SKU-5002",
-        productName: "1L Tonic Water Natural Quinine",
-        uom: "Bottles",
-        forecastedVolume: 95000,
-        actualShippedVolume: 93200,
-        variance: "-1.9%",
-        modelAccuracy: "98.1%",
-        otifCompliance: "99.1%"
-    },
-    {
-        id: "DH-03",
-        period: "2026-07 (July 2026)",
-        skuId: "SKU-001",
-        productCode: "SKU-5001",
-        productName: "500ml Sparkling Citrus Soda",
-        uom: "Bottles",
-        forecastedVolume: 170000,
-        actualShippedVolume: 168000,
-        variance: "-1.2%",
-        modelAccuracy: "98.8%",
-        otifCompliance: "97.4%"
-    },
-    {
-        id: "DH-04",
-        period: "2026-07 (July 2026)",
-        skuId: "SKU-003",
-        productCode: "SKU-5003",
-        productName: "330ml Organic Ginger Beer",
-        uom: "Cans",
-        forecastedVolume: 120000,
-        actualShippedVolume: 126400,
-        variance: "+5.3%",
-        modelAccuracy: "94.7%",
-        otifCompliance: "98.0%"
-    }
-];
+let demandHistory = [];
 // Commercial Promotions state
 let promotionsList = [
     {
@@ -286,6 +233,7 @@ let promotionsList = [
     }
 ];
 class PlanningService {
+    scheduleVersionsStore = [];
     async resolvePlantId(tenantId, plantId) {
         const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(plantId);
         if (isUuid) {
@@ -305,19 +253,28 @@ class PlanningService {
         return anyPlant?.id || "00000000-0000-0000-0000-000000000001";
     }
     async resolveSkuId(tenantId, skuIdOrCode) {
-        const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
-        if (allSkus.length === 0) {
-            const globalSkus = await database_js_1.db.select().from(masterData_js_1.skus).limit(5);
-            if (globalSkus.length > 0)
-                return globalSkus[0];
-            return { id: "00000000-0000-0000-0000-000000000001", skuCode: "SKU-5001", name: "500ml Sparkling Citrus Soda", uom: "Units" };
+        try {
+            const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "aa3183d2-709b-42a8-add1-b2e4b2d873b0";
+            const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id, sku_code, name, uom FROM public.skus WHERE tenant_id = ${validTenant}`);
+            const skuRows = (res.rows || []);
+            if (skuRows.length > 0) {
+                if (skuIdOrCode) {
+                    const matched = skuRows.find(s => s.id === skuIdOrCode || s.sku_code === skuIdOrCode || (s.name && s.name.toLowerCase().includes(skuIdOrCode.toLowerCase())));
+                    if (matched)
+                        return { id: matched.id, skuCode: matched.sku_code, name: matched.name, uom: matched.uom || "Bottles" };
+                }
+                return { id: skuRows[0].id, skuCode: skuRows[0].sku_code, name: skuRows[0].name, uom: skuRows[0].uom || "Bottles" };
+            }
+            const globalRes = await database_js_1.db.execute((0, drizzle_orm_1.sql) `SELECT id, sku_code, name, uom FROM public.skus LIMIT 1`);
+            if (globalRes.rows && globalRes.rows[0]) {
+                const row = globalRes.rows[0];
+                return { id: row.id, skuCode: row.sku_code, name: row.name, uom: row.uom || "Bottles" };
+            }
         }
-        if (skuIdOrCode) {
-            const matched = allSkus.find(s => s.id === skuIdOrCode || s.skuCode === skuIdOrCode || s.name.toLowerCase().includes(skuIdOrCode.toLowerCase()));
-            if (matched)
-                return matched;
+        catch (e) {
+            console.warn("resolveSkuId sql notice:", e.message);
         }
-        return allSkus[0];
+        return { id: "ad766a63-81be-4f2a-8b9c-b86435003a00", skuCode: "SKU-5001", name: "500ml Sparkling Citrus Soda", uom: "Bottles" };
     }
     mapOrderRow(row, skuMap) {
         const sku = skuMap.get(row.skuId);
@@ -740,6 +697,64 @@ class PlanningService {
     async listDemandHistory(tenantId, plantId) {
         return demandHistory;
     }
+    async createDemandHistory(tenantId, input) {
+        const fVol = Number(input.forecastedVolume ?? input.forecastedQty ?? 0);
+        const aVol = Number(input.actualShippedVolume ?? input.actualShippedQty ?? 0);
+        const diff = aVol - fVol;
+        const varVal = fVol > 0 ? (diff / fVol) * 100 : 0;
+        const varianceStr = input.variance || input.variancePercent || `${varVal >= 0 ? "+" : ""}${varVal.toFixed(1)}%`;
+        const accStr = input.modelAccuracy || input.accuracyRate || `${Math.min(100, Math.max(80, 100 - Math.abs(varVal))).toFixed(1)}%`;
+        const newRecord = {
+            id: `DH-${Math.floor(1000 + Math.random() * 9000)}`,
+            period: input.period || "2026-09 (September 2026)",
+            skuId: input.skuId || "SKU-001",
+            productCode: input.productCode || input.skuCode || "SKU-5001",
+            productName: input.productName || "500ml Sparkling Citrus Soda",
+            uom: input.uom || "Bottles",
+            forecastedVolume: fVol,
+            forecastedQty: fVol,
+            actualShippedVolume: aVol,
+            actualShippedQty: aVol,
+            variance: varianceStr,
+            variancePercent: varianceStr,
+            modelAccuracy: accStr,
+            accuracyRate: accStr,
+            otifCompliance: input.otifCompliance || "98.5%",
+            createdAt: new Date().toISOString()
+        };
+        demandHistory = [newRecord, ...demandHistory];
+        return newRecord;
+    }
+    async updateDemandHistory(tenantId, id, input) {
+        demandHistory = demandHistory.map((item) => {
+            if (item.id === id) {
+                const fVol = Number(input.forecastedVolume ?? input.forecastedQty ?? item.forecastedVolume);
+                const aVol = Number(input.actualShippedVolume ?? input.actualShippedQty ?? item.actualShippedVolume);
+                const diff = aVol - fVol;
+                const varVal = fVol > 0 ? (diff / fVol) * 100 : 0;
+                const varianceStr = input.variance || input.variancePercent || `${varVal >= 0 ? "+" : ""}${varVal.toFixed(1)}%`;
+                const accStr = input.modelAccuracy || input.accuracyRate || `${Math.min(100, Math.max(80, 100 - Math.abs(varVal))).toFixed(1)}%`;
+                return {
+                    ...item,
+                    ...input,
+                    forecastedVolume: fVol,
+                    forecastedQty: fVol,
+                    actualShippedVolume: aVol,
+                    actualShippedQty: aVol,
+                    variance: varianceStr,
+                    variancePercent: varianceStr,
+                    modelAccuracy: accStr,
+                    accuracyRate: accStr,
+                };
+            }
+            return item;
+        });
+        return demandHistory.find((item) => item.id === id) || { id, ...input };
+    }
+    async deleteDemandHistory(tenantId, id) {
+        demandHistory = demandHistory.filter((item) => item.id !== id);
+        return { success: true, id };
+    }
     // ============================================================
     // 3. PROMOTIONS & UPLIFT
     // ============================================================
@@ -760,17 +775,34 @@ class PlanningService {
                 name: input.title || input.name || "Campaign",
                 skuId: input.skuId || input.productCode || "SKU-5001",
                 upliftPercent: input.upliftPercent || 10,
-                incrementalUnits: input.projectedUnits || 5000,
+                incrementalUnits: input.incrementalUnits || input.projectedUnits || 5000,
+                duration: input.duration,
                 startDate: input.startDate,
                 endDate: input.endDate,
                 channel: input.channel,
                 status: input.status,
             });
-            if (dbRes)
-                return dbRes;
+            if (dbRes) {
+                const startStr = dbRes.startDate ? new Date(dbRes.startDate).toISOString().slice(0, 10) : "";
+                const endStr = dbRes.endDate ? new Date(dbRes.endDate).toISOString().slice(0, 10) : "";
+                const duration = startStr && endStr ? `${startStr} to ${endStr}` : "Active Horizon";
+                return {
+                    id: dbRes.id,
+                    name: dbRes.name,
+                    title: dbRes.name,
+                    skuId: dbRes.skuId,
+                    upliftPercent: Number(dbRes.upliftPercent) || 0,
+                    incrementalUnits: Number(dbRes.incrementalUnits) || 0,
+                    startDate: dbRes.startDate,
+                    endDate: dbRes.endDate,
+                    duration,
+                    channel: dbRes.channel,
+                    status: dbRes.status,
+                };
+            }
         }
         catch (e) {
-            console.warn("DB createPromotion fallback:", e);
+            console.warn("DB createPromotion fallback error:", e);
         }
         const newPromo = {
             id: `PRM-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -865,6 +897,7 @@ class PlanningService {
         });
     }
     async createPromotionCampaign(tenantId, plantId, input) {
+        const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
         let resolvedSkuId = input.skuId;
         if (!(0, tenantContext_js_1.isValidUuid)(input.skuId)) {
             const [foundSku] = await database_js_1.db
@@ -903,7 +936,7 @@ class PlanningService {
             .insert(planning_js_1.promotionCampaigns)
             .values({
             tenantId,
-            plantId,
+            plantId: resolvedPlant,
             name: input.name,
             skuId: resolvedSkuId,
             upliftPercent: input.upliftPercent.toString(),
@@ -1160,10 +1193,47 @@ class PlanningService {
         };
     }
     async listApsSchedules(tenantId, plantId) {
+        const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "5bce8458-909a-4dd2-b221-614c32ac7c89";
         try {
-            const dbSchedules = await database_js_1.db.select().from(planning_js_1.apsSchedules).where((0, drizzle_orm_1.eq)(planning_js_1.apsSchedules.tenantId, tenantId));
+            const dbSchedules = await database_js_1.db.select().from(planning_js_1.apsSchedules).where((0, drizzle_orm_1.eq)(planning_js_1.apsSchedules.tenantId, validTenant));
             if (dbSchedules && dbSchedules.length > 0) {
                 return dbSchedules;
+            }
+            // If empty, seed initial baseline schedules directly into PostgreSQL DB
+            const resolvedPlant = await this.resolvePlantId(validTenant, plantId);
+            const resolvedSku = await this.resolveSkuId(validTenant);
+            const resolvedLine = await this.resolveLineId(validTenant);
+            const initialApsSeeds = [
+                {
+                    tenantId: validTenant,
+                    plantId: resolvedPlant,
+                    lineId: resolvedLine,
+                    skuId: resolvedSku.id,
+                    startTime: new Date("2026-09-01T06:00:00Z"),
+                    endTime: new Date("2026-09-01T14:00:00Z"),
+                    quantity: "24000.00",
+                    changeoverMinutes: 45,
+                    cipRequired: true,
+                    status: "PUBLISHED",
+                    sequenceNumber: 1
+                },
+                {
+                    tenantId: validTenant,
+                    plantId: resolvedPlant,
+                    lineId: resolvedLine,
+                    skuId: resolvedSku.id,
+                    startTime: new Date("2026-09-01T15:00:00Z"),
+                    endTime: new Date("2026-09-01T23:00:00Z"),
+                    quantity: "32000.00",
+                    changeoverMinutes: 30,
+                    cipRequired: false,
+                    status: "DRAFT",
+                    sequenceNumber: 2
+                }
+            ];
+            const inserted = await database_js_1.db.insert(planning_js_1.apsSchedules).values(initialApsSeeds).returning();
+            if (inserted && inserted.length > 0) {
+                return inserted;
             }
         }
         catch (err) {
@@ -1171,8 +1241,30 @@ class PlanningService {
         }
         return apsSchedulesStore;
     }
+    async resolveLineId(tenantId, lineIdOrCode) {
+        const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        try {
+            const allLines = await database_js_1.db.select({ id: masterData_js_1.productionLines.id, name: masterData_js_1.productionLines.name }).from(masterData_js_1.productionLines).where((0, drizzle_orm_1.eq)(masterData_js_1.productionLines.tenantId, validTenant));
+            if (allLines.length > 0) {
+                if (lineIdOrCode) {
+                    const matched = allLines.find(l => l.id === lineIdOrCode || l.name.toLowerCase().includes(lineIdOrCode.toLowerCase()));
+                    if (matched)
+                        return matched.id;
+                }
+                return allLines[0].id;
+            }
+            const globalLines = await database_js_1.db.select({ id: masterData_js_1.productionLines.id }).from(masterData_js_1.productionLines).limit(1);
+            if (globalLines.length > 0)
+                return globalLines[0].id;
+        }
+        catch (_) { }
+        return "65a28720-3690-476c-aca0-3609f2a28138";
+    }
     async createApsSchedule(tenantId, plantId, input) {
-        const resolvedSku = await this.resolveSkuId(tenantId, input.skuId || input.productCode || input.productName);
+        const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const resolvedSku = await this.resolveSkuId(validTenant, input.skuId || input.productCode || input.productName);
+        const resolvedPlant = await this.resolvePlantId(validTenant, plantId);
+        const resolvedLineId = await this.resolveLineId(validTenant, input.lineId);
         const targetQty = input.targetQuantity || input.quantity || 24000;
         const runRate = input.runRate || 500;
         const prodDuration = Math.round((targetQty / (runRate * 60)) * 10) / 10;
@@ -1181,6 +1273,8 @@ class PlanningService {
         const lineName = input.lineId === "LIN-02" || input.lineId === "LINE-2"
             ? "Canning & Seaming Line 2"
             : "High-Speed Bottling Line 1";
+        const startTimeObj = input.startTime ? (isNaN(Date.parse(input.startTime)) ? new Date() : new Date(input.startTime)) : new Date();
+        const endTimeObj = input.endTime ? (isNaN(Date.parse(input.endTime)) ? new Date(startTimeObj.getTime() + totalDur * 3600000) : new Date(input.endTime)) : new Date(startTimeObj.getTime() + totalDur * 3600000);
         const newSchedule = {
             scheduleId: input.scheduleId || `SCH-${Math.floor(100 + Math.random() * 900)}`,
             productionOrderId: input.productionOrderId || `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -1188,7 +1282,7 @@ class PlanningService {
             skuId: resolvedSku.id || input.skuId,
             productCode: resolvedSku.skuCode || input.productCode || "SKU-5001",
             productName: resolvedSku.name || input.productName || "Beverage Batch",
-            lineId: input.lineId || "LIN-01",
+            lineId: resolvedLineId,
             lineName,
             targetQuantity: targetQty,
             runRate,
@@ -1196,8 +1290,8 @@ class PlanningService {
             changeoverDurationHrs: changeoverDur,
             changeoverReason: input.cipRequired ? "CIP Allergen Washout Required" : "Standard Guide Plate Adjustment",
             totalDurationHrs: totalDur,
-            startTime: input.startTime,
-            endTime: input.endTime || new Date(Date.now() + totalDur * 3600000).toISOString().substring(0, 16).replace("T", " "),
+            startTime: startTimeObj.toISOString().substring(0, 16).replace("T", " "),
+            endTime: endTimeObj.toISOString().substring(0, 16).replace("T", " "),
             status: "Scheduled",
             capacityStatus: "Within Limit",
             materialStatus: "Materials Available"
@@ -1205,22 +1299,28 @@ class PlanningService {
         apsSchedulesStore = [newSchedule, ...apsSchedulesStore];
         try {
             if (database_js_1.db) {
-                const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
                 await database_js_1.db.insert(planning_js_1.apsSchedules).values({
-                    tenantId,
+                    tenantId: validTenant,
                     plantId: resolvedPlant,
-                    lineId: "00000000-0000-0000-0000-000000000001",
+                    lineId: resolvedLineId,
                     skuId: resolvedSku.id,
-                    startTime: new Date(newSchedule.startTime),
-                    endTime: new Date(newSchedule.endTime),
+                    startTime: startTimeObj,
+                    endTime: endTimeObj,
                     quantity: targetQty.toString(),
                     changeoverMinutes: input.changeoverMinutes || 30,
                     cipRequired: input.cipRequired || false,
+                    status: "PUBLISHED"
                 });
+                // Also create/upsert active order in production_orders so Line Lead dashboards update live
+                await database_js_1.db.execute((0, drizzle_orm_1.sql) `
+          INSERT INTO production_orders (tenant_id, plant_id, line_id, order_number, sku_id, target_quantity, produced_quantity, status, planned_start, planned_end, created_at, updated_at)
+          VALUES (${validTenant}, ${resolvedPlant}, ${resolvedLineId}, ${newSchedule.orderNumber}, ${resolvedSku.id}, ${targetQty}, 0, 'RUNNING', ${startTimeObj}, ${endTimeObj}, NOW(), NOW())
+          ON CONFLICT (id) DO UPDATE SET target_quantity = ${targetQty}, updated_at = NOW();
+        `);
             }
         }
         catch (err) {
-            console.warn("DB insert APS schedule fallback:", err.message);
+            console.warn("DB insert APS schedule notice:", err.message);
         }
         return newSchedule;
     }
@@ -1761,18 +1861,112 @@ class PlanningService {
     // 10. COMMERCIAL SERVICE RISKS & OTIF MITIGATION
     // ============================================================
     async listServiceRisks(tenantId, plantId) {
+        try {
+            if ((0, tenantContext_js_1.isValidUuid)(tenantId)) {
+                const rows = await database_js_1.db.select().from(planning_js_1.serviceRisks).where((0, drizzle_orm_1.eq)(planning_js_1.serviceRisks.tenantId, tenantId));
+                if (rows && rows.length > 0) {
+                    return rows.map(r => ({
+                        id: r.riskCode || r.id,
+                        dbId: r.id,
+                        customer: r.customer,
+                        orderRef: r.orderRef || "",
+                        riskTitle: r.riskTitle,
+                        potentialPenalty: r.potentialPenalty || `$${Number(r.financialExposure).toLocaleString()}`,
+                        financialExposure: Number(r.financialExposure || 0),
+                        severity: r.severity || "High Risk",
+                        impact: r.impact || "",
+                        recommendation: r.recommendation || "",
+                        isMitigated: Boolean(r.isMitigated),
+                        mitigatedAt: r.mitigatedAt ? r.mitigatedAt.toISOString() : null,
+                        mitigatedBy: r.mitigatedBy || null
+                    }));
+                }
+                // Auto-seed into DB if empty
+                const effectivePlantId = await this.resolvePlantId(tenantId, plantId);
+                const seeds = [
+                    {
+                        tenantId,
+                        plantId: effectivePlantId,
+                        riskCode: "RSK-01",
+                        customer: "Kroger Mid-Atlantic",
+                        orderRef: "PO-KR-99321",
+                        riskTitle: "28mm Tamper-Evident HDPE Cap Shortage Risk",
+                        potentialPenalty: "$14,500 (OTIF SLA Clause 4.2)",
+                        financialExposure: "14500.00",
+                        severity: "High Risk",
+                        impact: "Late Delivery on 24,000 Bottles Tonic Water",
+                        recommendation: "Authorize expedited air-freight shipment from secondary packaging vendor.",
+                        isMitigated: false
+                    },
+                    {
+                        tenantId,
+                        plantId: effectivePlantId,
+                        riskCode: "RSK-02",
+                        customer: "Whole Foods Market",
+                        orderRef: "PO-WF-88901",
+                        riskTitle: "Line 1 High-Capacity Scheduling Compression",
+                        potentialPenalty: "$8,200",
+                        financialExposure: "8200.00",
+                        severity: "Medium Risk",
+                        impact: "Potential 6-hour delay during Friday changeover window",
+                        recommendation: "Pre-stage sterile wash CIP fluids 2 hours before run completion.",
+                        isMitigated: false
+                    }
+                ];
+                await database_js_1.db.insert(planning_js_1.serviceRisks).values(seeds).onConflictDoNothing();
+                const freshRows = await database_js_1.db.select().from(planning_js_1.serviceRisks).where((0, drizzle_orm_1.eq)(planning_js_1.serviceRisks.tenantId, tenantId));
+                if (freshRows && freshRows.length > 0) {
+                    return freshRows.map(r => ({
+                        id: r.riskCode || r.id,
+                        dbId: r.id,
+                        customer: r.customer,
+                        orderRef: r.orderRef || "",
+                        riskTitle: r.riskTitle,
+                        potentialPenalty: r.potentialPenalty || `$${Number(r.financialExposure).toLocaleString()}`,
+                        financialExposure: Number(r.financialExposure || 0),
+                        severity: r.severity || "High Risk",
+                        impact: r.impact || "",
+                        recommendation: r.recommendation || "",
+                        isMitigated: Boolean(r.isMitigated),
+                        mitigatedAt: r.mitigatedAt ? r.mitigatedAt.toISOString() : null,
+                        mitigatedBy: r.mitigatedBy || null
+                    }));
+                }
+            }
+        }
+        catch (err) {
+            console.warn("listServiceRisks DB query error, using fallback memory list:", err.message);
+        }
         return serviceRisksList;
     }
     async mitigateServiceRisk(tenantId, plantId, input) {
+        // Update in memory fallback
         const risk = serviceRisksList.find(r => r.id === input.riskId);
         if (risk) {
             risk.isMitigated = true;
             risk.mitigatedAt = new Date().toISOString();
             risk.mitigatedBy = input.authorizedBy || "Elena Rostova (Lead Planner)";
         }
-        const activeCount = serviceRisksList.filter(r => !r.isMitigated).length;
-        const mitigatedCount = serviceRisksList.filter(r => r.isMitigated).length;
-        const remainingExposure = serviceRisksList.filter(r => !r.isMitigated).reduce((sum, r) => sum + r.financialExposure, 0);
+        // Persist in DB
+        try {
+            if ((0, tenantContext_js_1.isValidUuid)(tenantId)) {
+                await database_js_1.db.update(planning_js_1.serviceRisks)
+                    .set({
+                    isMitigated: true,
+                    mitigatedAt: new Date(),
+                    mitigatedBy: input.authorizedBy || "Elena Rostova (Lead Planner)",
+                    updatedAt: new Date()
+                })
+                    .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(planning_js_1.serviceRisks.tenantId, tenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(planning_js_1.serviceRisks.riskCode, input.riskId), (0, drizzle_orm_1.eq)(planning_js_1.serviceRisks.id, input.riskId))));
+            }
+        }
+        catch (err) {
+            console.warn("mitigateServiceRisk DB update error:", err.message);
+        }
+        const currentList = await this.listServiceRisks(tenantId, plantId);
+        const activeCount = currentList.filter((r) => !r.isMitigated).length;
+        const mitigatedCount = currentList.filter((r) => r.isMitigated).length;
+        const remainingExposure = currentList.filter((r) => !r.isMitigated).reduce((sum, r) => sum + (r.financialExposure || 0), 0);
         return {
             success: true,
             riskId: input.riskId,
@@ -1789,44 +1983,49 @@ class PlanningService {
     // 11. SUPPLY & DEMAND BALANCE RECONCILIATION
     // ============================================================
     async getSupplyDemandBalance(tenantId, plantId) {
-        const items = [
-            {
-                skuId: "SKU-001",
-                skuCode: "SKU-5001",
-                name: "500ml Sparkling Citrus Soda",
-                uom: "Bottles",
-                totalDemand: 78000,
-                availableSupply: 52000,
-                netBalance: -26000,
-                isSurplus: false,
-                coveragePercent: 67,
-                status: "Demand Deficit"
-            },
-            {
-                skuId: "SKU-002",
-                skuCode: "SKU-5002",
-                name: "1L Tonic Water Natural Quinine",
-                uom: "Bottles",
-                totalDemand: 24000,
-                availableSupply: 22000,
-                netBalance: -2000,
-                isSurplus: false,
-                coveragePercent: 92,
-                status: "Demand Deficit"
-            },
-            {
-                skuId: "SKU-003",
-                skuCode: "SKU-5003",
-                name: "330ml Organic Ginger Beer",
-                uom: "Cans",
-                totalDemand: 36000,
-                availableSupply: 36000,
-                netBalance: 0,
-                isSurplus: true,
-                coveragePercent: 100,
-                status: "Surplus Supply"
-            }
-        ];
+        const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
+        const orders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
+        const fcs = await database_js_1.db.select().from(planning_js_1.forecasts).where((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId));
+        const schedules = await database_js_1.db.select().from(planning_js_1.apsSchedules).where((0, drizzle_orm_1.eq)(planning_js_1.apsSchedules.tenantId, tenantId));
+        if (allSkus.length === 0) {
+            return {
+                totalFirmDemand: 0,
+                availableProductionSupply: 0,
+                balancedSkusCount: 0,
+                deficitSkusCount: 0,
+                items: []
+            };
+        }
+        const items = allSkus.map((sku) => {
+            const orderQty = orders
+                .filter((o) => o.skuId === sku.id)
+                .reduce((sum, o) => sum + (Number(o.quantity) || 0), 0);
+            const fcQty = fcs
+                .filter((f) => f.skuId === sku.id)
+                .reduce((sum, f) => sum + (Number(f.finalForecast) || 0), 0);
+            const totalDemand = orderQty > 0 ? orderQty : fcQty;
+            const currentStock = Number(sku.currentStock || 0);
+            const scheduledProd = schedules
+                .filter((s) => s.skuId === sku.id)
+                .reduce((sum, s) => sum + (Number(s.quantity) || 0), 0);
+            const availableSupply = currentStock > 0 || scheduledProd > 0 ? (currentStock + scheduledProd) : Math.round(totalDemand * 0.8);
+            const netBalance = availableSupply - totalDemand;
+            const isSurplus = netBalance >= 0;
+            const coveragePercent = totalDemand > 0 ? Math.min(200, Math.round((availableSupply / totalDemand) * 100)) : 100;
+            const status = isSurplus ? "Surplus Supply" : "Demand Deficit";
+            return {
+                skuId: sku.id,
+                skuCode: sku.skuCode,
+                name: sku.name,
+                uom: sku.uom || "Bottles",
+                totalDemand,
+                availableSupply,
+                netBalance,
+                isSurplus,
+                coveragePercent,
+                status
+            };
+        });
         return {
             totalFirmDemand: items.reduce((s, i) => s + i.totalDemand, 0),
             availableProductionSupply: items.reduce((s, i) => s + i.availableSupply, 0),
@@ -1838,51 +2037,181 @@ class PlanningService {
     // ============================================================
     // 12. SCHEDULE VERSIONING & REVISION BASELINES
     // ============================================================
-    scheduleVersionsStore = [
-        {
-            versionId: "V4.2",
-            title: "Master Weekly Production Schedule V4.2",
-            status: "Published",
-            createdDate: "2026-08-30 18:30",
-            createdBy: "Alexander Vance (Lead Scheduler)",
-            ordersCount: 4,
-            totalPlannedHours: 78.5,
-            utilizationPercent: 88,
-            reason: "Optimized Line 1 changeovers & scheduled Aseptic CIP rinse.",
-            changesDescription: "Initial approved shop-floor baseline for Week 36."
-        },
-        {
-            versionId: "V4.3-DRAFT",
-            title: "Draft Production Schedule Revision V4.3",
-            status: "Validated",
-            createdDate: "2026-09-01 10:15",
-            createdBy: "Alexander Vance (Lead Scheduler)",
-            ordersCount: 5,
-            totalPlannedHours: 94.0,
-            utilizationPercent: 92,
-            reason: "Incorporated Whole Foods urgent demand PO-WF-88901 into Line 1.",
-            changesDescription: "+1 Production run added on Line 1. Changeover gap adjusted."
+    async ensureScheduleVersionsTable() {
+        try {
+            await database_js_1.pool.query(`
+        CREATE TABLE IF NOT EXISTS public.pm_schedule_versions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          tenant_id UUID NOT NULL,
+          plant_id UUID,
+          version_id VARCHAR(100) NOT NULL,
+          title VARCHAR(255) NOT NULL,
+          status VARCHAR(50) DEFAULT 'Draft' NOT NULL,
+          created_by VARCHAR(255) DEFAULT 'Elena Rostova (Lead Planner)',
+          orders_count INT DEFAULT 4,
+          total_planned_hours NUMERIC(8,2) DEFAULT 80.00,
+          utilization_percent NUMERIC(5,2) DEFAULT 90.00,
+          reason TEXT,
+          changes_description TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `);
         }
-    ];
+        catch (err) {
+            console.warn("⚠️ Schedule versions table DDL check:", err.message);
+        }
+    }
     async listScheduleVersions(tenantId) {
-        return this.scheduleVersionsStore;
+        const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        await this.ensureScheduleVersionsTable();
+        try {
+            const dbRows = await database_js_1.db
+                .select()
+                .from(planning_js_1.pmScheduleVersions)
+                .where((0, drizzle_orm_1.eq)(planning_js_1.pmScheduleVersions.tenantId, validTenant))
+                .orderBy((0, drizzle_orm_1.sql) `${planning_js_1.pmScheduleVersions.createdAt} DESC`);
+            if (dbRows && dbRows.length > 0) {
+                return dbRows.map(r => ({
+                    id: r.id,
+                    versionId: r.versionId,
+                    title: r.title,
+                    status: r.status,
+                    createdDate: r.createdAt ? new Date(r.createdAt).toISOString().substring(0, 16).replace("T", " ") : new Date().toISOString().substring(0, 16).replace("T", " "),
+                    createdBy: r.createdBy || "Alexander Vance (Lead Scheduler)",
+                    ordersCount: r.ordersCount || 4,
+                    totalPlannedHours: Number(r.totalPlannedHours) || 80.0,
+                    utilizationPercent: Number(r.utilizationPercent) || 89.5,
+                    reason: r.reason || "Baseline production schedule.",
+                    changesDescription: r.changesDescription || r.reason || "Baseline version"
+                }));
+            }
+            // Initial DB Seed if table is empty
+            const resolvedPlant = await this.resolvePlantId(validTenant);
+            const initialSeeds = [
+                {
+                    tenantId: validTenant,
+                    plantId: resolvedPlant,
+                    versionId: "V4.2",
+                    title: "Master Weekly Production Schedule V4.2",
+                    status: "Published",
+                    createdBy: "Alexander Vance (Lead Scheduler)",
+                    ordersCount: 4,
+                    totalPlannedHours: "78.50",
+                    utilizationPercent: "88.00",
+                    reason: "Optimized Line 1 changeovers & scheduled Aseptic CIP rinse.",
+                    changesDescription: "Initial approved shop-floor baseline for Week 36."
+                },
+                {
+                    tenantId: validTenant,
+                    plantId: resolvedPlant,
+                    versionId: "V4.3-DRAFT",
+                    title: "Draft Production Schedule Revision V4.3",
+                    status: "Validated",
+                    createdBy: "Alexander Vance (Lead Scheduler)",
+                    ordersCount: 5,
+                    totalPlannedHours: "94.00",
+                    utilizationPercent: "92.00",
+                    reason: "Incorporated Whole Foods urgent demand PO-WF-88901 into Line 1.",
+                    changesDescription: "+1 Production run added on Line 1. Changeover gap adjusted."
+                }
+            ];
+            const insertedRows = await database_js_1.db.insert(planning_js_1.pmScheduleVersions).values(initialSeeds).returning();
+            return insertedRows.map(r => ({
+                id: r.id,
+                versionId: r.versionId,
+                title: r.title,
+                status: r.status,
+                createdDate: r.createdAt ? new Date(r.createdAt).toISOString().substring(0, 16).replace("T", " ") : new Date().toISOString().substring(0, 16).replace("T", " "),
+                createdBy: r.createdBy || "Alexander Vance (Lead Scheduler)",
+                ordersCount: r.ordersCount || 4,
+                totalPlannedHours: Number(r.totalPlannedHours) || 80.0,
+                utilizationPercent: Number(r.utilizationPercent) || 89.5,
+                reason: r.reason || "Baseline production schedule.",
+                changesDescription: r.changesDescription || r.reason || "Baseline version"
+            }));
+        }
+        catch (err) {
+            console.warn("⚠️ listScheduleVersions DB query fallback:", err.message);
+            return this.scheduleVersionsStore;
+        }
     }
     async createScheduleVersion(tenantId, input) {
-        const nextVerNum = (this.scheduleVersionsStore.length + 4.1).toFixed(1);
-        const newVersion = {
-            versionId: `V${nextVerNum}-DRAFT`,
+        const validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : "5bce8458-909a-4dd2-b221-614c32ac7c89";
+        const resolvedPlant = await this.resolvePlantId(validTenant);
+        await this.ensureScheduleVersionsTable();
+        // Query active orders count & planned hours from database
+        let activeOrdersCount = 4;
+        let computedPlannedHours = 84.0;
+        try {
+            const activeDbSchedules = await database_js_1.db.select().from(planning_js_1.apsSchedules).where((0, drizzle_orm_1.eq)(planning_js_1.apsSchedules.tenantId, validTenant));
+            if (activeDbSchedules && activeDbSchedules.length > 0) {
+                activeOrdersCount = activeDbSchedules.length;
+                computedPlannedHours = activeDbSchedules.reduce((sum, s) => {
+                    const qty = Number(s.quantity) || 24000;
+                    const dur = (qty / 30000) * 12; // estimated duration
+                    return sum + dur;
+                }, 0);
+                computedPlannedHours = Math.round(computedPlannedHours * 10) / 10;
+            }
+        }
+        catch (_) { }
+        const existingCountResult = await database_js_1.db
+            .select({ count: (0, drizzle_orm_1.sql) `count(*)` })
+            .from(planning_js_1.pmScheduleVersions)
+            .where((0, drizzle_orm_1.eq)(planning_js_1.pmScheduleVersions.tenantId, validTenant));
+        const count = Number(existingCountResult?.[0]?.count || 2);
+        const nextVerNum = (count + 4.2).toFixed(1);
+        const verId = `V${nextVerNum}-DRAFT`;
+        const insertPayload = {
+            tenantId: validTenant,
+            plantId: resolvedPlant,
+            versionId: verId,
             title: input.title,
             status: input.status || "Draft",
-            createdDate: new Date().toISOString().substring(0, 16).replace("T", " "),
             createdBy: input.createdBy || "Alexander Vance (Lead Scheduler)",
-            ordersCount: 4,
-            totalPlannedHours: 84.0,
-            utilizationPercent: 89.5,
+            ordersCount: activeOrdersCount,
+            totalPlannedHours: computedPlannedHours.toString(),
+            utilizationPercent: "89.50",
             reason: input.reason || "Scheduled revision baseline created.",
             changesDescription: input.reason || "Manual baseline revision generated from active planner state."
         };
-        this.scheduleVersionsStore.unshift(newVersion);
-        return newVersion;
+        try {
+            const [newVersionRow] = await database_js_1.db.insert(planning_js_1.pmScheduleVersions).values(insertPayload).returning();
+            const formatted = {
+                id: newVersionRow.id,
+                versionId: newVersionRow.versionId,
+                title: newVersionRow.title,
+                status: newVersionRow.status,
+                createdDate: newVersionRow.createdAt ? new Date(newVersionRow.createdAt).toISOString().substring(0, 16).replace("T", " ") : new Date().toISOString().substring(0, 16).replace("T", " "),
+                createdBy: newVersionRow.createdBy,
+                ordersCount: newVersionRow.ordersCount,
+                totalPlannedHours: Number(newVersionRow.totalPlannedHours),
+                utilizationPercent: Number(newVersionRow.utilizationPercent),
+                reason: newVersionRow.reason,
+                changesDescription: newVersionRow.changesDescription
+            };
+            // Keep in-memory store synchronized as fallback
+            this.scheduleVersionsStore.unshift(formatted);
+            return formatted;
+        }
+        catch (err) {
+            console.warn("⚠️ createScheduleVersion DB insert failed, falling back:", err.message);
+            const fallbackObj = {
+                versionId: verId,
+                title: input.title,
+                status: input.status || "Draft",
+                createdDate: new Date().toISOString().substring(0, 16).replace("T", " "),
+                createdBy: input.createdBy || "Alexander Vance (Lead Scheduler)",
+                ordersCount: activeOrdersCount,
+                totalPlannedHours: computedPlannedHours,
+                utilizationPercent: 89.5,
+                reason: input.reason || "Scheduled revision baseline created.",
+                changesDescription: input.reason || "Manual baseline revision generated from active planner state."
+            };
+            this.scheduleVersionsStore.unshift(fallbackObj);
+            return fallbackObj;
+        }
     }
     // ============================================================
     // 13. SCHEDULE FEASIBILITY GATE VALIDATION
@@ -2399,7 +2728,156 @@ class PlanningService {
             client.release();
         }
     }
+    // ─── Processing Batches vs Packaging Orders Support ─────────────────────────
+    async getProcessingBatches(tenantId) {
+        const client = await database_js_1.pool.connect();
+        try {
+            const res = await client.query(`
+        SELECT 
+          b.id,
+          b.tenant_id as "tenantId",
+          b.plant_id as "plantId",
+          b.batch_number as "batchNumber",
+          b.recipe_version as "recipeVersion",
+          b.tank_number as "tankNumber",
+          b.target_volume as "targetVolume",
+          b.actual_volume as "actualVolume",
+          b.uom,
+          b.current_step as "currentStep",
+          b.progress_percent as "progressPercent",
+          b.status,
+          b.started_at as "startedAt",
+          b.completed_at as "completedAt",
+          b.created_at as "createdAt",
+          s.sku_code as "skuCode",
+          s.name as "skuName",
+          json_agg(
+            json_build_object(
+              'orderId', po.id,
+              'orderNumber', po.order_number,
+              'lineId', po.line_id,
+              'targetQuantity', po.target_quantity,
+              'status', po.status
+            )
+          ) FILTER (WHERE po.id IS NOT NULL) as "linkedPackagingOrders"
+        FROM public.batches b
+        LEFT JOIN public.skus s ON b.sku_id = s.id
+        LEFT JOIN public.production_orders po ON po.id = b.production_order_id OR po.notes ILIKE '%' || b.batch_number || '%'
+        GROUP BY b.id, s.sku_code, s.name
+        ORDER BY b.created_at DESC;
+      `);
+            return res.rows;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async createProcessingBatch(tenantId, plantId, payload) {
+        const client = await database_js_1.pool.connect();
+        try {
+            let validTenant = (0, tenantContext_js_1.isValidUuid)(tenantId) ? tenantId : null;
+            if (validTenant) {
+                const tCheck = await client.query(`SELECT id FROM public.tenants WHERE id = $1 LIMIT 1;`, [validTenant]);
+                if (tCheck.rows.length === 0)
+                    validTenant = null;
+            }
+            if (!validTenant) {
+                const tRes = await client.query(`SELECT id FROM public.tenants LIMIT 1;`);
+                if (tRes.rows.length > 0)
+                    validTenant = tRes.rows[0].id;
+                else
+                    validTenant = "5bce8458-909a-4dd2-b221-614c32ac7c89";
+            }
+            let resolvedPlant = (0, tenantContext_js_1.isValidUuid)(plantId) ? plantId : null;
+            if (resolvedPlant) {
+                const pCheck = await client.query(`SELECT id FROM public.plants WHERE id = $1 LIMIT 1;`, [resolvedPlant]);
+                if (pCheck.rows.length === 0)
+                    resolvedPlant = null;
+            }
+            if (!resolvedPlant) {
+                const pRes = await client.query(`SELECT id FROM public.plants WHERE tenant_id = $1 LIMIT 1;`, [validTenant]);
+                if (pRes.rows.length > 0) {
+                    resolvedPlant = pRes.rows[0].id;
+                }
+                else {
+                    const fallbackP = await client.query(`SELECT id FROM public.plants LIMIT 1;`);
+                    if (fallbackP.rows.length > 0) {
+                        resolvedPlant = fallbackP.rows[0].id;
+                    }
+                }
+            }
+            const batchNum = payload.batchNumber || `BAT-2026-B${Math.floor(100 + Math.random() * 900)}`;
+            let poId = payload.productionOrderId;
+            let targetSkuId = payload.skuId;
+            if (!poId || !(0, tenantContext_js_1.isValidUuid)(poId)) {
+                const poRes = await client.query(`SELECT id, sku_id FROM public.production_orders WHERE tenant_id = $1 LIMIT 1;`, [validTenant]);
+                if (poRes.rows.length > 0) {
+                    poId = poRes.rows[0].id;
+                    if (!targetSkuId && poRes.rows[0].sku_id) {
+                        targetSkuId = poRes.rows[0].sku_id;
+                    }
+                }
+                else {
+                    const fallbackPoRes = await client.query(`SELECT id, sku_id FROM public.production_orders LIMIT 1;`);
+                    if (fallbackPoRes.rows.length > 0) {
+                        poId = fallbackPoRes.rows[0].id;
+                        if (!targetSkuId && fallbackPoRes.rows[0].sku_id) {
+                            targetSkuId = fallbackPoRes.rows[0].sku_id;
+                        }
+                    }
+                }
+            }
+            if (!targetSkuId || !(0, tenantContext_js_1.isValidUuid)(targetSkuId)) {
+                const skuRes = await client.query(`SELECT id FROM public.skus LIMIT 1;`);
+                if (skuRes.rows.length > 0) {
+                    targetSkuId = skuRes.rows[0].id;
+                }
+            }
+            const res = await client.query(`
+        INSERT INTO public.batches 
+        (tenant_id, plant_id, production_order_id, batch_number, sku_id, tank_number, target_volume, actual_volume, uom, recipe_version, current_step, progress_percent, status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 1, 0, 'PLANNED', NOW(), NOW())
+        RETURNING *;
+      `, [
+                validTenant,
+                resolvedPlant,
+                poId,
+                batchNum,
+                targetSkuId,
+                payload.tankNumber || 'Tank-01',
+                payload.targetVolume || 5000,
+                0,
+                payload.uom || 'Liters',
+                payload.recipeVersion || 'R1 (Standard)'
+            ]);
+            return {
+                ...res.rows[0],
+                message: `Processing Batch ${batchNum} created successfully.`
+            };
+        }
+        finally {
+            client.release();
+        }
+    }
+    async linkBatchToPackagingOrder(batchId, productionOrderId) {
+        const client = await database_js_1.pool.connect();
+        try {
+            await client.query(`
+        UPDATE public.batches 
+        SET production_order_id = $2, updated_at = NOW()
+        WHERE id = $1;
+      `, [batchId, productionOrderId]);
+            await client.query(`
+        UPDATE public.production_orders
+        SET notes = COALESCE(notes, '') || ' [Linked Batch: ' || $1 || ']', updated_at = NOW()
+        WHERE id = $2;
+      `, [batchId, productionOrderId]);
+            return { success: true, message: `Batch ${batchId} successfully linked to Packaging Order ${productionOrderId}.` };
+        }
+        finally {
+            client.release();
+        }
+    }
 }
 exports.PlanningService = PlanningService;
 exports.planningService = new PlanningService();
-//# sourceMappingURL=planning.service.js.map

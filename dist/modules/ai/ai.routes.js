@@ -10,4 +10,3 @@ async function aiRoutes(fastify) {
     fastify.post("/insights/:id/reject", { schema: { tags: ["AI & Operations Intelligence"], summary: "Reject AI Recommendation" } }, ai_controller_js_1.aiController.rejectInsight.bind(ai_controller_js_1.aiController));
     fastify.post("/chat", { schema: { tags: ["AI & Operations Intelligence"], summary: "AI Operational Assistant Query" } }, ai_controller_js_1.aiController.chat.bind(ai_controller_js_1.aiController));
 }
-//# sourceMappingURL=ai.routes.js.map

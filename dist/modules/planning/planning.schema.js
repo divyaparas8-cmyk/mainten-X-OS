@@ -85,6 +85,8 @@ exports.createPromotionSchema = zod_1.z.object({
     productName: zod_1.z.string().optional(),
     upliftPercent: zod_1.z.coerce.number().default(10),
     projectedUnits: zod_1.z.coerce.number().default(5000),
+    incrementalUnits: zod_1.z.coerce.number().optional(),
+    duration: zod_1.z.string().optional(),
     startDate: zod_1.z.string().optional(),
     endDate: zod_1.z.string().optional(),
     channel: zod_1.z.string().optional(),
@@ -235,4 +237,3 @@ exports.createShipmentSchema = zod_1.z.object({
     dockDoor: zod_1.z.string().optional(),
     status: zod_1.z.string().default("Booked"),
 });
-//# sourceMappingURL=planning.schema.js.map

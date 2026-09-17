@@ -21,6 +21,9 @@ async function planningRoutes(fastify) {
     fastify.delete("/forecasts/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Forecast Record" } }, planning_controller_js_1.planningController.deleteForecast.bind(planning_controller_js_1.planningController));
     // Demand History & Accuracy
     fastify.get("/forecast/history", { schema: { tags: ["Planning & Demand"], summary: "List Historical Sales Demand & Model Accuracy" } }, planning_controller_js_1.planningController.getDemandHistory.bind(planning_controller_js_1.planningController));
+    fastify.post("/forecast/history", { schema: { tags: ["Planning & Demand"], summary: "Create Historical Demand Record" } }, planning_controller_js_1.planningController.createDemandHistory.bind(planning_controller_js_1.planningController));
+    fastify.patch("/forecast/history/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Historical Demand Record" } }, planning_controller_js_1.planningController.updateDemandHistory.bind(planning_controller_js_1.planningController));
+    fastify.delete("/forecast/history/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Historical Demand Record" } }, planning_controller_js_1.planningController.deleteDemandHistory.bind(planning_controller_js_1.planningController));
     // Commercial Promotions & Uplift
     fastify.get("/forecast/promotions", { schema: { tags: ["Planning & Demand"], summary: "List Commercial Promotions & Uplift Events" } }, planning_controller_js_1.planningController.getPromotions.bind(planning_controller_js_1.planningController));
     fastify.post("/forecast/promotions", { schema: { tags: ["Planning & Demand"], summary: "Create Commercial Promotion Campaign" } }, planning_controller_js_1.planningController.createPromotion.bind(planning_controller_js_1.planningController));
@@ -119,5 +122,8 @@ async function planningRoutes(fastify) {
     fastify.delete("/constraints/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Planning Constraint" } }, planning_controller_js_1.planningController.deleteConstraint.bind(planning_controller_js_1.planningController));
     // Recovery Simulator
     fastify.post("/recovery/apply", { schema: { tags: ["Planning & Demand"], summary: "Apply Recovery Simulator Scenario" } }, planning_controller_js_1.planningController.applyRecovery.bind(planning_controller_js_1.planningController));
+    // Processing Batches vs Packaging Orders
+    fastify.get("/processing-batches", { schema: { tags: ["Planning & Demand"], summary: "List Processing Batches" } }, planning_controller_js_1.planningController.getProcessingBatches.bind(planning_controller_js_1.planningController));
+    fastify.post("/processing-batches", { schema: { tags: ["Planning & Demand"], summary: "Create Processing Batch" } }, planning_controller_js_1.planningController.createProcessingBatch.bind(planning_controller_js_1.planningController));
+    fastify.post("/processing-batches/link", { schema: { tags: ["Planning & Demand"], summary: "Link Processing Batch to Packaging Order" } }, planning_controller_js_1.planningController.linkBatchToPackagingOrder.bind(planning_controller_js_1.planningController));
 }
-//# sourceMappingURL=planning.routes.js.map

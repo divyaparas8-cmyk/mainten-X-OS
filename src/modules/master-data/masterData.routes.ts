@@ -1,9 +1,55 @@
 import { FastifyInstance } from "fastify";
 import { masterDataController } from "./masterData.controller.js";
 import { authenticate } from "../../middleware/authenticate.js";
+import { authorize } from "../../middleware/authorize.js";
 
 export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", authenticate);
+
+  // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+  fastify.addHook("preHandler", async (request, reply) => {
+    const user = (request as any).user;
+    if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+      return;
+    }
+
+    const url = request.url.split("?")[0];
+    const method = request.method.toUpperCase();
+
+    let requiredPerm: string | string[] | null = null;
+
+    if (url.includes("/boms")) {
+      if (method === "POST") requiredPerm = ["bom___recipe.create", "bom_recipe.create"];
+      else if (method === "PUT" || method === "PATCH") requiredPerm = ["bom___recipe.edit", "bom_recipe.edit"];
+      else if (method === "DELETE") requiredPerm = ["bom___recipe.delete", "bom_recipe.delete"];
+      else if (method === "GET") requiredPerm = ["bom___recipe.view", "bom_recipe.view"];
+    } else if (url.includes("/skus")) {
+      if (method === "POST") requiredPerm = "sku_master.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "sku_master.edit";
+      else if (method === "DELETE") requiredPerm = "sku_master.delete";
+      else if (method === "GET") requiredPerm = "sku_master.view";
+    } else if (url.includes("/work-centers") || url.includes("/lines")) {
+      if (method === "POST") requiredPerm = "work_centers___lines.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "work_centers___lines.edit";
+      else if (method === "DELETE") requiredPerm = "work_centers___lines.delete";
+    } else if (url.includes("/assets")) {
+      if (method === "POST") requiredPerm = "machine_assets.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "machine_assets.edit";
+      else if (method === "DELETE") requiredPerm = "machine_assets.delete";
+    } else if (url.includes("/quality-specs")) {
+      if (method === "POST") requiredPerm = "quality_specs.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "quality_specs.edit";
+      else if (method === "DELETE") requiredPerm = "quality_specs.delete";
+    } else if (url.includes("/employee-skills") || url.includes("/employees")) {
+      if (method === "POST") requiredPerm = "employees___skills.create";
+      else if (method === "PUT" || method === "PATCH") requiredPerm = "employees___skills.edit";
+      else if (method === "DELETE") requiredPerm = "employees___skills.delete";
+    }
+
+    if (requiredPerm) {
+      await authorize(requiredPerm)(request, reply);
+    }
+  });
 
   // 1. Companies & Legal Entities
   fastify.get("/companies", { schema: { tags: ["Master Data"], summary: "List Enterprise Companies & Legal Entities" } }, masterDataController.getCompanies.bind(masterDataController));
@@ -48,7 +94,6 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.put("/routings/:id", { schema: { tags: ["Master Data"], summary: "Update Routing Master" } }, masterDataController.updateRouting.bind(masterDataController));
   fastify.patch("/routings/:id/status", { schema: { tags: ["Master Data"], summary: "Update Routing Approval/Active Status" } }, masterDataController.updateRoutingStatus.bind(masterDataController));
   fastify.delete("/routings/:id", { schema: { tags: ["Master Data"], summary: "Delete Routing Master" } }, masterDataController.deleteRouting.bind(masterDataController));
-
 
   // 8. Product Families
   fastify.get("/product-families", { schema: { tags: ["Master Data"], summary: "List Product Families" } }, masterDataController.getProductFamilies.bind(masterDataController));
@@ -96,6 +141,7 @@ export async function masterDataRoutes(fastify: FastifyInstance) {
   fastify.put("/skus/:id", { schema: { tags: ["Master Data"], summary: "Update SKU master record" } }, masterDataController.updateSku.bind(masterDataController));
   fastify.delete("/skus/:id", { schema: { tags: ["Master Data"], summary: "Delete SKU from master" } }, masterDataController.deleteSku.bind(masterDataController));
 
+  // BOMs & Recipe Master
   fastify.get("/boms", { schema: { tags: ["Master Data"], summary: "List BOMs & Formulations" } }, masterDataController.getBoms.bind(masterDataController));
   fastify.post("/boms", { schema: { tags: ["Master Data"], summary: "Create new BOM Recipe Formula" } }, masterDataController.createBom.bind(masterDataController));
   fastify.put("/boms/:id", { schema: { tags: ["Master Data"], summary: "Update BOM Recipe Formula" } }, masterDataController.updateBom.bind(masterDataController));

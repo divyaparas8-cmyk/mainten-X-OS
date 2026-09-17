@@ -15,6 +15,7 @@ export async function qualityRoutes(fastify: FastifyInstance) {
 
   fastify.get("/release/queue", { schema: { tags: ["Quality & QMS"], summary: "List Batches Pending QA Release" } }, qualityController.getQaReleaseQueue.bind(qualityController));
   fastify.get("/release/metrics", { schema: { tags: ["Quality & QMS"], summary: "Get QA Release Queue KPI Metrics from DB" } }, qualityController.getQaReleaseMetrics.bind(qualityController));
+  fastify.get("/release/review/:batchId", { schema: { tags: ["Quality & QMS"], summary: "Get Batch Quality Release Review Dossier" } }, qualityController.getBatchReleaseDossier.bind(qualityController));
   fastify.get("/queue", { schema: { tags: ["Quality & QMS"], summary: "List Batches Pending QA Release" } }, qualityController.getQaReleaseQueue.bind(qualityController));
   fastify.post("/release/authorize", { schema: { tags: ["Quality & QMS"], summary: "21 CFR Part 11 QA Digital Batch Release Authorization" } }, qualityController.authorizeBatchRelease.bind(qualityController));
   fastify.post("/release/export", { schema: { tags: ["Quality & QMS"], summary: "Export QA Release Queue Report" } }, qualityController.exportReleaseQueue.bind(qualityController));
@@ -98,6 +99,8 @@ export async function qualityRoutes(fastify: FastifyInstance) {
   fastify.post("/sanitation/checklist/save", { schema: { tags: ["Quality & QMS"], summary: "Save Line Sanitation CIP Progress" } }, qualityController.saveSanitationProgress.bind(qualityController));
 
   fastify.get("/sanitation/allergen", { schema: { tags: ["Quality & QMS"], summary: "List Allergen Verification Audits" } }, qualityController.getAllergenAudits.bind(qualityController));
+  fastify.post("/sanitation/allergen", { schema: { tags: ["Quality & QMS"], summary: "Create Allergen Verification Audit" } }, qualityController.createAllergenAudit.bind(qualityController));
+  fastify.delete("/sanitation/allergen/:id", { schema: { tags: ["Quality & QMS"], summary: "Delete Allergen Verification Audit" } }, qualityController.deleteAllergenAudit.bind(qualityController));
   fastify.post("/sanitation/allergen/audit", { schema: { tags: ["Quality & QMS"], summary: "Clear Allergen Verification Audit" } }, qualityController.clearAllergenAudit.bind(qualityController));
   fastify.post("/sanitation/allergen/clear-all", { schema: { tags: ["Quality & QMS"], summary: "Clear All Allergen Verification Audits" } }, qualityController.clearAllAllergenAudits.bind(qualityController));
   fastify.post("/sanitation/allergen/export", { schema: { tags: ["Quality & QMS"], summary: "Export Allergen Verification Audits Report" } }, qualityController.exportAllergenAudits.bind(qualityController));

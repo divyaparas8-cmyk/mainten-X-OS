@@ -276,11 +276,7 @@ class WarehouseController {
     // TRACEABILITY & FDA 21 CFR CONTROLLER
     // ==========================================
     async getTraceability(request, reply) {
-<<<<<<< HEAD
-        const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber;
-=======
         const lotNumber = request.params?.lotNumber || request.query?.lot || request.query?.lotNumber || "";
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         if (!lotNumber) {
             return reply.send((0, responseFormatter_js_1.formatSuccess)(null));
         }
@@ -455,6 +451,37 @@ class WarehouseController {
         const status = request.body?.status;
         const data = await warehouse_service_js_1.warehouseService.toggleWarehouseCertification(request.user.tenantId, certId, status);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    // =========================================================================
+    // MATERIAL PROCESSING & PACKAGING EXECUTION FLOW CONTROLLERS
+    // =========================================================================
+    async issueRawMaterialForProcessing(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.issueRawMaterialToProcessing(request.user.tenantId, request.user.plantId, request.user?.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async getWipLots(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.getWipLots(request.user.tenantId, request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createWipLot(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.createWipLot(request.user.tenantId, request.user.plantId, request.user?.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async stagePackagingMaterial(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.stagePackagingMaterial(request.user.tenantId, request.user.plantId, request.user?.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async getSeparatedMovements(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.getSeparatedMovements(request.user.tenantId, request.user.plantId, request.query?.category);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
+    }
+    async createPackagingFinishedGoods(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.createPackagingFinishedGoods(request.user.tenantId, request.user.plantId, request.user?.id, request.body || {});
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
+    }
+    async getFlowSummary(request, reply) {
+        const data = await warehouse_service_js_1.warehouseService.getFlowSummary(request.user.tenantId, request.user.plantId);
+        return reply.send((0, responseFormatter_js_1.formatSuccess)(data));
     }
 }
 exports.WarehouseController = WarehouseController;

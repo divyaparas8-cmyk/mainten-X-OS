@@ -69,32 +69,6 @@ async function buildApp() {
             timestamp: new Date().toISOString(),
         };
     });
-<<<<<<< HEAD
-    // 4. API v1 Domain Routes
-    await app.register(auth_routes_js_1.authRoutes, { prefix: "/api/v1/auth" });
-    await app.register(admin_routes_js_1.adminRoutes, { prefix: "/api/v1/admin" });
-    await app.register(masterData_routes_js_1.masterDataRoutes, { prefix: "/api/v1/master-data" });
-    await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1/planning" });
-    await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1/planner" });
-    await app.register(planning_routes_js_1.planningRoutes, { prefix: "/api/v1" });
-    await app.register(production_routes_js_1.productionRoutes, { prefix: "/api/v1/production" });
-    await app.register(quality_routes_js_1.qualityRoutes, { prefix: "/api/v1/quality" });
-    await app.register(warehouse_routes_js_1.warehouseRoutes, { prefix: "/api/v1/warehouse" });
-    await app.register(traceability_routes_js_1.traceabilityRoutes, { prefix: "/api/v1/traceability" });
-    await app.register(maintenance_routes_js_1.maintenanceRoutes, { prefix: "/api/v1/maintenance" });
-    await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/dashboards" });
-    await app.register(dashboards_routes_js_1.dashboardsRoutes, { prefix: "/api/v1/plant-manager" });
-    await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/executive" });
-    await app.register(executive_routes_js_1.executiveRoutes, { prefix: "/api/v1/dashboards/executive" });
-    await app.register(notifications_routes_js_1.notificationsRoutes, { prefix: "/api/v1/notifications" });
-    await app.register(search_routes_js_1.searchRoutes, { prefix: "/api/v1/search" });
-    await app.register(ci_routes_js_1.ciRoutes, { prefix: "/api/v1/ci" });
-    await app.register(exceptions_routes_js_1.exceptionsRoutes, { prefix: "/api/v1/exceptions" });
-    await app.register(ai_routes_js_1.aiRoutes, { prefix: "/api/v1/ai" });
-    await app.register(billing_routes_js_1.billingRoutes, { prefix: "/api/v1/billing" });
-    await app.register(iot_routes_js_1.iotRoutes, { prefix: "/api/v1/iot" });
-    await app.register(master_routes_js_1.masterRoutes, { prefix: "/api/v1/master" });
-=======
     // 4. API Domain Routes (Supporting both /api/v1 and /api prefixes)
     const apiPrefixes = ["/api/v1", "/api"];
     for (const prefix of apiPrefixes) {
@@ -122,7 +96,6 @@ async function buildApp() {
         await app.register(iot_routes_js_1.iotRoutes, { prefix: `${prefix}/iot` });
         await app.register(master_routes_js_1.masterRoutes, { prefix: `${prefix}/master` });
     }
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     return app;
 }
 //# sourceMappingURL=app.js.map

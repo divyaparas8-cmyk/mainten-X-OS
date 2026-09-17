@@ -88,6 +88,7 @@ export declare class WarehouseService {
         notes: string;
         createdAt: string;
     }>;
+    ensureWarehouseDataSeeded(tenantId: string, plantId?: string): Promise<void>;
     listWarehouses(tenantId: string): Promise<{
         code: string;
         type: string | null;
@@ -117,10 +118,286 @@ export declare class WarehouseService {
         sweetenerStageStatus: string;
         rawMaterialsCount: string;
         packagingCount: string;
+        wipLotsCount: string;
         shipmentOrdersCount: string;
         freightStatus: string;
         totalLots: number;
         lastUpdated: string;
+    }>;
+    /**
+     * 1. Raw Material Issue / Consumption for Processing Batch
+     * Decrements raw material lot inventory, prevents negative stock, logs transaction and audit.
+     */
+    issueRawMaterialToProcessing(tenantId: string, plantId?: string, userId?: string, data?: any): Promise<{
+        success: boolean;
+        transactionId: string;
+        lotNumber: string;
+        batchNumber: any;
+        issuedQuantity: number;
+        uom: string;
+        remainingBalance: number;
+        status: string;
+        message: string;
+    }>;
+    /**
+     * 2. WIP / Semi-Finished Lot Inventory & Tank/Silo Locations
+     * Retrieves active WIP lots and tank/silo occupancy.
+     */
+    getWipLots(tenantId: string, plantId?: string): Promise<{
+        wipLots: {
+            id: any;
+            lotNumber: any;
+            lotType: any;
+            batchNumber: any;
+            quantity: any;
+            initialQuantity: any;
+            uom: any;
+            status: any;
+            mfgDate: any;
+            createdAt: any;
+        }[];
+        tankLocations: {
+            id: any;
+            location: any;
+            zone: any;
+            material: any;
+            batchLot: any;
+            quantity: any;
+            status: any;
+            temp: any;
+            capacity: any;
+            occupied: any;
+        }[];
+    }>;
+    /**
+     * 2b. Create/Register WIP Semi-Finished Lot from Processing
+     */
+    createWipLot(tenantId: string, plantId?: string, userId?: string, data?: any): Promise<{
+        success: boolean;
+        wipLot: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            skuId: string;
+            lotNumber: string;
+            lotType: string;
+            supplierName: string | null;
+            supplierLotNumber: string | null;
+            initialQuantity: string;
+            currentQuantity: string;
+            reservedQuantity: string;
+            locationBinId: string | null;
+            mfgDate: Date | null;
+            expiryDate: Date | null;
+        };
+        tankNumber: any;
+        message: string;
+    }>;
+    /**
+     * 3. Packaging Material Staging / Issue
+     * Stages cans, cartons, or closures to packaging lines with negative stock prevention.
+     */
+    stagePackagingMaterial(tenantId: string, plantId?: string, userId?: string, data?: any): Promise<{
+        success: boolean;
+        transactionId: string;
+        lotNumber: string;
+        packagingLine: any;
+        runNumber: any;
+        stagedQuantity: number;
+        uom: string;
+        remainingBalance: number;
+        message: string;
+    }>;
+    /**
+     * 4. Separate Processing and Packaging Material Movements
+     * Differentiates processing batch consumption vs packaging material issues.
+     */
+    getSeparatedMovements(tenantId: string, plantId?: string, category?: string): Promise<{
+        movements: {
+            id: any;
+            classification: string;
+            type: any;
+            quantity: any;
+            uom: any;
+            lotNumber: any;
+            lotType: any;
+            material: any;
+            reference: string;
+            notes: any;
+            timestamp: string;
+            createdAt: any;
+        }[];
+        counts: {
+            total: number;
+            processing: number;
+            packaging: number;
+        };
+    }>;
+    /**
+     * 5. Packaging Run → Finished Goods Lot / Pallet Creation
+     * Full lot traceability (linking WIP/Raw Lot to FG Lot) + QA Status disposition.
+     */
+    createPackagingFinishedGoods(tenantId: string, plantId?: string, userId?: string, data?: any): Promise<{
+        success: boolean;
+        finishedGood: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string | null;
+            plantId: string | null;
+            quantity: string;
+            notes: string | null;
+            batchNumber: string;
+            sku: string;
+            qaStatus: string | null;
+            productName: string;
+            expiryDate: string | null;
+            destination: string | null;
+            tempCheck: string | null;
+            finishedLot: string;
+            storageLocation: string;
+            productionDate: string | null;
+            palletSerial: string | null;
+            shipmentStatus: string | null;
+        };
+        inventoryLot: {
+            status: string;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            tenantId: string;
+            plantId: string;
+            uom: string;
+            skuId: string;
+            lotNumber: string;
+            lotType: string;
+            supplierName: string | null;
+            supplierLotNumber: string | null;
+            initialQuantity: string;
+            currentQuantity: string;
+            reservedQuantity: string;
+            locationBinId: string | null;
+            mfgDate: Date | null;
+            expiryDate: Date | null;
+        };
+        parentTraceLot: any;
+        message: string;
+    }>;
+    /**
+     * 6. Flow Summary
+     * Combines live telemetry for Raw Materials, Batches, WIP, Packaging, Movements, and FG.
+     */
+    getFlowSummary(tenantId: string, plantId?: string): Promise<{
+        kpis: {
+            incomingDeliveries: string;
+            activePickLists: string;
+            finishedGoodsPallets: string;
+            activeLotHolds: string;
+            activeStage: string;
+            sweetenerStageStatus: string;
+            rawMaterialsCount: string;
+            packagingCount: string;
+            wipLotsCount: string;
+            shipmentOrdersCount: string;
+            freightStatus: string;
+            totalLots: number;
+            lastUpdated: string;
+        };
+        rawMaterials: {
+            id: string;
+            lotNumber: string;
+            quantity: string;
+            initialQuantity: string;
+            uom: string;
+            supplier: string | null;
+            status: string;
+        }[];
+        processingBatches: {
+            id: string;
+            batchNumber: string;
+            tankNumber: string;
+            status: string;
+            volume: string;
+            uom: string;
+        }[];
+        wipLots: {
+            id: any;
+            lotNumber: any;
+            lotType: any;
+            batchNumber: any;
+            quantity: any;
+            initialQuantity: any;
+            uom: any;
+            status: any;
+            mfgDate: any;
+            createdAt: any;
+        }[];
+        tankLocations: {
+            id: any;
+            location: any;
+            zone: any;
+            material: any;
+            batchLot: any;
+            quantity: any;
+            status: any;
+            temp: any;
+            capacity: any;
+            occupied: any;
+        }[];
+        packagingMaterials: {
+            id: string;
+            lotNumber: string;
+            quantity: string;
+            initialQuantity: string;
+            uom: string;
+            supplier: string | null;
+            status: string;
+        }[];
+        recentMovements: {
+            processing: {
+                id: any;
+                classification: string;
+                type: any;
+                quantity: any;
+                uom: any;
+                lotNumber: any;
+                lotType: any;
+                material: any;
+                reference: string;
+                notes: any;
+                timestamp: string;
+                createdAt: any;
+            }[];
+            packaging: {
+                id: any;
+                classification: string;
+                type: any;
+                quantity: any;
+                uom: any;
+                lotNumber: any;
+                lotType: any;
+                material: any;
+                reference: string;
+                notes: any;
+                timestamp: string;
+                createdAt: any;
+            }[];
+        };
+        finishedGoods: {
+            id: any;
+            sku: any;
+            productName: any;
+            finishedLot: any;
+            palletSerial: any;
+            quantity: any;
+            location: any;
+            qaStatus: any;
+            shipmentStatus: any;
+        }[];
     }>;
     listIncomingDeliveries(tenantId: string): Promise<{
         deliveries: any[];
@@ -628,58 +905,6 @@ export declare class WarehouseService {
         message: string;
     }>;
     getTraceability(tenantId: string, lotNumber?: string): Promise<{
-<<<<<<< HEAD
-        lotNumber: any;
-        lotType: any;
-        category: any;
-        type: string;
-        materialName: any;
-        skuCode: any;
-        barcode: any;
-        initialQuantity: any;
-        currentQuantity: any;
-        quantity: string;
-        uom: any;
-        supplier: any;
-        supplierLot: any;
-        mfgDate: string;
-        expiryDate: string;
-        status: any;
-        qaStatus: string;
-        qaCert: string;
-        receivedDate: string;
-        currentLocation: string;
-        receivedLocation: string;
-        poNumber: any;
-        tempLog: string;
-        integrityScore: string;
-        batches: {
-            batchId: any;
-            date: string;
-            product: any;
-            sku: any;
-            line: string;
-            quantityProduced: string;
-            status: any;
-            ccpStatus: string;
-            pallets: {
-                palletId: string;
-                cases: string;
-                lpn: string;
-                dest: any;
-            }[];
-        }[];
-        productionOrders: any[];
-        ingredients: any[];
-        recallImpact: {
-            affectedBatches: number;
-            finishedCases: number;
-            palletsCount: number;
-            customersExposed: any[];
-        };
-        allLots: any[];
-    } | null>;
-=======
         batches: never[];
         activeLot: null;
         metrics: {
@@ -799,7 +1024,6 @@ export declare class WarehouseService {
             completedAt: Date | null;
         }[];
     }>;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     simulateRecall(tenantId: string, input: any, userId?: string): Promise<{
         success: boolean;
         recallCode: string;
@@ -852,15 +1076,15 @@ export declare class WarehouseService {
         quantity: string;
         notes: string | null;
         batchNumber: string;
+        sku: string;
+        qaStatus: string | null;
+        productName: string;
         expiryDate: string | null;
         destination: string | null;
         tempCheck: string | null;
-        sku: string;
-        productName: string;
         finishedLot: string;
         storageLocation: string;
         productionDate: string | null;
-        qaStatus: string | null;
         palletSerial: string | null;
         shipmentStatus: string | null;
     }>;
@@ -894,15 +1118,15 @@ export declare class WarehouseService {
         quantity: string;
         notes: string | null;
         batchNumber: string;
+        sku: string;
+        qaStatus: string | null;
+        productName: string;
         expiryDate: string | null;
         destination: string | null;
         tempCheck: string | null;
-        sku: string;
-        productName: string;
         finishedLot: string;
         storageLocation: string;
         productionDate: string | null;
-        qaStatus: string | null;
         palletSerial: string | null;
         shipmentStatus: string | null;
     }>;

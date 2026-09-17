@@ -759,8 +759,7 @@ class DashboardsController {
     }
     async updateSupervisorProfile(request, reply) {
         const body = request.body || {};
-<<<<<<< HEAD
-        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user?.tenantId, body);
+        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user?.tenantId, request.user?.userId, body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
     // ─── Shift Labour Staffing & Line Allocations ───────────────────────────
@@ -784,9 +783,6 @@ class DashboardsController {
     async deleteLabourAllocation(request, reply) {
         const { id } = request.params;
         const data = await dashboards_service_js_1.dashboardsService.deleteLabourAllocation(request.user?.tenantId, id);
-=======
-        const data = await dashboards_service_js_1.dashboardsService.updateSupervisorProfile(request.user.tenantId, request.user.userId, body);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, data.message));
     }
 }

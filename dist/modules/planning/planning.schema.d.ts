@@ -209,10 +209,6 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-<<<<<<< HEAD
-    productCode?: string | undefined;
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
     productCode?: string | undefined;
     historicalDemand?: number | undefined;
@@ -230,10 +226,6 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-<<<<<<< HEAD
-    productCode?: string | undefined;
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
     productCode?: string | undefined;
     historicalDemand?: number | undefined;
@@ -665,17 +657,17 @@ export declare const mitigateServiceRiskSchema: z.ZodObject<{
     authorizedBy: z.ZodDefault<z.ZodString>;
     notes: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    riskId: string;
     authorizedBy: string;
+    riskId: string;
     notes?: string | undefined;
     riskTitle?: string | undefined;
     actionProtocol?: string | undefined;
 }, {
     riskId: string;
     notes?: string | undefined;
+    authorizedBy?: string | undefined;
     riskTitle?: string | undefined;
     actionProtocol?: string | undefined;
-    authorizedBy?: string | undefined;
 }>;
 export type MitigateServiceRiskInput = z.infer<typeof mitigateServiceRiskSchema>;
 export declare const createScheduleVersionSchema: z.ZodObject<{
@@ -735,8 +727,8 @@ export declare const createShipmentSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: string;
-    destination: string;
     pallets: number;
+    destination: string;
     mode?: string | undefined;
     scheduledDate?: string | undefined;
     carrier?: string | undefined;
@@ -748,9 +740,9 @@ export declare const createShipmentSchema: z.ZodObject<{
     status?: string | undefined;
     mode?: string | undefined;
     scheduledDate?: string | undefined;
+    pallets?: number | undefined;
     carrier?: string | undefined;
     orderRef?: string | undefined;
-    pallets?: number | undefined;
     units?: string | undefined;
     dockDoor?: string | undefined;
 }>;

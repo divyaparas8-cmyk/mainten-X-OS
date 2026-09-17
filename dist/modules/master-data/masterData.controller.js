@@ -384,21 +384,11 @@ class MasterDataController {
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset created successfully"));
     }
     async updateAsset(request, reply) {
-<<<<<<< HEAD
         const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, request.params.id, request.body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset updated successfully"));
     }
     async deleteAsset(request, reply) {
         const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, request.params.id);
-=======
-        const id = request.params.id;
-        const data = await masterData_service_js_1.masterDataService.updateAsset(request.user?.tenantId, id, request.body);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset updated successfully"));
-    }
-    async deleteAsset(request, reply) {
-        const id = request.params.id;
-        const data = await masterData_service_js_1.masterDataService.deleteAsset(request.user?.tenantId, id);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Machine asset deleted successfully"));
     }
     async getStaff(request, reply) {
@@ -423,29 +413,15 @@ class MasterDataController {
     }
     async createQualitySpec(request, reply) {
         const data = await masterData_service_js_1.masterDataService.createQualitySpec(request.user?.tenantId, request.body);
-<<<<<<< HEAD
-        return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification created successfully"));
-    }
-    async updateQualitySpec(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.updateQualitySpec(request.user?.tenantId, request.params.id, request.body);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification updated successfully"));
-    }
-    async deleteQualitySpec(request, reply) {
-        const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
-        return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality specification deleted successfully"));
-=======
         return reply.status(201).send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification created successfully"));
     }
     async updateQualitySpec(request, reply) {
-        const id = request.params.id;
-        const data = await masterData_service_js_1.masterDataService.updateQualitySpec(request.user?.tenantId, id, request.body);
+        const data = await masterData_service_js_1.masterDataService.updateQualitySpec(request.user?.tenantId, request.params.id, request.body);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification updated successfully"));
     }
     async deleteQualitySpec(request, reply) {
-        const id = request.params.id;
-        const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, id);
+        const data = await masterData_service_js_1.masterDataService.deleteQualitySpec(request.user?.tenantId, request.params.id);
         return reply.send((0, responseFormatter_js_1.formatSuccess)(data, "Quality parameter specification deleted successfully"));
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     // ==========================================
     // 15. LABOUR STANDARDS

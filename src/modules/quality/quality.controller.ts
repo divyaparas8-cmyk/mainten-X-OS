@@ -49,6 +49,12 @@ export class QualityController {
     return reply.send(formatSuccess(data));
   }
 
+  async getBatchReleaseDossier(request: FastifyRequest<{ Params: { batchId: string } }>, reply: FastifyReply) {
+    const tenantId = (request as any).user?.tenantId || (request.headers["x-tenant-id"] as string) || "0bf4f354-4e0e-41f3-9974-e24de98d25ff";
+    const data = await qualityService.getBatchReleaseDossier(tenantId, request.params.batchId);
+    return reply.send(formatSuccess(data));
+  }
+
   async authorizeBatchRelease(request: FastifyRequest, reply: FastifyReply) {
     const input = qaBatchReleaseSchema.parse(request.body);
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
@@ -123,6 +129,17 @@ export class QualityController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async createAllergenAudit(request: FastifyRequest, reply: FastifyReply) {
+    const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
+    const data = await qualityService.createAllergenAudit(request.user.tenantId, plantId, request.body, request.user.userId);
+    return reply.status(201).send(formatSuccess(data, data.message));
+  }
+
+  async deleteAllergenAudit(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await qualityService.deleteAllergenAudit(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   async getLineReadiness(request: FastifyRequest, reply: FastifyReply) {
     const data = await qualityService.listLineReadiness(request.user.tenantId);
     return reply.send(formatSuccess(data));
@@ -132,13 +149,13 @@ export class QualityController {
     const input = toggleLineReadinessSchema.parse(request.body);
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await qualityService.toggleLineReadiness(request.user.tenantId, plantId, input, request.user.userId);
-    return reply.send(formatSuccess(data, `Line readiness updated to ${data.newStatus}`));
+    return reply.send(formatSuccess(data.data || data, `Line readiness updated to ${data.newStatus}`));
   }
 
   async authorizeAllLines(request: FastifyRequest, reply: FastifyReply) {
     const plantId = await resolvePlantId(request.user.tenantId, request.user.plantId);
     const data = await qualityService.authorizeAllLines(request.user.tenantId, plantId, request.user.userId);
-    return reply.send(formatSuccess(data, data.message));
+    return reply.send(formatSuccess(data.data || data, data.message));
   }
 
   async exportLineReadiness(request: FastifyRequest, reply: FastifyReply) {

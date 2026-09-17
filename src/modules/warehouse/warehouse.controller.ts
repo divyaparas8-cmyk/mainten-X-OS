@@ -559,6 +559,69 @@ export class WarehouseController {
     const data = await warehouseService.toggleWarehouseCertification(request.user.tenantId, certId, status);
     return reply.send(formatSuccess(data, data.message));
   }
+
+  // =========================================================================
+  // MATERIAL PROCESSING & PACKAGING EXECUTION FLOW CONTROLLERS
+  // =========================================================================
+
+  async issueRawMaterialForProcessing(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.issueRawMaterialToProcessing(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getWipLots(request: FastifyRequest, reply: FastifyReply) {
+    const data = await warehouseService.getWipLots(request.user.tenantId, request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createWipLot(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createWipLot(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async stagePackagingMaterial(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.stagePackagingMaterial(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getSeparatedMovements(request: FastifyRequest<{ Querystring: { category?: string } }>, reply: FastifyReply) {
+    const data = await warehouseService.getSeparatedMovements(
+      request.user.tenantId,
+      request.user.plantId,
+      request.query?.category
+    );
+    return reply.send(formatSuccess(data));
+  }
+
+  async createPackagingFinishedGoods(request: FastifyRequest<{ Body: any }>, reply: FastifyReply) {
+    const data = await warehouseService.createPackagingFinishedGoods(
+      request.user.tenantId,
+      request.user.plantId,
+      (request.user as any)?.id,
+      request.body || {}
+    );
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async getFlowSummary(request: FastifyRequest, reply: FastifyReply) {
+    const data = await warehouseService.getFlowSummary(request.user.tenantId, request.user.plantId);
+    return reply.send(formatSuccess(data));
+  }
 }
 
 export const warehouseController = new WarehouseController();

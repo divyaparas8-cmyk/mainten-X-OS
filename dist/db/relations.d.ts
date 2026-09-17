@@ -49,8 +49,8 @@ export declare const batchStepsRelations: import("drizzle-orm").Relations<"batch
     operator: import("drizzle-orm").One<"users", false>;
 }>;
 export declare const ccpChecksRelations: import("drizzle-orm").Relations<"ccp_checks", {
-    batch: import("drizzle-orm").One<"batches", true>;
-    line: import("drizzle-orm").One<"production_lines", true>;
+    batch: import("drizzle-orm").One<"batches", false>;
+    line: import("drizzle-orm").One<"production_lines", false>;
 }>;
 export declare const inventoryLotsRelations: import("drizzle-orm").Relations<"inventory_lots", {
     sku: import("drizzle-orm").One<"skus", true>;

@@ -44,16 +44,41 @@ class AuthService {
         const userRoleRecords = await database_js_1.db.select().from(index_js_1.userRoles).where((0, drizzle_orm_1.eq)(index_js_1.userRoles.userId, user.id));
         let primaryRole = "admin";
         let roleName = "Administrator";
+        let roleId;
         if (userRoleRecords.length > 0) {
             const [roleRecord] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.id, userRoleRecords[0].roleId)).limit(1);
             if (roleRecord) {
                 primaryRole = roleRecord.code;
                 roleName = roleRecord.name;
+                roleId = roleRecord.id;
             }
         }
         if (user.isMasterAdmin) {
             primaryRole = "master_admin";
             roleName = "Master Administrator";
+        }
+        // Query active permissions for role from PostgreSQL
+        let userPermissions = [];
+        if (user.isMasterAdmin || primaryRole === "master_admin" || primaryRole === "admin") {
+            userPermissions = ["*"];
+        }
+        else {
+            try {
+                const permsQuery = await database_js_1.db
+                    .select({
+                    code: index_js_1.permissions.code,
+                    module: index_js_1.permissions.module,
+                    action: index_js_1.permissions.action,
+                })
+                    .from(index_js_1.rolePermissions)
+                    .innerJoin(index_js_1.permissions, (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.permissionId, index_js_1.permissions.id))
+                    .innerJoin(index_js_1.roles, (0, drizzle_orm_1.eq)(index_js_1.rolePermissions.roleId, index_js_1.roles.id))
+                    .where((0, drizzle_orm_1.or)(roleId ? (0, drizzle_orm_1.eq)(index_js_1.roles.id, roleId) : undefined, (0, drizzle_orm_1.eq)(index_js_1.roles.code, primaryRole), primaryRole === "qa_manager" ? (0, drizzle_orm_1.eq)(index_js_1.roles.code, "quality") : undefined, primaryRole === "quality" ? (0, drizzle_orm_1.eq)(index_js_1.roles.code, "qa_manager") : undefined));
+                userPermissions = permsQuery.map((p) => p.code);
+            }
+            catch (e) {
+                console.warn("Error fetching user role permissions:", e.message);
+            }
         }
         // Get default plant
         const [defaultPlant] = await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.eq)(index_js_1.plants.tenantId, user.tenantId)).limit(1);
@@ -67,7 +92,9 @@ class AuthService {
                 tenantId: user.tenantId,
                 plantId: input.plantId || defaultPlant?.id,
                 role: primaryRole,
+                roleId,
                 roleName,
+                permissions: userPermissions,
                 isMasterAdmin: user.isMasterAdmin,
                 avatarUrl: user.avatarUrl,
             },

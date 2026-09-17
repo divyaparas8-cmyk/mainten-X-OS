@@ -687,31 +687,37 @@ export class MasterDataService {
   // ==========================================
   async listLines(tenantId: string | undefined, plantId?: string) {
     try {
-      let query = sql`SELECT * FROM public.production_lines`;
-      if (plantId && plantId !== "ALL") {
-        query = sql`SELECT * FROM public.production_lines WHERE plant_id::text = ${plantId} OR plant_name = ${plantId}`;
+      let query = sql`SELECT pl.*, p.name as plant_name, p.code as plant_code 
+                      FROM public.production_lines pl 
+                      LEFT JOIN public.plants p ON pl.plant_id = p.id`;
+      if (plantId && plantId !== "ALL" && plantId !== "undefined") {
+        query = sql`SELECT pl.*, p.name as plant_name, p.code as plant_code 
+                    FROM public.production_lines pl 
+                    LEFT JOIN public.plants p ON pl.plant_id = p.id 
+                    WHERE pl.plant_id::text = ${plantId} OR p.name = ${plantId} OR p.code = ${plantId}`;
       }
-      query = sql`${query} ORDER BY created_at DESC`;
+      query = sql`${query} ORDER BY pl.created_at ASC`;
       const res = await db.execute(query);
       const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
       return rows.map((l: any) => ({
         id: String(l.id),
         lineId: String(l.id),
-        lineCode: l.line_code || l.code || `LINE-${String(l.id).substring(0, 4)}`,
-        code: l.code || l.line_code || `LINE-${String(l.id).substring(0, 4)}`,
+        lineCode: l.code || `LINE-${String(l.id).substring(0, 4)}`,
+        code: l.code || `LINE-${String(l.id).substring(0, 4)}`,
         name: l.name || "Production Line",
-        plantId: l.plant_id ? String(l.plant_id) : "PLT-01",
-        plantName: l.plant_name || "Main Facility",
-        type: l.type || l.line_type || "Continuous Flow",
-        lineType: l.line_type || "BOTTLING",
-        ratedSpeed: l.rated_speed || (l.nominal_speed_bpm ? `${l.nominal_speed_bpm * 60} BPH` : "38,000 BPH"),
-        ratedSpeedBPH: l.rated_speed_bph || (l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 38000),
+        plantId: l.plant_id ? String(l.plant_id) : "",
+        plantName: l.plant_name || (l.plant_id ? "Assigned Plant" : "—"),
+        type: l.line_type || "Continuous Flow",
+        lineType: l.line_type || "Continuous Flow",
+        nominalSpeedBpm: l.nominal_speed_bpm || 0,
+        ratedSpeed: l.nominal_speed_bpm ? `${(l.nominal_speed_bpm * 60).toLocaleString()} BPH` : "—",
+        ratedSpeedBPH: l.nominal_speed_bpm ? l.nominal_speed_bpm * 60 : 0,
         status: l.status || "Active",
-        healthScore: l.health_score || 95,
-        supervisorId: l.supervisor_id || null,
-        supervisorName: l.supervisor_name || null,
-        ratedOEE: l.rated_oee || "88.0%",
-        currentRunningSku: l.current_running_sku || null
+        healthScore: l.health_score ?? 95,
+        supervisorId: null,
+        supervisorName: null,
+        ratedOEE: "88.0%",
+        currentRunningSku: null
       }));
     } catch (e: any) {
       console.warn("DB listLines error:", e.message);
@@ -728,28 +734,22 @@ export class MasterDataService {
       }
       const code = (input.lineCode || input.code || `LINE-${Date.now().toString().slice(-4)}`).toUpperCase();
       const name = String(input.name || "Production Line").trim();
-      const lineType = input.lineType || "BOTTLING";
-      const ratedSpeed = input.ratedSpeed || "38,000 BPH";
-      const ratedSpeedBPH = Number(input.ratedSpeedBPH) || 38000;
+      const lineType = input.lineType || input.type || "Continuous Flow";
+      let ratedSpeedBPH = Number(input.ratedSpeedBPH);
+      if (!ratedSpeedBPH && input.ratedSpeed) {
+        const parsed = parseInt(String(input.ratedSpeed).replace(/[^0-9]/g, ""), 10);
+        if (!isNaN(parsed) && parsed > 0) ratedSpeedBPH = parsed;
+      }
       const nominalSpeedBpm = ratedSpeedBPH ? Math.round(ratedSpeedBPH / 60) : 250;
-      const status = input.status || "Active";
+      const status = input.status || "RUNNING";
       const plantId = (input.plantId && input.plantId.length === 36 && input.plantId.includes("-")) ? input.plantId : null;
-      const plantName = input.plantName || null;
-      const supervisorName = input.supervisorName || null;
-      const supervisorId = input.supervisorId || null;
-      const ratedOee = input.ratedOEE || "88.0%";
-      const currentRunningSku = input.currentRunningSku || null;
-      const type = input.type || "Continuous Flow";
 
       const res = await db.execute(sql`
         INSERT INTO public.production_lines (
-          tenant_id, plant_id, code, line_code, name, line_type, nominal_speed_bpm,
-          rated_speed, rated_speed_bph, type, plant_name, supervisor_name, supervisor_id,
-          rated_oee, current_running_sku, status, health_score, created_at
+          tenant_id, plant_id, code, name, line_type, nominal_speed_bpm, status, health_score, created_at
         ) VALUES (
-          ${resolvedTenantId || null}, ${plantId}, ${code}, ${code}, ${name}, ${lineType}, ${nominalSpeedBpm},
-          ${ratedSpeed}, ${ratedSpeedBPH}, ${type}, ${plantName}, ${supervisorName}, ${supervisorId},
-          ${ratedOee}, ${currentRunningSku}, ${status}, 95, NOW()
+          ${resolvedTenantId || null}, ${plantId}, ${code}, ${name}, ${lineType}, ${nominalSpeedBpm},
+          ${status}, 95, NOW()
         ) RETURNING *
       `);
       const row = (res as any)?.rows?.[0] || (Array.isArray(res) ? res[0] : null);
@@ -761,16 +761,13 @@ export class MasterDataService {
         lineCode: code,
         name,
         lineType,
-        type,
-        ratedSpeed,
-        ratedSpeedBPH,
+        type: lineType,
+        nominalSpeedBpm,
+        ratedSpeed: nominalSpeedBpm ? `${(nominalSpeedBpm * 60).toLocaleString()} BPH` : "—",
+        ratedSpeedBPH: nominalSpeedBpm * 60,
         status,
-        plantId: input.plantId || "PLT-01",
-        plantName,
-        supervisorName,
-        supervisorId,
-        ratedOEE: ratedOee,
-        currentRunningSku,
+        plantId: plantId || "",
+        plantName: input.plantName || "",
         healthScore: 95
       };
     } catch (err: any) {
@@ -781,22 +778,23 @@ export class MasterDataService {
 
   async updateLine(tenantId: string | undefined, id: string, input: any) {
     try {
+      let nominalSpeedBpm: number | null = null;
+      if (input.ratedSpeedBPH) {
+        nominalSpeedBpm = Math.round(Number(input.ratedSpeedBPH) / 60);
+      } else if (input.ratedSpeed) {
+        const parsed = parseInt(String(input.ratedSpeed).replace(/[^0-9]/g, ""), 10);
+        if (!isNaN(parsed) && parsed > 0) nominalSpeedBpm = Math.round(parsed / 60);
+      }
+
       await db.execute(sql`
         UPDATE public.production_lines
         SET 
           name = COALESCE(${input.name || null}, name),
           code = COALESCE(${input.code || input.lineCode || null}, code),
-          line_code = COALESCE(${input.lineCode || input.code || null}, line_code),
-          line_type = COALESCE(${input.lineType || null}, line_type),
-          type = COALESCE(${input.type || null}, type),
-          rated_speed = COALESCE(${input.ratedSpeed || null}, rated_speed),
-          rated_speed_bph = COALESCE(${input.ratedSpeedBPH != null ? Number(input.ratedSpeedBPH) : null}, rated_speed_bph),
-          status = COALESCE(${input.status || null}, status),
-          plant_name = COALESCE(${input.plantName || null}, plant_name),
-          supervisor_name = COALESCE(${input.supervisorName || null}, supervisor_name),
-          supervisor_id = COALESCE(${input.supervisorId || null}, supervisor_id),
-          updated_at = NOW()
-        WHERE id::text = ${id} OR code = ${id} OR line_code = ${id}
+          line_type = COALESCE(${input.lineType || input.type || null}, line_type),
+          nominal_speed_bpm = COALESCE(${nominalSpeedBpm}, nominal_speed_bpm),
+          status = COALESCE(${input.status || null}, status)
+        WHERE id::text = ${id} OR code = ${id}
       `);
       return { id, ...input };
     } catch (err: any) {
@@ -809,7 +807,7 @@ export class MasterDataService {
     try {
       await db.execute(sql`
         DELETE FROM public.production_lines
-        WHERE id::text = ${id} OR code = ${id} OR line_code = ${id}
+        WHERE id::text = ${id} OR code = ${id}
       `);
       return { id, message: "Line deleted successfully" };
     } catch (err: any) {
@@ -3935,7 +3933,6 @@ export class MasterDataService {
   // ==========================================
   // 17. EMPLOYEE SKILLS MATRIX
   // ==========================================
-
   async listEmployeeSkills(tenantId?: string, plantId?: string) {
     try {
       const res = await db.execute(sql`

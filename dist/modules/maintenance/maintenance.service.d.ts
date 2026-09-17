@@ -220,21 +220,12 @@ export declare class MaintenanceService {
     }>;
     listPMSchedules(tenantId: string): Promise<{
         id: string;
-<<<<<<< HEAD
-        tenantId: string;
-        isActive: boolean;
-        plantId: string;
-        frequency: string;
-        assetId: string;
-        scheduleCode: string;
-=======
         scheduleCode: string;
         dbId: string;
         title: string;
         assetId: string;
         assetName: string;
         frequency: string;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         intervalDays: number;
         dueDate: string;
         dueNext: string;
@@ -259,21 +250,12 @@ export declare class MaintenanceService {
         status?: string;
     }): Promise<{
         id: string;
-<<<<<<< HEAD
-        tenantId: string;
-        isActive: boolean;
-        plantId: string;
-        frequency: string;
-        assetId: string;
-        scheduleCode: string;
-=======
         scheduleCode: string;
         dbId: string;
         title: string;
         assetId: any;
         assetName: any;
         frequency: string;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         intervalDays: number;
         dueDate: string;
         dueNext: string;
@@ -428,12 +410,8 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
-        frequency: string;
         assetId: string;
-<<<<<<< HEAD
-=======
         frequency: string;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         scheduleCode: string;
         intervalDays: number;
         lastPerformedDate: Date | null;
@@ -447,12 +425,8 @@ export declare class MaintenanceService {
         tenantId: string;
         isActive: boolean;
         plantId: string;
-        frequency: string;
         assetId: string;
-<<<<<<< HEAD
-=======
         frequency: string;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         scheduleCode: string;
         intervalDays: number;
         lastPerformedDate: Date | null;

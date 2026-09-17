@@ -17,6 +17,14 @@ export async function warehouseRoutes(fastify: FastifyInstance) {
 
   // Warehouse Dashboard & Receiving Operations
   fastify.get("/dashboard", { schema: { tags: ["Warehouse & WMS"], summary: "Get Warehouse Dashboard Live KPI Metrics" } }, warehouseController.getDashboardStats.bind(warehouseController));
+  fastify.get("/flow-summary", { schema: { tags: ["Warehouse & WMS"], summary: "Get Complete Processing & Packaging Flow Summary" } }, warehouseController.getFlowSummary.bind(warehouseController));
+  fastify.post("/processing/issue-raw-material", { schema: { tags: ["Warehouse & Processing"], summary: "Issue/Consume Raw Material for Processing Batch" } }, warehouseController.issueRawMaterialForProcessing.bind(warehouseController));
+  fastify.get("/wip-lots", { schema: { tags: ["Warehouse & Processing"], summary: "List WIP Semi-Finished Lots & Tanks" } }, warehouseController.getWipLots.bind(warehouseController));
+  fastify.post("/wip-lots", { schema: { tags: ["Warehouse & Processing"], summary: "Register WIP Lot from Processing" } }, warehouseController.createWipLot.bind(warehouseController));
+  fastify.post("/packaging/stage-material", { schema: { tags: ["Warehouse & Packaging"], summary: "Stage Packaging Material to Line" } }, warehouseController.stagePackagingMaterial.bind(warehouseController));
+  fastify.get("/movements/separated", { schema: { tags: ["Warehouse & Operations"], summary: "Get Processing vs Packaging Separated Movements" } }, warehouseController.getSeparatedMovements.bind(warehouseController));
+  fastify.post("/packaging/create-finished-goods", { schema: { tags: ["Warehouse & Packaging"], summary: "Packaging Run - Create Finished Goods Lot & Pallet" } }, warehouseController.createPackagingFinishedGoods.bind(warehouseController));
+
   fastify.get("/receiving/incoming", { schema: { tags: ["Warehouse & Receiving"], summary: "List Incoming Shipments & Deliveries" } }, warehouseController.listIncomingDeliveries.bind(warehouseController));
   fastify.post("/receiving/incoming/:id/toggle", { schema: { tags: ["Warehouse & Receiving"], summary: "Toggle Delivery Arrival Status" } }, warehouseController.toggleDeliveryStatus.bind(warehouseController));
   fastify.get("/receiving/receive", { schema: { tags: ["Warehouse & Receiving"], summary: "Get Inbound Material Receiving Context" } }, warehouseController.listIncomingDeliveries.bind(warehouseController));

@@ -72,16 +72,7 @@ exports.mrpRequirements = (0, pg_core_1.pgTable)("mrp_requirements", {
     netShortage: (0, pg_core_1.numeric)("net_shortage", { precision: 14, scale: 4 }).notNull(),
     requiredDate: (0, pg_core_1.timestamp)("required_date").notNull(),
     status: (0, pg_core_1.varchar)("status", { length: 50 }).default("SHORTAGE_ALERT"), // "CRITICAL", "SHORTAGE_ALERT", "COVERED"
-<<<<<<< HEAD
-    safetyStock: (0, pg_core_1.numeric)("safety_stock", { precision: 14, scale: 4 }).default("1000.00"),
     suggestedAction: (0, pg_core_1.varchar)("suggested_action", { length: 255 }),
-    category: (0, pg_core_1.varchar)("category", { length: 100 }),
-    uom: (0, pg_core_1.varchar)("uom", { length: 50 }),
-    materialName: (0, pg_core_1.varchar)("material_name", { length: 255 }),
-    skuCode: (0, pg_core_1.varchar)("sku_code", { length: 100 }),
-=======
-    suggestedAction: (0, pg_core_1.varchar)("suggested_action", { length: 255 }),
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     calculatedAt: (0, pg_core_1.timestamp)("calculated_at").defaultNow().notNull(),
 });
 exports.purchaseRequisitions = (0, pg_core_1.pgTable)("purchase_requisitions", {

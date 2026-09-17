@@ -1,9 +1,36 @@
 import { FastifyInstance } from "fastify";
 import { productionController } from "./production.controller.js";
 import { authenticate } from "../../middleware/authenticate.js";
+import { authorize } from "../../middleware/authorize.js";
 
 export async function productionRoutes(fastify: FastifyInstance) {
   fastify.addHook("preHandler", authenticate);
+
+  // Dynamic PostgreSQL RBAC Permission Enforcement Hook
+  fastify.addHook("preHandler", async (request, reply) => {
+    const user = (request as any).user;
+    if (!user || user.isMasterAdmin || user.role === "admin" || user.role === "master_admin" || user.role === "super_admin" || user.role === "system_admin") {
+      return;
+    }
+
+    const url = request.url.split("?")[0];
+    const method = request.method.toUpperCase();
+
+    let requiredPerm: string | string[] | null = null;
+
+    if (url.includes("/orders")) {
+      if (method === "POST") requiredPerm = "production.create";
+      else if (method === "PATCH" || method === "PUT") requiredPerm = "production.edit";
+      else if (method === "DELETE") requiredPerm = "production.delete";
+      else if (method === "GET") requiredPerm = "production.view";
+    } else if (url.includes("/qa-release")) {
+      requiredPerm = "production.approve";
+    }
+
+    if (requiredPerm) {
+      await authorize(requiredPerm)(request, reply);
+    }
+  });
 
   // Orders
   fastify.get("/orders", { schema: { tags: ["Production & MES"], summary: "List Production Orders" } }, productionController.getOrders.bind(productionController));

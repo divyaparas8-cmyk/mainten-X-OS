@@ -1,10 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-<<<<<<< HEAD
-exports.labourAllocations = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.departments = exports.companies = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
-=======
-exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
+exports.storageResources = exports.ccpLimits = exports.employeeSkills = exports.labourStandards = exports.labourAllocations = exports.uoms = exports.allergenRules = exports.sanitationClasses = exports.packaging = exports.lineTargets = exports.operations = exports.changeoverRules = exports.routingSteps = exports.routings = exports.qualitySpecs = exports.staff = exports.assets = exports.criticalityLevels = exports.assetTypes = exports.shifts = exports.productionLines = exports.workCenters = exports.bomItems = exports.boms = exports.skus = exports.productFamilies = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 const tenants_1 = require("./tenants");
 exports.productFamilies = (0, pg_core_1.pgTable)("product_families", {
@@ -237,27 +233,6 @@ exports.changeoverRules = (0, pg_core_1.pgTable)("changeover_rules", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
-<<<<<<< HEAD
-exports.companies = (0, pg_core_1.pgTable)("companies", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
-    code: (0, pg_core_1.varchar)("code", { length: 50 }),
-    industry: (0, pg_core_1.varchar)("industry", { length: 100 }),
-    status: (0, pg_core_1.varchar)("status", { length: 50 }).default("Active"),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
-});
-exports.departments = (0, pg_core_1.pgTable)("departments", {
-    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
-    tenantId: (0, pg_core_1.uuid)("tenant_id").references(() => tenants_1.tenants.id, { onDelete: "cascade" }),
-    code: (0, pg_core_1.varchar)("code", { length: 50 }).notNull(),
-    name: (0, pg_core_1.varchar)("name", { length: 255 }).notNull(),
-    managerName: (0, pg_core_1.varchar)("manager_name", { length: 255 }),
-    isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
-});
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 exports.operations = (0, pg_core_1.pgTable)("operations", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     operationCode: (0, pg_core_1.varchar)("operation_code", { length: 50 }).notNull(),
@@ -350,7 +325,6 @@ exports.uoms = (0, pg_core_1.pgTable)("uoms", {
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
 });
-<<<<<<< HEAD
 exports.labourAllocations = (0, pg_core_1.pgTable)("labour_allocations", {
     id: (0, pg_core_1.varchar)("id", { length: 64 }).primaryKey(),
     tenantId: (0, pg_core_1.uuid)("tenant_id"),
@@ -366,7 +340,7 @@ exports.labourAllocations = (0, pg_core_1.pgTable)("labour_allocations", {
     notes: (0, pg_core_1.text)("notes"),
     createdAt: (0, pg_core_1.timestamp)("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at", { withTimezone: true }).defaultNow(),
-=======
+});
 exports.labourStandards = (0, pg_core_1.pgTable)("labour_standards", {
     id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
     standardId: (0, pg_core_1.varchar)("standard_id", { length: 50 }),
@@ -427,6 +401,5 @@ exports.storageResources = (0, pg_core_1.pgTable)("storage_resources", {
     effectiveTo: (0, pg_core_1.varchar)("effective_to", { length: 50 }).default("2030-12-31"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow(),
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
 });
 //# sourceMappingURL=masterData.js.map

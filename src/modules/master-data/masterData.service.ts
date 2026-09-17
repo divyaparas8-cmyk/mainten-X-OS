@@ -6,7 +6,6 @@ import { CreateSkuInput, CreateBomInput } from "./masterData.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 
 // In-Memory Persistent Store synced with database records
-let inMemoryEmployeeSkills: any[] = [];
 export interface CompanyEntity {
   id: string;
   companyId?: string;

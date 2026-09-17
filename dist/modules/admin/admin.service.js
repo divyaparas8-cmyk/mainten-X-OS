@@ -308,29 +308,6 @@ class AdminService {
             status: input.status === "Pending Invite" || input.status === "Pending" ? "PENDING" : "ACTIVE",
         })
             .returning();
-<<<<<<< HEAD
-        // Find or map role
-        const roleNameClean = input.role.trim();
-        const roleKey = roleNameClean.toLowerCase().replace(/[^a-z0-9]/g, "_");
-        let matchedRole = null;
-        if (activeTenantId) {
-            const [tenantRole] = await database_js_1.db
-                .select()
-                .from(index_js_1.roles)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(index_js_1.roles.tenantId, activeTenantId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.sql) `LOWER(${index_js_1.roles.name}) = ${roleNameClean.toLowerCase()}`, (0, drizzle_orm_1.sql) `LOWER(${index_js_1.roles.name}) LIKE ${`%${roleNameClean.toLowerCase()}%`}`, (0, drizzle_orm_1.eq)(index_js_1.roles.code, roleKey))))
-                .limit(1);
-            matchedRole = tenantRole;
-        }
-        if (!matchedRole) {
-            const [sysRole] = await database_js_1.db
-                .select()
-                .from(index_js_1.roles)
-                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.sql) `${index_js_1.roles.tenantId} IS NULL`, (0, drizzle_orm_1.or)((0, drizzle_orm_1.sql) `LOWER(${index_js_1.roles.name}) = ${roleNameClean.toLowerCase()}`, (0, drizzle_orm_1.sql) `LOWER(${index_js_1.roles.name}) LIKE ${`%${roleNameClean.toLowerCase()}%`}`, (0, drizzle_orm_1.eq)(index_js_1.roles.code, roleKey))))
-                .limit(1);
-            matchedRole = sysRole;
-        }
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         if (!matchedRole && activeTenantId) {
             try {
                 const [createdRole] = await database_js_1.db
@@ -338,11 +315,7 @@ class AdminService {
                     .values({
                     tenantId: activeTenantId,
                     code: roleKey,
-<<<<<<< HEAD
-                    name: roleNameClean,
-=======
                     name: input.role.trim(),
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                     description: "Custom enterprise operational scope",
                     isSystem: false,
                 })
@@ -351,12 +324,6 @@ class AdminService {
             }
             catch (_) { }
         }
-<<<<<<< HEAD
-        const [defaultPlant] = activeTenantId
-            ? await database_js_1.db.select().from(index_js_1.plants).where((0, drizzle_orm_1.eq)(index_js_1.plants.tenantId, activeTenantId)).limit(1)
-            : await database_js_1.db.select().from(index_js_1.plants).limit(1);
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         if (matchedRole) {
             await database_js_1.db.insert(index_js_1.userRoles).values({
                 userId: createdUser.id,
@@ -399,12 +366,8 @@ class AdminService {
     }
     async getAllUsers(tenantId) {
         try {
-<<<<<<< HEAD
-            const userList = tenantId
-=======
             const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
             const userList = isTenantUuid
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                 ? await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.tenantId, tenantId)).orderBy((0, drizzle_orm_1.desc)(index_js_1.users.createdAt))
                 : await database_js_1.db.select().from(index_js_1.users).orderBy((0, drizzle_orm_1.desc)(index_js_1.users.createdAt));
             const roleList = await database_js_1.db.select().from(index_js_1.roles);
@@ -444,40 +407,15 @@ class AdminService {
                     lastLoginAt: u.lastLoginAt,
                     createdAt: u.createdAt,
                 };
-<<<<<<< HEAD
-                return userList.map((u, index) => {
-                    const uRole = userRoleList.find((ur) => ur.userId === u.id);
-                    const roleObj = uRole ? roleList.find((r) => r.id === uRole.roleId) : null;
-                    const roleCode = roleObj?.code || (u.isMasterAdmin ? "master_admin" : "admin");
-                    const plantObj = uRole?.plantId ? plantList.find((p) => p.id === uRole.plantId) : plantList.find((p) => p.tenantId === u.tenantId);
-                    return {
-                        id: u.id,
-                        name: `${u.firstName} ${u.lastName}`.trim(),
-                        email: u.email,
-                        role: roleObj?.name || (u.isMasterAdmin ? "Master Admin" : "Company Administrator"),
-                        roleCode,
-                        department: departmentMap[roleCode] || (roleCode === "admin" ? "IT & Digital Ops" : "Operations"),
-                        plant: plantObj?.name?.split(" - ")[0] || "Main Facility",
-                        status: u.status === "ACTIVE" ? "Active" : "Suspended",
-                        lastLogin: index === 0 ? "Just now" : `${(index + 1) * 2} hours ago`,
-                        lastLoginAt: u.lastLoginAt,
-                        createdAt: u.createdAt,
-                    };
-                });
-=======
             });
             if (mapped.length > 0) {
                 return mapped;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
-            }
-            if (tenantId) {
-                return [];
             }
         }
         catch (err) {
             console.warn("Database query failed in getAllUsers:", err.message);
         }
-        return tenantId ? [] : inMemoryUsers;
+        return inMemoryUsers;
     }
     async updateUserStatus(tenantId, userId, newStatus) {
         const normalizedStatus = newStatus.toUpperCase() === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
@@ -762,12 +700,6 @@ class AdminService {
         };
     }
     async getInvitations(tenantId) {
-<<<<<<< HEAD
-        if (tenantId) {
-            return inMemoryInvitations.filter((i) => i.tenantId === tenantId);
-        }
-        return inMemoryInvitations;
-=======
         try {
             const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
             const rows = isTenantUuid
@@ -800,15 +732,12 @@ class AdminService {
             return inMemoryInvitations;
         }
         return [];
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     async createInvitation(tenantId, input) {
         if (!input.email) {
             throw new AppError_js_1.ValidationError("Recipient email is required.");
         }
         const email = input.email.toLowerCase().trim();
-<<<<<<< HEAD
-=======
         // Check for existing pending invite in DB
         try {
             const existingRows = await database_js_1.db
@@ -824,21 +753,10 @@ class AdminService {
             if (e instanceof AppError_js_1.ConflictError)
                 throw e;
         }
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         const existingInvite = inMemoryInvitations.find((i) => i.email.toLowerCase() === email && i.status === "Pending" && (!tenantId || i.tenantId === tenantId));
         if (existingInvite) {
             throw new AppError_js_1.ConflictError(`Active invitation already exists for ${email}.`);
         }
-<<<<<<< HEAD
-        const newInvite = {
-            id: `INV-${Math.floor(100 + Math.random() * 900)}`,
-            tenantId,
-            email,
-            role: input.role || "Quality Analyst",
-            department: input.department || "Quality",
-            invitedBy: input.invitedBy || "Company Administrator",
-            sentDate: new Date().toISOString().substring(0, 10),
-=======
         // Resolve a valid tenant UUID so PostgreSQL foreign key constraint is satisfied
         let activeTenantId = null;
         if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
@@ -862,7 +780,6 @@ class AdminService {
             department: input.department || "Quality",
             invitedBy: input.invitedBy || "Alexander Vance",
             sentDate,
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
             status: "Pending",
         };
         inMemoryInvitations.unshift(memInvite);
@@ -1115,23 +1032,8 @@ class AdminService {
         return { success: true, id: cleanId, ...data };
     }
     async getActivityLogs(tenantId, query) {
-        if (!tenantId) {
-            return [];
-        }
         let mappedDbLogs = [];
         try {
-<<<<<<< HEAD
-            const dbLogs = await database_js_1.db
-                .select()
-                .from(index_js_1.auditLogs)
-                .where((0, drizzle_orm_1.eq)(index_js_1.auditLogs.tenantId, tenantId))
-                .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
-                .limit(50);
-            const userList = await database_js_1.db
-                .select()
-                .from(index_js_1.users)
-                .where((0, drizzle_orm_1.eq)(index_js_1.users.tenantId, tenantId));
-=======
             const isTenantUuid = typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId);
             const dbLogs = isTenantUuid
                 ? await database_js_1.db
@@ -1146,25 +1048,16 @@ class AdminService {
                     .orderBy((0, drizzle_orm_1.sql) `${index_js_1.auditLogs.createdAt} DESC`)
                     .limit(100);
             const userList = await database_js_1.db.select().from(index_js_1.users);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
             mappedDbLogs = dbLogs.map((log, index) => {
                 const user = userList.find((u) => u.id === log.userId);
                 const userName = user ? `${user.firstName} ${user.lastName}`.trim() : "Company Administrator";
                 return {
-<<<<<<< HEAD
-                    id: `ACT-${800 + index}`,
-                    user: userName || "Administrator",
-                    action: `${log.action.replace(/_/g, " ")} on ${log.entityType} (${log.entityId})`,
-                    category: log.action.includes("SECURITY") || log.action.includes("USER") || log.action.includes("LOCK") ? "Security" : "Configuration",
-                    ip: log.ipAddress || "127.0.0.1",
-=======
                     id: `ACT-${800 + index + 1}`,
                     dbId: log.id,
                     user: userName || "Administrator",
                     action: `${log.action.replace(/_/g, " ")} on ${log.entityType || "System"} (${log.entityId || "N/A"})`,
                     category: log.action.includes("SECURITY") || log.action.includes("USER") || log.action.includes("LOCK") || log.action.includes("REVOKE") || log.action.includes("INVITATION") ? "Security" : "Configuration",
                     ip: log.ipAddress || "192.168.1.10",
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                     timestamp: new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                     createdAt: log.createdAt,
                 };
@@ -1181,8 +1074,6 @@ class AdminService {
                 l.ip.includes(q));
         }
         return mappedDbLogs;
-<<<<<<< HEAD
-=======
     }
     async createActivityLog(tenantId, data) {
         let activeTenantId = null;
@@ -1267,7 +1158,6 @@ class AdminService {
             console.warn("deleteActivityLog error:", err.message);
             return { success: false, message: err.message };
         }
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     }
     // ==========================================
     // ROLES & PERMISSIONS GOVERNANCE
@@ -1275,29 +1165,6 @@ class AdminService {
     async getRoles(tenantId) {
         await this.ensurePermissionsSeeded();
         try {
-<<<<<<< HEAD
-            if (tenantId) {
-                const roleList = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.tenantId, tenantId));
-                const userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
-                const tenantUsers = await database_js_1.db.select().from(index_js_1.users).where((0, drizzle_orm_1.eq)(index_js_1.users.tenantId, tenantId));
-                const tenantUserIds = new Set(tenantUsers.map((u) => u.id));
-                return roleList.map((r, idx) => {
-                    const assignedCount = userRoleList.filter((ur) => ur.roleId === r.id && tenantUserIds.has(ur.userId)).length;
-                    return {
-                        id: r.id,
-                        dbId: r.id,
-                        code: r.code,
-                        name: r.name,
-                        description: r.description || "Custom enterprise operational scope",
-                        userCount: assignedCount,
-                        isSystem: r.isSystem,
-                        createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || new Date().toISOString()),
-                    };
-                });
-            }
-            const roleList = await database_js_1.db.select().from(index_js_1.roles);
-            const userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
-=======
             let activeTenantId = null;
             if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
                 activeTenantId = tenantId;
@@ -1317,7 +1184,6 @@ class AdminService {
                 userRoleList = await database_js_1.db.select().from(index_js_1.userRoles);
             }
             catch (_) { }
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
             if (roleList && roleList.length > 0) {
                 return roleList.map((r, idx) => {
                     const assignedCount = userRoleList.filter((ur) => ur.roleId === r.id).length;
@@ -1328,11 +1194,7 @@ class AdminService {
                         code: r.code,
                         name: r.name,
                         description: r.description || "Custom enterprise operational scope",
-<<<<<<< HEAD
-                        userCount: assignedCount || defaultFallbackCount,
-=======
                         userCount: assignedCount > 0 ? assignedCount : defaultFallbackCount,
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
                         isSystem: r.isSystem,
                         createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt || new Date().toISOString()),
                     };
@@ -1342,7 +1204,7 @@ class AdminService {
         catch (err) {
             console.warn("Database query failed in getRoles:", err.message);
         }
-        return tenantId ? [] : inMemoryRoles;
+        return inMemoryRoles;
     }
     async createRole(tenantId, input) {
         if (!input.name || !input.name.trim()) {
@@ -1350,12 +1212,6 @@ class AdminService {
         }
         const code = input.name.toLowerCase().trim().replace(/[^a-z0-9]/g, "_");
         try {
-<<<<<<< HEAD
-            let activeTenantId = tenantId;
-            if (!activeTenantId) {
-                const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
-                activeTenantId = demoTenant?.id;
-=======
             let activeTenantId = null;
             if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
                 activeTenantId = tenantId;
@@ -1364,7 +1220,6 @@ class AdminService {
                 const [demoTenant] = await database_js_1.db.select().from(index_js_1.tenants).limit(1);
                 if (demoTenant?.id)
                     activeTenantId = demoTenant.id;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
             }
             const [existing] = await database_js_1.db.select().from(index_js_1.roles).where((0, drizzle_orm_1.eq)(index_js_1.roles.code, code)).limit(1);
             if (existing) {
@@ -2014,10 +1869,6 @@ class AdminService {
         };
     }
     async getApprovalRules(tenantId) {
-<<<<<<< HEAD
-        if (tenantId) {
-            return [];
-=======
         try {
             const dbRules = await database_js_1.db.select().from(index_js_1.approvalRules).orderBy(index_js_1.approvalRules.id);
             if (dbRules && dbRules.length > 0) {
@@ -2033,7 +1884,6 @@ class AdminService {
         }
         catch (err) {
             console.warn("Database query failed in getApprovalRules:", err.message);
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         }
         return [
             { id: "APR-01", event: "Finished Goods QA Batch Release (CoA)", tier: "Dual Sign-off", authorizedRoles: "QA Manager + Plant Manager", compliance: "FDA 21 CFR Part 11" },

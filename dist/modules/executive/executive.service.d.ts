@@ -1,4 +1,12 @@
 export declare class ExecutiveService {
+    /**
+     * Guarantees foundational operational telemetry exists in PostgreSQL for this tenant
+     */
+    ensureExecutiveDataSeeded(tenantId: string, plantId?: string): Promise<void>;
+    /**
+     * Complete Executive Dashboard Real Data Aggregator
+     * Processing + Packaging + Quality + Maintenance/Downtime + Labour + Costing -> PostgreSQL -> Executive Dashboard
+     */
     getDashboardSummary(tenantId: string, plantId?: string): Promise<{
         productionAttainment: string;
         productionTargetUnits: string;
@@ -9,21 +17,137 @@ export declare class ExecutiveService {
         pipelineSavingsTotal: string;
         manufacturingCostMTD: string;
         standardCostTarget: string;
-        activePlantsCount: number;
+        costVariance: string;
+        costVarianceStatus: string;
+        operationsSummary: {
+            processing: {
+                targetVolume: number;
+                actualVolume: number;
+                uom: string;
+                attainmentPercent: number;
+                activeBatches: number;
+                completedBatches: number;
+                status: string;
+            };
+            packaging: {
+                targetUnits: number;
+                actualUnits: number;
+                uom: string;
+                attainmentPercent: number;
+                runningLines: number;
+                completedRuns: number;
+                status: string;
+            };
+            combined: {
+                totalTarget: number;
+                totalActual: number;
+                combinedAttainmentPercent: number;
+                combinedOee: number;
+                status: string;
+            };
+        };
+        processingPerformance: {
+            oeePercent: number;
+            availabilityPercent: number;
+            performancePercent: number;
+            qualityPercent: number;
+            outputVolume: number;
+            downtimeMinutes: number;
+            plannedRunMinutes: number;
+            activeTanksOccupied: number;
+            status: string;
+        };
+        packagingPerformance: {
+            oeePercent: number;
+            availabilityPercent: number;
+            performancePercent: number;
+            qualityPercent: number;
+            outputUnits: number;
+            downtimeMinutes: number;
+            plannedRunMinutes: number;
+            scrapUnits: number;
+            scrapRatePercent: number;
+            status: string;
+        };
+        yieldAnalysis: {
+            processingYieldPercent: number;
+            processingTargetYieldPercent: number;
+            processingYieldStatus: string;
+            packagingScrapRatePercent: number;
+            packagingScrapTargetPercent: number;
+            packagingScrapStatus: string;
+            totalDefectUnits: number;
+            notes: string;
+        };
+        costAnalysis: {
+            bulkFormulationCostUSD: number;
+            bulkCostPerUnit: string;
+            packagingConversionCostUSD: number;
+            packagingCostPerUnit: string;
+            totalManufacturingCostUSD: number;
+            standardBudgetUSD: number;
+            netVarianceUSD: number;
+            varianceStatus: string;
+            costBreakdown: {
+                category: string;
+                department: string;
+                actual: string;
+                standard: string;
+                variance: string;
+                driver: string;
+            }[];
+        };
+        labourHbPacing: {
+            processingHb: {
+                targetPerHour: number;
+                actualPerHour: number;
+                delta: number;
+                pacingPercent: number;
+                status: string;
+            };
+            packagingHb: {
+                targetPerHour: number;
+                actualPerHour: number;
+                delta: number;
+                pacingPercent: number;
+                status: string;
+            };
+            totalOperationsHb: {
+                combinedTargetPerHour: number;
+                combinedActualPerHour: number;
+                netDelta: number;
+                shiftPacingPercent: number;
+                eodProjection: string;
+            };
+            recentHours: {
+                hour: string;
+                target: number;
+                actual: number;
+                delta: number;
+                varianceReason: string;
+            }[];
+        };
         plants: {
             id: string;
             name: string;
-            plant: string;
-            location: string;
-            linesCount: number;
-            attainment: number;
+            code: any;
+            region: string;
+            lines: number;
+            achievement: string;
+            activeCI: number;
             status: string;
             oee: string;
-            fpy: string;
-            throughput: string;
-            labor: string;
-            lastAudit: string;
-            auditStatus: string;
+            cost: string;
+            scrapRate: string;
+            mtbf: string;
+        }[];
+        activePlantsCount: number;
+        topLosses: {
+            category: string;
+            eventName: string;
+            lineId: string;
+            hoursLost: number;
+            financialImpactUSD: number;
         }[];
         strategicRisks: {
             id: string;

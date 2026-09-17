@@ -368,7 +368,6 @@ class PlanningService {
         let orders = await database_js_1.db.select().from(planning_js_1.customerOrders).where((0, drizzle_orm_1.eq)(planning_js_1.customerOrders.tenantId, tenantId));
         const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
         const skuMap = new Map(allSkus.map(s => [s.id, s]));
-<<<<<<< HEAD
         if (orders.length === 0) {
             const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
             const defaultSku = await this.resolveSkuId(tenantId);
@@ -429,8 +428,6 @@ class PlanningService {
                 return seedData.map((o, idx) => this.mapOrderRow({ ...o, id: `seed-order-${idx + 1}` }, skuMap));
             }
         }
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         return orders.map(o => this.mapOrderRow(o, skuMap));
     }
     async createCustomerOrder(tenantId, plantId, input) {
@@ -522,7 +519,6 @@ class PlanningService {
         let fcRows = await database_js_1.db.select().from(planning_js_1.forecasts).where((0, drizzle_orm_1.eq)(planning_js_1.forecasts.tenantId, tenantId));
         const allSkus = await database_js_1.db.select().from(masterData_js_1.skus).where((0, drizzle_orm_1.eq)(masterData_js_1.skus.tenantId, tenantId));
         const skuMap = new Map(allSkus.map(s => [s.id, s]));
-<<<<<<< HEAD
         if (fcRows.length === 0) {
             const resolvedPlant = await this.resolvePlantId(tenantId, plantId);
             const defaultSku = await this.resolveSkuId(tenantId);
@@ -614,8 +610,6 @@ class PlanningService {
                 });
             }
         }
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
         return fcRows.map(f => {
             const sku = skuMap.get(f.skuId);
             return {

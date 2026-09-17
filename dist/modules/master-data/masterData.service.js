@@ -6,8 +6,6 @@ const masterData_js_1 = require("../../db/schema/masterData.js");
 const tenants_js_1 = require("../../db/schema/tenants.js");
 const drizzle_orm_1 = require("drizzle-orm");
 const AppError_js_1 = require("../../shared/errors/AppError.js");
-// In-Memory Persistent Store synced with database records
-let inMemoryEmployeeSkills = [];
 let inMemoryCompanies = [];
 let inMemoryPlants = [];
 let inMemoryDepartments = [];
@@ -23,6 +21,7 @@ let inMemoryChangeoverRules = [];
 let inMemorySanitationClasses = [];
 let inMemoryAllergenRules = [];
 let inMemoryLabourStandards = [];
+let inMemoryEmployeeSkills = [];
 let inMemorySkus = [];
 function matchKey(entity, keyVal, candidateProps = ["id", "code", "companyId", "plantId", "departmentId", "lineId", "workCenterId", "operationId", "routingId", "familyId", "uomId", "configId", "targetId", "ruleId", "classId", "name"]) {
     if (!keyVal || !entity)
@@ -3660,6 +3659,9 @@ class MasterDataService {
         }
         return { id, message: "Labour standard deleted" };
     }
+    // ==========================================
+    // 17. EMPLOYEE SKILLS MATRIX
+    // ==========================================
     async listEmployeeSkills(tenantId, plantId) {
         try {
             const res = await database_js_1.db.execute((0, drizzle_orm_1.sql) `

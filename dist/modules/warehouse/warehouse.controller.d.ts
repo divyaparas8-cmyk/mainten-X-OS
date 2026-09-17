@@ -253,6 +253,25 @@ export declare class WarehouseController {
         };
         Body?: any;
     }>, reply: FastifyReply): Promise<never>;
+    issueRawMaterialForProcessing(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getWipLots(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    createWipLot(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    stagePackagingMaterial(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getSeparatedMovements(request: FastifyRequest<{
+        Querystring: {
+            category?: string;
+        };
+    }>, reply: FastifyReply): Promise<never>;
+    createPackagingFinishedGoods(request: FastifyRequest<{
+        Body: any;
+    }>, reply: FastifyReply): Promise<never>;
+    getFlowSummary(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const warehouseController: WarehouseController;
 //# sourceMappingURL=warehouse.controller.d.ts.map

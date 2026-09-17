@@ -209,10 +209,6 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-<<<<<<< HEAD
-    productCode?: string | undefined;
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
     productCode?: string | undefined;
     historicalDemand?: number | undefined;
@@ -230,10 +226,6 @@ export declare const createForecastSchema: z.ZodObject<{
     modelType?: string | undefined;
     owner?: string | undefined;
     reason?: string | undefined;
-<<<<<<< HEAD
-    productCode?: string | undefined;
-=======
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     productName?: string | undefined;
     productCode?: string | undefined;
     historicalDemand?: number | undefined;

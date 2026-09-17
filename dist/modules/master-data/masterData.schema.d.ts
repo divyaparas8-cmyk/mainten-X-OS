@@ -197,13 +197,8 @@ export declare const createRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-<<<<<<< HEAD
-    routingCode?: string | null | undefined;
-    revision?: string | undefined;
-=======
     revision?: string | undefined;
     routingCode?: string | null | undefined;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -273,13 +268,8 @@ export declare const updateRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-<<<<<<< HEAD
-    routingCode?: string | null | undefined;
-    revision?: string | undefined;
-=======
     revision?: string | undefined;
     routingCode?: string | null | undefined;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;
@@ -303,13 +293,8 @@ export declare const updateRoutingSchema: z.ZodObject<{
     skuId?: string | null | undefined;
     approvalStatus?: string | undefined;
     lineId?: string | null | undefined;
-<<<<<<< HEAD
-    routingCode?: string | null | undefined;
-    revision?: string | undefined;
-=======
     revision?: string | undefined;
     routingCode?: string | null | undefined;
->>>>>>> 5af8411961ffaedde5d11b050f16c0266436a5f2
     stdRunRateBph?: number | undefined;
     setupDurationMin?: number | undefined;
     expectedYieldPct?: number | undefined;

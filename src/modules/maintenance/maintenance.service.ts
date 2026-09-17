@@ -1,11 +1,11 @@
 import { db, pool } from "../../config/database.js";
-import { workOrders, pmSchedules, spareParts, spareConsumption, failureCodes, calibrations } from "../../db/schema/maintenance.js";
+import { workOrders, pmSchedules, spareParts, spareConsumption, failureCodes, calibrations, maintenanceReports } from "../../db/schema/maintenance.js";
 import { assets, productionLines, staff } from "../../db/schema/masterData.js";
 import { downtimeLogs } from "../../db/schema/production.js";
 import { tenants, plants } from "../../db/schema/tenants.js";
 import { users } from "../../db/schema/users.js";
 import { notifications } from "../../db/schema/common.js";
-import { eq, and, or, inArray, sql, ilike, desc, isNotNull } from "drizzle-orm";
+import { eq, and, or, inArray, sql, ilike, desc, isNotNull, isNull } from "drizzle-orm";
 import { CreateWorkOrderInput, UpdateWorkOrderStatusInput } from "./maintenance.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 import { calculateReliability } from "../../shared/engines/mtbfEngine.js";
@@ -100,8 +100,8 @@ export class MaintenanceService {
         plant: "Plant 1 - North Facility",
         department: "Packaging",
         line: pline?.name || "Line 1",
-        startTime: dt.startTime ? new Date(dt.startTime).toISOString().replace("T", " ").substring(0, 16) : "",
-        endTime: dt.endTime ? new Date(dt.endTime).toISOString().replace("T", " ").substring(0, 16) : null,
+        startTime: dt.startTime ? new Date(dt.startTime).toISOString() : "",
+        endTime: dt.endTime ? new Date(dt.endTime).toISOString() : null,
         durationMinutes: dt.durationMinutes || 0,
         failureCode: dt.reasonCode || "MEC-004",
         failureCategory: dt.category || "Mechanical",
@@ -138,8 +138,8 @@ export class MaintenanceService {
         plant: "Plant 1 - North Facility",
         department: "Packaging",
         line: "Line 1",
-        startTime: wo.createdAt ? new Date(wo.createdAt).toISOString().replace("T", " ").substring(0, 16) : "",
-        endTime: wo.completedAt ? new Date(wo.completedAt).toISOString().replace("T", " ").substring(0, 16) : null,
+        startTime: wo.createdAt ? new Date(wo.createdAt).toISOString() : "",
+        endTime: wo.completedAt ? new Date(wo.completedAt).toISOString() : null,
         durationMinutes: wo.actualHours ? Math.round(Number(wo.actualHours) * 60) : 0,
         failureCode: "MEC-004",
         failureCategory: "Mechanical",
@@ -200,6 +200,13 @@ export class MaintenanceService {
       assignedUserId = await this.resolveTechnicianUserId(input.technician, tenantId);
     }
 
+    // 3b. Verify valid User ID for foreign key
+    let validUserId: string | null = null;
+    if (userId && isValidUuid(userId)) {
+      const [u] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+      if (u) validUserId = u.id;
+    }
+
     // 4. Insert into downtime_logs
     const [newDowntime] = await db
       .insert(downtimeLogs)
@@ -213,7 +220,7 @@ export class MaintenanceService {
         startTime: new Date(),
         durationMinutes: input.durationMinutes ? Number(input.durationMinutes) : 0,
         comments: input.symptom || "Emergency Breakdown Reported",
-        loggedBy: userId && isValidUuid(userId) ? userId : null,
+        loggedBy: validUserId,
       })
       .returning();
 
@@ -233,7 +240,7 @@ export class MaintenanceService {
         status: "OPEN",
         actualHours: input.durationMinutes ? (Number(input.durationMinutes) / 60).toFixed(2) : "0.00",
         assignedTo: assignedUserId,
-        reportedBy: userId && isValidUuid(userId) ? userId : null,
+        reportedBy: validUserId,
       })
       .returning();
 
@@ -265,6 +272,75 @@ export class MaintenanceService {
       console.warn("Auto-create notification on breakdown notice:", notifErr.message);
     }
 
+    // 8. Auto-sync with Continuous Improvement (CI Loss & Reliability)
+    try {
+      const assetCode = resolvedAsset?.assetCode || input.assetId || "AST-001";
+      const assetName = resolvedAsset?.name || input.assetName || "Equipment Machine";
+      const dept = (resolvedAsset?.department || input.department || "").toLowerCase();
+      const stage = (dept.includes("process") || dept.includes("kitchen") || (input.line || "").toLowerCase().includes("process")) ? "PROCESSING" : "PACKAGING";
+      const durationMins = input.durationMinutes ? Number(input.durationMinutes) : 30;
+      const hoursLost = (durationMins / 60).toFixed(2);
+      const estLossUsd = Number(input.impact?.downtimeCostUSD) || (durationMins * 25);
+
+      // Auto-insert CI Loss record so CI Dashboard immediately shows the financial loss
+      const lossId = `LOSS-BD-${newDowntime.id.slice(0, 8).toUpperCase()}`;
+      await pool.query(
+        `INSERT INTO ci_losses (
+          id, category, plant_id, line_id, asset_id, stage, event_name,
+          hours_lost, units_lost, financial_impact_usd, date
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_DATE::text)
+        ON CONFLICT (id) DO NOTHING`,
+        [
+          lossId,
+          "Downtime Loss",
+          finalPlantId,
+          lineId || "LIN-01",
+          assetCode,
+          stage,
+          `Emergency Breakdown: ${assetName} — ${input.symptom || input.failureCode || 'Unplanned Failure'}`,
+          hoursLost,
+          Number(input.impact?.productionLossUnits) || 0,
+          estLossUsd,
+        ]
+      );
+
+      // Auto-upsert CI Reliability record (Bad Actor status)
+      const relId = `REL-${assetCode}`;
+      const isBadActor = input.severity === "Critical";
+      await pool.query(
+        `INSERT INTO ci_reliability_records (
+          id, asset_id, asset_name, line_id, line_name, plant_id,
+          failures_count, total_downtime_min, mtbf_hrs, mttr_min, last_failure_date,
+          failure_category, stage, criticality, is_bad_actor, bad_actor_reason
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, 1, $7, 180, $7, CURRENT_DATE::text,
+          $8, $9, $10, $11, $12
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          failures_count = ci_reliability_records.failures_count + 1,
+          total_downtime_min = ci_reliability_records.total_downtime_min + EXCLUDED.total_downtime_min,
+          is_bad_actor = ci_reliability_records.is_bad_actor OR EXCLUDED.is_bad_actor,
+          bad_actor_reason = COALESCE(EXCLUDED.bad_actor_reason, ci_reliability_records.bad_actor_reason),
+          last_failure_date = CURRENT_DATE::text`,
+        [
+          relId,
+          assetCode,
+          assetName,
+          lineId || "LIN-01",
+          input.line || "Line 1",
+          finalPlantId,
+          durationMins,
+          input.failureCategory || "Mechanical",
+          stage,
+          input.severity || "Critical",
+          isBadActor,
+          input.symptom || "Repeat critical stoppage reported",
+        ]
+      );
+    } catch (ciSyncErr: any) {
+      console.warn("CI sync on breakdown notice:", ciSyncErr.message);
+    }
+
     return {
       id: `BD-2026-${newDowntime.id.slice(0, 4).toUpperCase()}`,
       dbId: newDowntime.id,
@@ -274,7 +350,7 @@ export class MaintenanceService {
       plant: "Plant 1 - North Facility",
       department: "Packaging",
       line: input.line || "Line 1",
-      startTime: new Date().toISOString().replace("T", " ").substring(0, 16),
+      startTime: new Date().toISOString(),
       endTime: null,
       durationMinutes: input.durationMinutes ? Number(input.durationMinutes) : 0,
       failureCode: input.failureCode || "MEC-004",
@@ -2524,6 +2600,283 @@ export class MaintenanceService {
       ...input,
       createdAt: new Date(),
       acknowledged: true
+    };
+  }
+
+  async listReports(tenantId?: string) {
+    const condition = tenantId && isValidUuid(tenantId)
+      ? or(eq(maintenanceReports.tenantId, tenantId), isNull(maintenanceReports.tenantId))
+      : undefined;
+
+    const rows = await db
+      .select()
+      .from(maintenanceReports)
+      .where(condition)
+      .orderBy(desc(maintenanceReports.createdAt));
+
+    // Calculate live data points counts from respective DB tables
+    const [assetsCount] = await db.select({ count: sql<number>`count(*)::int` }).from(assets);
+    const [pmCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pmSchedules);
+    const [woCount] = await db.select({ count: sql<number>`count(*)::int` }).from(workOrders);
+    const [spCount] = await db.select({ count: sql<number>`count(*)::int` }).from(spareParts);
+    const [calCount] = await db.select({ count: sql<number>`count(*)::int` }).from(calibrations);
+
+    const countMap: Record<string, number> = {
+      assets: assetsCount?.count ?? 0,
+      pm_schedules: pmCount?.count ?? 0,
+      breakdowns: woCount?.count ?? 0,
+      work_orders: woCount?.count ?? 0,
+      spare_parts: spCount?.count ?? 0,
+      calibrations: calCount?.count ?? 0,
+    };
+
+    return rows.map((r) => ({
+      ...r,
+      dataPoints: countMap[r.targetModule] !== undefined ? countMap[r.targetModule] : (r.dataPoints || 0),
+    }));
+  }
+
+  async getReportsSummary(tenantId?: string) {
+    const condition = tenantId && isValidUuid(tenantId)
+      ? or(eq(maintenanceReports.tenantId, tenantId), isNull(maintenanceReports.tenantId))
+      : undefined;
+
+    const reports = await db
+      .select()
+      .from(maintenanceReports)
+      .where(condition)
+      .orderBy(desc(maintenanceReports.lastGeneratedAt));
+
+    const totalReports = reports.length;
+    const latestExport = reports.find((r) => r.lastGeneratedAt !== null);
+
+    let lastExportDisplay = "Today, 06:00";
+    let lastExportSub = "Shift A";
+    if (latestExport && latestExport.lastGeneratedAt) {
+      const d = new Date(latestExport.lastGeneratedAt);
+      const isToday = d.toDateString() === new Date().toDateString();
+      const timeStr = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      lastExportDisplay = isToday ? `Today, ${timeStr}` : d.toLocaleDateString([], { month: "short", day: "numeric" }) + `, ${timeStr}`;
+      lastExportSub = `${latestExport.lastExportFormat || "CSV"} Exported`;
+    }
+
+    // Live Compliance Rate
+    const allCalibrations = await db.select().from(calibrations);
+    let complianceRate = "100%";
+    if (allCalibrations.length > 0) {
+      const valid = allCalibrations.filter((c) => c.status === "VALID").length;
+      complianceRate = `${Math.round((valid / allCalibrations.length) * 100)}%`;
+    }
+
+    // Live Data Integrity from Asset Health Scores
+    const allAssets = await db.select({ healthPercent: assets.healthPercent }).from(assets);
+    let dataIntegrity = "99.9%";
+    if (allAssets.length > 0) {
+      const validScores = allAssets.map((a) => Number(a.healthPercent) || 98).filter((v) => !isNaN(v));
+      const avg = validScores.reduce((acc, curr) => acc + curr, 0) / validScores.length;
+      dataIntegrity = `${avg.toFixed(1)}%`;
+    }
+
+    return {
+      totalTemplates: totalReports,
+      lastAuditExport: {
+        value: lastExportDisplay,
+        subtext: lastExportSub,
+      },
+      regulatoryCompliance: {
+        value: complianceRate,
+        subtext: "All signatures recorded",
+      },
+      dataIntegrity: {
+        value: dataIntegrity,
+        subtext: "Zero telemetry drops",
+      },
+    };
+  }
+
+  async createReport(tenantId: string | undefined, input: any, userId?: string) {
+    let reportCode = input.reportCode?.trim();
+    if (!reportCode) {
+      const [latest] = await db
+        .select({ reportCode: maintenanceReports.reportCode })
+        .from(maintenanceReports)
+        .orderBy(desc(maintenanceReports.createdAt))
+        .limit(1);
+      const nextNum = latest?.reportCode?.startsWith("RPT-")
+        ? parseInt(latest.reportCode.replace("RPT-", ""), 10) + 1
+        : Math.floor(100 + Math.random() * 900);
+      reportCode = `RPT-${String(nextNum).padStart(3, "0")}`;
+    }
+
+    const tId = tenantId && isValidUuid(tenantId) ? tenantId : null;
+
+    const [inserted] = await db
+      .insert(maintenanceReports)
+      .values({
+        tenantId: tId,
+        reportCode,
+        name: input.name?.trim() || "Custom Maintenance Report",
+        category: input.category?.trim() || "Maintenance Compliance",
+        description: input.description?.trim() || "Custom maintenance report generated from system database.",
+        frequency: input.frequency?.trim() || "Monthly",
+        targetModule: input.targetModule?.trim() || "assets",
+        regulatoryStandard: input.regulatoryStandard?.trim() || "ISO 55001 / FDA CFR 21",
+        createdBy: input.createdBy || "System User",
+        status: input.status || "Active",
+      })
+      .returning();
+
+    return inserted;
+  }
+
+  async updateReport(tenantId: string | undefined, id: string, input: any) {
+    const condition = isValidUuid(id)
+      ? eq(maintenanceReports.id, id)
+      : eq(maintenanceReports.reportCode, id);
+
+    const [updated] = await db
+      .update(maintenanceReports)
+      .set({
+        ...(input.name ? { name: input.name.trim() } : {}),
+        ...(input.category ? { category: input.category.trim() } : {}),
+        ...(input.description !== undefined ? { description: input.description.trim() } : {}),
+        ...(input.frequency ? { frequency: input.frequency.trim() } : {}),
+        ...(input.targetModule ? { targetModule: input.targetModule.trim() } : {}),
+        ...(input.regulatoryStandard ? { regulatoryStandard: input.regulatoryStandard.trim() } : {}),
+        ...(input.status ? { status: input.status.trim() } : {}),
+        updatedAt: new Date(),
+      })
+      .where(condition)
+      .returning();
+
+    return updated;
+  }
+
+  async deleteReport(tenantId: string | undefined, id: string) {
+    const condition = isValidUuid(id)
+      ? eq(maintenanceReports.id, id)
+      : eq(maintenanceReports.reportCode, id);
+
+    await db.delete(maintenanceReports).where(condition);
+    return { success: true, id };
+  }
+
+  async generateReport(tenantId: string | undefined, id: string, format: string = "CSV") {
+    const condition = isValidUuid(id)
+      ? eq(maintenanceReports.id, id)
+      : eq(maintenanceReports.reportCode, id);
+
+    const [report] = await db.select().from(maintenanceReports).where(condition).limit(1);
+    if (!report) {
+      throw new NotFoundError("Maintenance Report not found");
+    }
+
+    // Update last generated
+    await db
+      .update(maintenanceReports)
+      .set({
+        lastGeneratedAt: new Date(),
+        lastExportFormat: format,
+        updatedAt: new Date(),
+      })
+      .where(eq(maintenanceReports.id, report.id));
+
+    const target = report.targetModule || "assets";
+    let headers: string[] = [];
+    let rows: (string | number | null | undefined)[][] = [];
+    let dataObjects: any[] = [];
+
+    if (target === "assets") {
+      const { rows: assetList } = await pool.query(`SELECT id, asset_code, name, model_number, manufacturer, critical_level, status, health_percent, mtbf_hours, mttr_hours FROM public.assets ORDER BY asset_code ASC`);
+      headers = ["Asset Code", "Name", "Model", "Manufacturer", "Criticality", "Health (%)", "Status", "MTBF (hrs)", "MTTR (hrs)"];
+      rows = assetList.map((a: any) => [
+        a.asset_code || "-",
+        a.name || "-",
+        a.model_number || "-",
+        a.manufacturer || "-",
+        a.critical_level || "NORMAL_P3",
+        a.health_percent ?? 95,
+        a.status || "OPERATIONAL",
+        a.mtbf_hours ?? "-",
+        a.mttr_hours ?? "-",
+      ]);
+      dataObjects = assetList;
+    } else if (target === "pm_schedules") {
+      const { rows: pmList } = await pool.query(`SELECT id, schedule_code, title, frequency, interval_days, status, next_due_date FROM public.pm_schedules ORDER BY schedule_code ASC`);
+      headers = ["PM Code", "Title", "Frequency", "Interval Days", "Status", "Next Due Date"];
+      rows = pmList.map((p: any) => [
+        p.schedule_code || "-",
+        p.title || "-",
+        p.frequency || "MONTHLY",
+        p.interval_days ?? "-",
+        p.status || "SCHEDULED",
+        p.next_due_date ? new Date(p.next_due_date).toISOString().substring(0, 10) : "-",
+      ]);
+      dataObjects = pmList;
+    } else if (target === "breakdowns" || target === "work_orders") {
+      const { rows: woList } = await pool.query(`SELECT id, wo_number, title, type, priority, status, actual_hours, created_at FROM public.work_orders ORDER BY created_at DESC`);
+      headers = ["WO Number", "Title", "Type", "Priority", "Status", "Actual Hours", "Created At"];
+      rows = woList.map((w: any) => [
+        w.wo_number || "-",
+        w.title || "-",
+        w.type || "CORRECTIVE",
+        w.priority || "HIGH",
+        w.status || "OPEN",
+        w.actual_hours ?? "-",
+        w.created_at ? new Date(w.created_at).toISOString().substring(0, 16).replace("T", " ") : "-",
+      ]);
+      dataObjects = woList;
+    } else if (target === "spare_parts") {
+      const { rows: spList } = await pool.query(`SELECT id, part_number, name, category, current_stock, min_stock_level, unit_cost, bin_location, supplier_name FROM public.spare_parts ORDER BY part_number ASC`);
+      headers = ["Part Number", "Name", "Category", "Current Stock", "Min Stock", "Unit Cost ($)", "Bin Location", "Supplier"];
+      rows = spList.map((s: any) => [
+        s.part_number || "-",
+        s.name || "-",
+        s.category || "MECHANICAL",
+        s.current_stock ?? 0,
+        s.min_stock_level ?? "-",
+        s.unit_cost ?? "0.00",
+        s.bin_location || "-",
+        s.supplier_name || "-",
+      ]);
+      dataObjects = spList;
+    } else if (target === "calibrations") {
+      const { rows: calList } = await pool.query(`SELECT id, instrument_name, certificate_number, accuracy_error, calibration_date, next_due_date, status FROM public.calibrations ORDER BY calibration_date DESC`);
+      headers = ["Instrument Name", "Certificate #", "Accuracy Error", "Calibration Date", "Next Due Date", "Status"];
+      rows = calList.map((c: any) => [
+        c.instrument_name || "-",
+        c.certificate_number || "-",
+        c.accuracy_error || "-",
+        c.calibration_date ? new Date(c.calibration_date).toISOString().substring(0, 10) : "-",
+        c.next_due_date ? new Date(c.next_due_date).toISOString().substring(0, 10) : "-",
+        c.status || "VALID",
+      ]);
+      dataObjects = calList;
+    } else {
+      const { rows: assetList } = await pool.query(`SELECT id, asset_code, name, critical_level, status FROM public.assets ORDER BY asset_code ASC`);
+      headers = ["Asset Code", "Name", "Criticality", "Status"];
+      rows = assetList.map((a: any) => [a.asset_code, a.name, a.critical_level, a.status]);
+      dataObjects = assetList;
+    }
+
+    const escapeCell = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+    const csvContent = [headers.map(escapeCell).join(","), ...rows.map((r) => r.map(escapeCell).join(","))].join("\r\n");
+
+    return {
+      report: {
+        ...report,
+        lastGeneratedAt: new Date(),
+        lastExportFormat: format,
+      },
+      headers,
+      rows: dataObjects,
+      csv: csvContent,
+      filename: `${report.reportCode}_${new Date().toISOString().substring(0, 10)}.${format.toLowerCase()}`,
+      count: rows.length,
     };
   }
 }

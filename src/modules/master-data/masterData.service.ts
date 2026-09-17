@@ -1,7 +1,7 @@
 import { db } from "../../config/database.js";
 import { skus, boms, bomItems, productionLines, workCenters, assets, staff, qualitySpecs, routings, routingSteps } from "../../db/schema/masterData.js";
 import { tenants, plants } from "../../db/schema/tenants.js";
-import { eq, and, or, sql, desc, asc, ilike } from "drizzle-orm";
+import { eq, and, or, sql, desc, asc, ilike, isNull } from "drizzle-orm";
 import { CreateSkuInput, CreateBomInput } from "./masterData.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 
@@ -3281,7 +3281,7 @@ export class MasterDataService {
       const isUuid = plantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId);
       let rows: any[];
       if (isUuid) {
-        rows = await db.select().from(assets).where(and(eq(assets.tenantId, tId), eq(assets.plantId, plantId))).orderBy(desc(assets.createdAt));
+        rows = await db.select().from(assets).where(and(eq(assets.tenantId, tId), or(eq(assets.plantId, plantId), isNull(assets.plantId)))).orderBy(desc(assets.createdAt));
       } else {
         rows = await db.select().from(assets).where(eq(assets.tenantId, tId)).orderBy(desc(assets.createdAt));
       }
@@ -3959,26 +3959,60 @@ export class MasterDataService {
         FROM public.employee_skills
         ORDER BY created_at ASC
       `);
-      if (Array.isArray(res?.rows)) {
-        return res.rows.map((r: any) => ({
-          id: r.id,
-          employeeId: r.employeeId || r.id,
-          name: r.name,
-          email: r.email || "",
-          department: r.department || "Production Operations",
-          departmentId: r.departmentId || "DEP-01",
-          role: r.role || "Line Operator",
-          plantId: r.plantId || "PLT-01",
-          plantName: r.plantName || "Indore Plant",
-          skillLevel: r.skillLevel || "Level 2 (Certified Operator)",
-          skills: Array.isArray(r.skills) ? r.skills : [],
-          certifications: Array.isArray(r.certifications) ? r.certifications : [],
-          assignedLineIds: Array.isArray(r.assignedLineIds) ? r.assignedLineIds : [],
-          status: r.status || "Active",
-          createdAt: r.createdAt,
-          updatedAt: r.updatedAt,
-        }));
+      const list: any[] = Array.isArray(res?.rows)
+        ? res.rows.map((r: any) => ({
+            id: r.id,
+            employeeId: r.employeeId || r.id,
+            name: r.name,
+            email: r.email || "",
+            department: r.department || "Production Operations",
+            departmentId: r.departmentId || "DEP-01",
+            role: r.role || "Line Operator",
+            plantId: r.plantId || "PLT-01",
+            plantName: r.plantName || "Indore Plant",
+            skillLevel: r.skillLevel || "Level 2 (Certified Operator)",
+            skills: Array.isArray(r.skills) ? r.skills : [],
+            certifications: Array.isArray(r.certifications) ? r.certifications : [],
+            assignedLineIds: Array.isArray(r.assignedLineIds) ? r.assignedLineIds : [],
+            status: r.status || "Active",
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+          }))
+        : [];
+
+      // Also include staff registered in public.staff
+      try {
+        const staffRows = await db.select().from(staff).where(tenantId ? eq(staff.tenantId, tenantId) : undefined);
+        const existingNames = new Set(list.map((e) => e.name?.toLowerCase()));
+        for (const s of staffRows) {
+          const sRecord = s as any;
+          if (!existingNames.has(s.name?.toLowerCase())) {
+            list.push({
+              id: s.id,
+              employeeId: s.employeeCode || s.id,
+              name: s.name,
+              email: sRecord.email || "",
+              department: sRecord.department || "Maintenance & Reliability",
+              departmentId: "DEP-02",
+              role: s.designation || "Maintenance Technician",
+              plantId: s.plantId,
+              plantName: "Indore Plant",
+              skillLevel: "Level 2 (Certified Operator)",
+              skills: ["Preventive Maintenance", "Floor Diagnostics"],
+              certifications: Array.isArray(s.certifications) ? s.certifications : ["GMP Plant Safety"],
+              assignedLineIds: [],
+              status: s.isAvailable ? "Active" : "Inactive",
+              createdAt: s.createdAt,
+              updatedAt: s.createdAt,
+            });
+            existingNames.add(s.name?.toLowerCase());
+          }
+        }
+      } catch (staffErr: any) {
+        console.warn("staff lookup in listEmployeeSkills notice:", staffErr.message);
       }
+
+      return list;
     } catch (err: any) {
       console.warn("DB listEmployeeSkills error:", err.message);
     }

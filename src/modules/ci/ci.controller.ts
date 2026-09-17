@@ -16,18 +16,18 @@ export class CIController {
   // ============================================================================
   // 1. DASHBOARD
   // ============================================================================
-  async getDashboardSummary(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
-    const plantId = request.query?.plantId;
-    const data = await ciService.getDashboardSummary(plantId);
+  async getDashboardSummary(request: FastifyRequest<{ Querystring: { plantId?: string; stage?: string } }>, reply: FastifyReply) {
+    const { plantId, stage } = request.query || {};
+    const data = await ciService.getDashboardSummary(plantId, stage);
     return reply.send(formatSuccess(data));
   }
 
   // ============================================================================
   // 2. RCA INVESTIGATIONS
   // ============================================================================
-  async getInvestigations(request: FastifyRequest<{ Querystring: { plantId?: string } }>, reply: FastifyReply) {
-    const plantId = request.query?.plantId;
-    const data = await ciService.listInvestigations(plantId);
+  async getInvestigations(request: FastifyRequest<{ Querystring: { plantId?: string; stage?: string } }>, reply: FastifyReply) {
+    const { plantId, stage } = request.query || {};
+    const data = await ciService.listInvestigations(plantId, stage);
     return reply.send(formatSuccess(data));
   }
 
@@ -88,6 +88,12 @@ export class CIController {
     return reply.status(201).send(formatSuccess(data, "Evidence logged successfully"));
   }
 
+  async updateEvidence(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateEvidence(request.params.id, request.body as any, ctx);
+    return reply.send(formatSuccess(data, "Evidence updated"));
+  }
+
   async deleteEvidence(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const ctx = this.getUserContext(request);
     const data = await ciService.deleteEvidence(request.params.id, ctx);
@@ -135,7 +141,7 @@ export class CIController {
   // 5. CAPA ACTIONS
   // ============================================================================
   async getCapaActions(
-    request: FastifyRequest<{ Querystring: { rcaId?: string; projectId?: string; actionType?: string; status?: string } }>,
+    request: FastifyRequest<{ Querystring: { rcaId?: string; projectId?: string; actionType?: string; status?: string; stage?: string } }>,
     reply: FastifyReply
   ) {
     const data = await ciService.listCapaActions(request.query);
@@ -146,6 +152,15 @@ export class CIController {
     const ctx = this.getUserContext(request);
     const data = await ciService.createCapaAction(request.body as any, ctx);
     return reply.status(201).send(formatSuccess(data, "CAPA Action created successfully"));
+  }
+
+  async updateCapaAction(
+    request: FastifyRequest<{ Params: { id: string }; Body: any }>,
+    reply: FastifyReply
+  ) {
+    const ctx = this.getUserContext(request);
+    const data = await ciService.updateCapaAction(request.params.id, request.body as any, ctx);
+    return reply.send(formatSuccess(data, "CAPA Action updated successfully"));
   }
 
   async updateCapaStatus(
@@ -180,9 +195,9 @@ export class CIController {
   // ============================================================================
   // 6. LOSS ANALYSIS
   // ============================================================================
-  async getLosses(request: FastifyRequest<{ Querystring: { plantId?: string; category?: string } }>, reply: FastifyReply) {
-    const { plantId, category } = request.query || {};
-    const data = await ciService.listLosses(plantId, category);
+  async getLosses(request: FastifyRequest<{ Querystring: { plantId?: string; category?: string; stage?: string } }>, reply: FastifyReply) {
+    const { plantId, category, stage } = request.query || {};
+    const data = await ciService.listLosses(plantId, category, stage);
     return reply.send(formatSuccess(data));
   }
 
@@ -331,11 +346,11 @@ export class CIController {
   // 11. RELIABILITY & BAD ACTORS
   // ============================================================================
   async getReliabilityRecords(
-    request: FastifyRequest<{ Querystring: { plantId?: string; onlyBadActors?: string } }>,
+    request: FastifyRequest<{ Querystring: { plantId?: string; onlyBadActors?: string; stage?: string } }>,
     reply: FastifyReply
   ) {
-    const { plantId, onlyBadActors } = request.query || {};
-    const data = await ciService.listReliabilityRecords(plantId, onlyBadActors === "true");
+    const { plantId, onlyBadActors, stage } = request.query || {};
+    const data = await ciService.listReliabilityRecords(plantId, onlyBadActors === "true", stage);
     return reply.send(formatSuccess(data));
   }
 

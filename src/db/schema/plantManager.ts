@@ -1,4 +1,4 @@
-import { pgTable, varchar, text, timestamp, numeric, integer, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, timestamp, numeric, integer, boolean, uuid, jsonb } from "drizzle-orm/pg-core";
 import { tenants } from "./tenants.js";
 
 // 1. Hour-by-Hour Pitch Logs (Command Center & H/B Management)
@@ -12,6 +12,7 @@ export const pmHbLogs = pgTable("pm_hb_logs", {
   actualUnits: integer("actual_units").notNull(),
   delta: integer("delta").notNull(),
   cumulativeDelta: integer("cumulative_delta").notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   varianceReason: text("variance_reason"),
   correctiveAction: text("corrective_action"),
   shiftCode: varchar("shift_code", { length: 50 }).default("Shift A").notNull(),
@@ -111,6 +112,7 @@ export const pmMachineTelemetry = pgTable("pm_machine_telemetry", {
   machineCode: varchar("machine_code", { length: 100 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   lineId: varchar("line_id", { length: 100 }).notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   status: varchar("status", { length: 50 }).default("RUNNING").notNull(), // "RUNNING", "STOPPED", "CHANGEOVER", "MAINTENANCE"
   speedBph: integer("speed_bph").default(4200).notNull(),
   ratedSpeedBph: integer("rated_speed_bph").default(4500).notNull(),
@@ -122,6 +124,7 @@ export const pmMachineTelemetry = pgTable("pm_machine_telemetry", {
   efficiencyPercent: numeric("efficiency_percent", { precision: 5, scale: 2 }).default("94.20").notNull(),
   currentOrder: varchar("current_order", { length: 100 }).default("PO-2026-001"),
   operator: varchar("operator", { length: 255 }).default("Rajesh Sharma"),
+  processParameters: jsonb("process_parameters"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -131,6 +134,7 @@ export const pmExceptions = pgTable("pm_exceptions", {
   tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
   plantId: varchar("plant_id", { length: 100 }).default("PLT-01").notNull(),
   title: varchar("title", { length: 255 }).notNull(),
+  stage: varchar("stage", { length: 50 }).default("PACKAGING").notNull(),
   severity: varchar("severity", { length: 50 }).notNull(), // "P1", "P2", "P3", "P4"
   category: varchar("category", { length: 100 }).notNull(), // "Equipment Stoppage", "Quality Deviation", etc.
   assetOrOrder: varchar("asset_or_order", { length: 255 }),

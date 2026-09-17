@@ -102,6 +102,8 @@ export const createPromotionSchema = z.object({
   productName: z.string().optional(),
   upliftPercent: z.coerce.number().default(10),
   projectedUnits: z.coerce.number().default(5000),
+  incrementalUnits: z.coerce.number().optional(),
+  duration: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   channel: z.string().optional(),

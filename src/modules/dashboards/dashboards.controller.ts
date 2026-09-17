@@ -40,7 +40,43 @@ export class DashboardsController {
   async proposeLineSpeedUp(request: FastifyRequest, reply: FastifyReply) {
     const body = request.body as any;
     const data = await dashboardsService.proposeLineSpeedUp(request.user.tenantId, body);
-    return reply.code(201).send(formatSuccess(data, "Speed-up proposal submitted for supervisor approval."));
+    return reply.code(201).send(formatSuccess(data, "Line speed proposal submitted to Supervisor."));
+  }
+
+  async logBatchWeighing(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.logBatchIngredientWeighing(request.user.tenantId, body || {});
+    return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async advanceRecipeStep(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.advanceRecipeStep(request.user.tenantId, body || {});
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async logCcpCheck(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.logCcpCheck(request.user.tenantId, body || {});
+    return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async saveLineClearance(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.saveLineClearance(request.user.tenantId, body || {});
+    return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async saveSealVerification(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.saveSealVerification(request.user.tenantId, body || {});
+    return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async logWipConsumption(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const data = await dashboardsService.logWipConsumption(request.user.tenantId, body || {});
+    return reply.code(201).send(formatSuccess(data, data.message));
   }
 
   // Plant Manager Command Center
@@ -162,6 +198,18 @@ export class DashboardsController {
   async getStaffingRoster(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getStaffingRoster(request.user.tenantId);
     return reply.send(formatSuccess(data));
+  }
+
+  async addStaffOperator(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await dashboardsService.addStaffOperator(request.user.tenantId, body);
+    return reply.code(201).send(formatSuccess(data, data.message));
+  }
+
+  async deleteStaffOperator(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteStaffOperator(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
   }
 
   async swapStaffingStations(request: FastifyRequest, reply: FastifyReply) {
@@ -332,7 +380,8 @@ export class DashboardsController {
 
   // ─── Operator Work Instructions & SOPs ─────────────────────────────────────
   async getWorkInstructions(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getWorkInstructions(request.user.tenantId);
+    const { orderNumber } = (request.query as any) || {};
+    const data = await dashboardsService.getWorkInstructions(request.user.tenantId, orderNumber);
     return reply.send(formatSuccess(data));
   }
 
@@ -344,7 +393,8 @@ export class DashboardsController {
 
   // ─── Operator Production Entry ─────────────────────────────────────────────
   async getProductionEntryStatus(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getProductionEntryStatus(request.user.tenantId);
+    const { orderNumber } = (request.query as any) || {};
+    const data = await dashboardsService.getProductionEntryStatus(request.user.tenantId, orderNumber);
     return reply.send(formatSuccess(data));
   }
 
@@ -420,6 +470,12 @@ export class DashboardsController {
     return reply.send(formatSuccess(data, data.message));
   }
 
+  async deleteMaterialRequisition(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    const data = await dashboardsService.deleteMaterialRequisition(request.user.tenantId, id);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
   // ─── Operator Barcode & QR Scan ─────────────────────────────────────────────
   async getBarcodeScanStatus(request: FastifyRequest, reply: FastifyReply) {
     const data = await dashboardsService.getBarcodeScanStatus(request.user.tenantId);
@@ -440,31 +496,36 @@ export class DashboardsController {
 
   // ─── Operator Report Issue & Safety Exception ──────────────────────────────
   async getReportIssueStatus(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getReportIssueStatus(request.user.tenantId);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.getReportIssueStatus(tenantId);
     return reply.send(formatSuccess(data));
   }
 
   async submitReportIssue(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
-    const data = await dashboardsService.submitReportIssue(request.user.tenantId, body);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.submitReportIssue(tenantId, body);
     return reply.code(201).send(formatSuccess(data, data.message));
   }
 
   async triggerEmergencyCall(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
-    const data = await dashboardsService.triggerEmergencyCall(request.user.tenantId, body);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.triggerEmergencyCall(tenantId, body);
     return reply.code(201).send(formatSuccess(data, data.message));
   }
 
   // ─── Operator Shift Handoff ─────────────────────────────────────────────────
   async getShiftHandoffs(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.getShiftHandoffs(request.user.tenantId);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.getShiftHandoffs(tenantId);
     return reply.send(formatSuccess(data));
   }
 
   async submitShiftHandoff(request: FastifyRequest, reply: FastifyReply) {
     const body = (request.body as any) || {};
-    const data = await dashboardsService.submitShiftHandoff(request.user.tenantId, body);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.submitShiftHandoff(tenantId, body);
     return reply.code(201).send(formatSuccess(data, data.message));
   }
 
@@ -476,23 +537,27 @@ export class DashboardsController {
 
   async markOperatorNotificationRead(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
-    const data = await dashboardsService.markOperatorNotificationRead(request.user.tenantId, parseInt(id, 10));
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.markOperatorNotificationRead(tenantId, id);
     return reply.send(formatSuccess(data, data.message));
   }
 
   async markAllOperatorNotificationsRead(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.markAllOperatorNotificationsRead(request.user.tenantId);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.markAllOperatorNotificationsRead(tenantId);
     return reply.send(formatSuccess(data, data.message));
   }
 
   async deleteOperatorNotification(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string };
-    const data = await dashboardsService.deleteOperatorNotification(request.user.tenantId, parseInt(id, 10));
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.deleteOperatorNotification(tenantId, id);
     return reply.send(formatSuccess(data, data.message));
   }
 
   async clearAllOperatorNotifications(request: FastifyRequest, reply: FastifyReply) {
-    const data = await dashboardsService.clearAllOperatorNotifications(request.user.tenantId);
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.clearAllOperatorNotifications(tenantId);
     return reply.send(formatSuccess(data, data.message));
   }
 
@@ -913,6 +978,78 @@ export class DashboardsController {
     const body = (request.body as any) || {};
     const data = await dashboardsService.updateSupervisorProfile(request.user.tenantId, request.user.userId, body);
     return reply.send(formatSuccess(data, data.message));
+  }
+
+  // ─── Processing Operator Handlers ─────────────────────────────────────────
+  async advanceProcessingRecipeStep(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.advanceProcessingRecipeStep(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async weighProcessingIngredient(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.weighProcessingIngredient(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async logProcessingParameters(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.logProcessingParameters(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async signoffCcp(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.signoffCcp(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async completeBatchAndCreateWip(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.completeBatchAndCreateWip(tenantId, body);
+    return reply.status(201).send(formatSuccess(data, data.message));
+  }
+
+  // ─── Packaging Operator Handlers ──────────────────────────────────────────
+  async selectWipLotForPackaging(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.selectWipLotForPackaging(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async consumePackagingMaterials(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.consumePackagingMaterials(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async logPackagingOutputCases(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.logPackagingOutputCases(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async verifySealAndLabel(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.verifySealAndLabel(tenantId, body);
+    return reply.send(formatSuccess(data, data.message));
+  }
+
+  async finishRunAndCreateFgPallet(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const tenantId = (request as any).user?.tenantId || (request as any).user?.tenant_id || "";
+    const data = await dashboardsService.finishRunAndCreateFgPallet(tenantId, body);
+    return reply.status(201).send(formatSuccess(data, data.message));
   }
 }
 

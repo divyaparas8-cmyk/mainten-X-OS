@@ -25,6 +25,12 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.post("/linelead/request-stock", { schema: { tags: ["Dashboards & Executive"], summary: "Request Expedited Stock Replenishment from Warehouse" } }, dashboardsController.requestStockReplenishment.bind(dashboardsController));
 
   fastify.post("/linelead/propose-speedup", { schema: { tags: ["Dashboards & Executive"], summary: "Submit Line Speed-Up Proposal to Supervisor" } }, dashboardsController.proposeLineSpeedUp.bind(dashboardsController));
+  fastify.post("/linelead/batch-weighing", { schema: { tags: ["Dashboards & Executive"], summary: "Log Batch Ingredient Weighing" } }, dashboardsController.logBatchWeighing.bind(dashboardsController));
+  fastify.post("/linelead/recipe-step", { schema: { tags: ["Dashboards & Executive"], summary: "Advance Recipe Step Status" } }, dashboardsController.advanceRecipeStep.bind(dashboardsController));
+  fastify.post("/linelead/ccp-check", { schema: { tags: ["Dashboards & Executive"], summary: "Log Live CCP Reading" } }, dashboardsController.logCcpCheck.bind(dashboardsController));
+  fastify.post("/linelead/line-clearance", { schema: { tags: ["Dashboards & Executive"], summary: "Save Electronic Line Clearance Audit" } }, dashboardsController.saveLineClearance.bind(dashboardsController));
+  fastify.post("/linelead/seal-verification", { schema: { tags: ["Dashboards & Executive"], summary: "Save Seal Integrity & Barcode Scan" } }, dashboardsController.saveSealVerification.bind(dashboardsController));
+  fastify.post("/linelead/wip-consumption", { schema: { tags: ["Dashboards & Executive"], summary: "Log WIP Batch Volume Tank Draw" } }, dashboardsController.logWipConsumption.bind(dashboardsController));
 
   // ─── H/B (Hour-by-Hour) Management Routes ───────────────────────────────────
   fastify.get("/linelead/hb-logs", { schema: { tags: ["Dashboards & Executive"], summary: "Get Shift Hour-by-Hour Logs" } }, dashboardsController.getHbLogs.bind(dashboardsController));
@@ -65,6 +71,8 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
 
   // ─── Line Staffing Routes ──────────────────────────────────────────────────
   fastify.get("/linelead/staffing", { schema: { tags: ["Dashboards & Executive"], summary: "Get Line Staffing Roster" } }, dashboardsController.getStaffingRoster.bind(dashboardsController));
+  fastify.post("/linelead/staffing", { schema: { tags: ["Dashboards & Executive"], summary: "Add New Operator to Roster" } }, dashboardsController.addStaffOperator.bind(dashboardsController));
+  fastify.delete("/linelead/staffing/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Delete Operator from Roster" } }, dashboardsController.deleteStaffOperator.bind(dashboardsController));
 
   fastify.post("/linelead/staffing/swap", { schema: { tags: ["Dashboards & Executive"], summary: "Swap Stations Between Two Operators" } }, dashboardsController.swapStaffingStations.bind(dashboardsController));
 
@@ -140,6 +148,28 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
 
   fastify.post("/operator/production-entry/log-scrap", { schema: { tags: ["Dashboards & Executive"], summary: "Log Categorized Scrap Defect Reason" } }, dashboardsController.logScrapDefect.bind(dashboardsController));
 
+  // ─── Processing Operator Specific Routes ──────────────────────────────────
+  fastify.post("/operator/processing/recipe-step", { schema: { tags: ["Dashboards & Executive"], summary: "Advance Processing eBR Recipe Step" } }, dashboardsController.advanceProcessingRecipeStep.bind(dashboardsController));
+
+  fastify.post("/operator/processing/weigh-ingredient", { schema: { tags: ["Dashboards & Executive"], summary: "Log Ingredient Weighing & Tolerance Check" } }, dashboardsController.weighProcessingIngredient.bind(dashboardsController));
+
+  fastify.post("/operator/processing/log-parameters", { schema: { tags: ["Dashboards & Executive"], summary: "Record Vessel Processing Stage Parameters" } }, dashboardsController.logProcessingParameters.bind(dashboardsController));
+
+  fastify.post("/operator/processing/ccp-signoff", { schema: { tags: ["Dashboards & Executive"], summary: "Sign off CCP Thermal Kill Step with Digital PIN" } }, dashboardsController.signoffCcp.bind(dashboardsController));
+
+  fastify.post("/operator/processing/complete-batch-wip", { schema: { tags: ["Dashboards & Executive"], summary: "Complete Processing Batch & Create WIP Bulk Tank Lot" } }, dashboardsController.completeBatchAndCreateWip.bind(dashboardsController));
+
+  // ─── Packaging Operator Specific Routes ───────────────────────────────────
+  fastify.post("/operator/packaging/select-wip-lot", { schema: { tags: ["Dashboards & Executive"], summary: "Link Upstream WIP Bulk Tank Lot to Packaging Order" } }, dashboardsController.selectWipLotForPackaging.bind(dashboardsController));
+
+  fastify.post("/operator/packaging/consume-materials", { schema: { tags: ["Dashboards & Executive"], summary: "Log Packaging BOM Material Consumption" } }, dashboardsController.consumePackagingMaterials.bind(dashboardsController));
+
+  fastify.post("/operator/packaging/log-output-cases", { schema: { tags: ["Dashboards & Executive"], summary: "Log Packaging Case Count & Defect Rejects" } }, dashboardsController.logPackagingOutputCases.bind(dashboardsController));
+
+  fastify.post("/operator/packaging/verify-seal-label", { schema: { tags: ["Dashboards & Executive"], summary: "Verify Capping Torque, Induction Seal, & Barcode Scan" } }, dashboardsController.verifySealAndLabel.bind(dashboardsController));
+
+  fastify.post("/operator/packaging/create-fg-pallet", { schema: { tags: ["Dashboards & Executive"], summary: "Finish Packaging Run & Create Finished Goods Pallet" } }, dashboardsController.finishRunAndCreateFgPallet.bind(dashboardsController));
+
   // ─── Operator Downtime & Loss Routes ────────────────────────────────────────
   fastify.get("/operator/downtime", { schema: { tags: ["Dashboards & Executive"], summary: "Get Active Downtime Events & Loss Status" } }, dashboardsController.getOperatorDowntime.bind(dashboardsController));
 
@@ -162,6 +192,8 @@ export async function dashboardsRoutes(fastify: FastifyInstance) {
   fastify.post("/operator/material-request/submit-requisition", { schema: { tags: ["Dashboards & Executive"], summary: "Submit Line Material Requisition" } }, dashboardsController.submitMaterialRequisition.bind(dashboardsController));
 
   fastify.post("/operator/material-request/:id/confirm-receipt", { schema: { tags: ["Dashboards & Executive"], summary: "Confirm Material Receipt at Line" } }, dashboardsController.confirmMaterialReceipt.bind(dashboardsController));
+
+  fastify.delete("/operator/material-request/:id", { schema: { tags: ["Dashboards & Executive"], summary: "Delete Material Requisition" } }, dashboardsController.deleteMaterialRequisition.bind(dashboardsController));
 
   // ─── Operator Barcode & QR Scan Routes ──────────────────────────────────────
   fastify.get("/operator/barcode-scan", { schema: { tags: ["Dashboards & Executive"], summary: "Get Barcode Scanner Status & Config" } }, dashboardsController.getBarcodeScanStatus.bind(dashboardsController));

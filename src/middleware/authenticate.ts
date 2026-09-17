@@ -73,8 +73,8 @@ export async function authenticate(request: FastifyRequest, _reply: FastifyReply
   (request as any).user = {
     id: "admin-default",
     userId: "4a9fe1e0-6512-444d-a639-25ca55ff4866",
-    tenantId: headerTenantId || "aa3183d2-709b-42a8-add1-b2e4b2d873b0",
-    plantId: "bead41e2-b735-41b8-bd00-bdba1682fb6a",
+    tenantId: headerTenantId || "5bce8458-909a-4dd2-b221-614c32ac7c89",
+    plantId: "83c90534-4761-495c-b2bf-6a61de2260c4",
     role: "admin",
     email: "admin@beverage-corp.com",
     isMasterAdmin: true,

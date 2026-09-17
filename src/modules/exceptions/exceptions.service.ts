@@ -12,10 +12,14 @@ export class ExceptionsService {
                status, resolution_notes as "resolutionNotes",
                resolved_at as "resolvedAt", created_at as "createdAt"
         FROM pm_exceptions
-        WHERE (plant_id = $1 OR $1 IS NULL)
+        WHERE 1=1
       `;
-      const params: any[] = [plantId || 'PLT-01'];
+      const params: any[] = [];
 
+      if (plantId && plantId !== 'ALL' && plantId !== 'PLT-01') {
+        params.push(plantId);
+        query += ` AND plant_id = $${params.length}`;
+      }
       if (severity && severity !== 'ALL') {
         params.push(severity);
         query += ` AND severity = $${params.length}`;

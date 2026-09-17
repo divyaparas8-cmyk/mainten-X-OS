@@ -9,7 +9,31 @@ import { eq, and, or, inArray, sql, ilike, desc, isNotNull } from "drizzle-orm";
 import { CreateWorkOrderInput, UpdateWorkOrderStatusInput } from "./maintenance.schema.js";
 import { NotFoundError } from "../../shared/errors/AppError.js";
 import { calculateReliability } from "../../shared/engines/mtbfEngine.js";
-import { isValidUuid } from "../../shared/utils/tenantContext.js";
+import { isValidUuid, resolvePlantId } from "../../shared/utils/tenantContext.js";
+
+export function detectEquipmentStage(name?: string | null, category?: string | null, lineName?: string | null): "PROCESSING" | "PACKAGING" {
+  const str = `${name || ""} ${category || ""} ${lineName || ""}`.toLowerCase();
+  if (
+    str.includes("vessel") ||
+    str.includes("mixer") ||
+    str.includes("cooker") ||
+    str.includes("blend") ||
+    str.includes("pasteuriz") ||
+    str.includes("tank") ||
+    str.includes("kettle") ||
+    str.includes("homogeniz") ||
+    str.includes("agitator") ||
+    str.includes("heat exchanger") ||
+    str.includes("cip") ||
+    str.includes("ferment") ||
+    str.includes("batching") ||
+    str.includes("formulation") ||
+    str.includes("processing")
+  ) {
+    return "PROCESSING";
+  }
+  return "PACKAGING";
+}
 
 export class MaintenanceService {
   async listWorkOrders(tenantId: string, plantId?: string) {
@@ -32,7 +56,10 @@ export class MaintenanceService {
       });
     }
 
-    return rows;
+    return rows.map((r) => ({
+      ...r,
+      stage: detectEquipmentStage(r.asset?.name, r.asset?.criticalLevel)
+    }));
   }
 
   async listBreakdowns(tenantId: string, plantId?: string) {
@@ -75,6 +102,7 @@ export class MaintenanceService {
       const ast = dt.assetId ? assetMap.get(dt.assetId) : null;
       const pline = dt.lineId ? lineMap.get(dt.lineId) : null;
       const loggedUser = dt.loggedBy ? userMap.get(dt.loggedBy) : null;
+      const stage = detectEquipmentStage(ast?.name, ast?.criticalLevel, pline?.name);
 
       // Find matching work order
       const matchedWO = emergencyWOs.find(wo => wo.assetId === dt.assetId && !matchedWoIds.has(wo.id));
@@ -97,6 +125,7 @@ export class MaintenanceService {
         downtimeLogId: dt.id,
         assetId: ast?.assetCode || dt.assetId || "FM-001",
         assetName: ast?.name || "Equipment Machine",
+        stage,
         plant: "Plant 1 - North Facility",
         department: "Packaging",
         line: pline?.name || "Line 1",
@@ -135,6 +164,7 @@ export class MaintenanceService {
         workOrderId: wo.id,
         assetId: ast?.assetCode || wo.assetId || "FM-001",
         assetName: ast?.name || "Equipment Machine",
+        stage: detectEquipmentStage(ast?.name, ast?.criticalLevel),
         plant: "Plant 1 - North Facility",
         department: "Packaging",
         line: "Line 1",
@@ -2529,3 +2559,5 @@ export class MaintenanceService {
 }
 
 export const maintenanceService = new MaintenanceService();
+
+

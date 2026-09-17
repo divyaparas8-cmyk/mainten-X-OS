@@ -24,6 +24,9 @@ export async function planningRoutes(fastify: FastifyInstance) {
 
   // Demand History & Accuracy
   fastify.get("/forecast/history", { schema: { tags: ["Planning & Demand"], summary: "List Historical Sales Demand & Model Accuracy" } }, planningController.getDemandHistory.bind(planningController));
+  fastify.post("/forecast/history", { schema: { tags: ["Planning & Demand"], summary: "Create Historical Demand Record" } }, planningController.createDemandHistory.bind(planningController));
+  fastify.patch("/forecast/history/:id", { schema: { tags: ["Planning & Demand"], summary: "Update Historical Demand Record" } }, planningController.updateDemandHistory.bind(planningController));
+  fastify.delete("/forecast/history/:id", { schema: { tags: ["Planning & Demand"], summary: "Delete Historical Demand Record" } }, planningController.deleteDemandHistory.bind(planningController));
 
   // Commercial Promotions & Uplift
   fastify.get("/forecast/promotions", { schema: { tags: ["Planning & Demand"], summary: "List Commercial Promotions & Uplift Events" } }, planningController.getPromotions.bind(planningController));
@@ -140,6 +143,11 @@ export async function planningRoutes(fastify: FastifyInstance) {
 
   // Recovery Simulator
   fastify.post("/recovery/apply", { schema: { tags: ["Planning & Demand"], summary: "Apply Recovery Simulator Scenario" } }, planningController.applyRecovery.bind(planningController));
+
+  // Processing Batches vs Packaging Orders
+  fastify.get("/processing-batches", { schema: { tags: ["Planning & Demand"], summary: "List Processing Batches" } }, planningController.getProcessingBatches.bind(planningController));
+  fastify.post("/processing-batches", { schema: { tags: ["Planning & Demand"], summary: "Create Processing Batch" } }, planningController.createProcessingBatch.bind(planningController));
+  fastify.post("/processing-batches/link", { schema: { tags: ["Planning & Demand"], summary: "Link Processing Batch to Packaging Order" } }, planningController.linkBatchToPackagingOrder.bind(planningController));
 }
 
 

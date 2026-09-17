@@ -71,6 +71,21 @@ export class PlanningController {
     return reply.send(formatSuccess(data));
   }
 
+  async createDemandHistory(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.createDemandHistory(request.user.tenantId, request.body);
+    return reply.status(201).send(formatSuccess(data, "Demand history record created successfully"));
+  }
+
+  async updateDemandHistory(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await planningService.updateDemandHistory(request.user.tenantId, request.params.id, request.body);
+    return reply.send(formatSuccess(data, "Demand history record updated successfully"));
+  }
+
+  async deleteDemandHistory(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const data = await planningService.deleteDemandHistory(request.user.tenantId, request.params.id);
+    return reply.send(formatSuccess(data, "Demand history record deleted successfully"));
+  }
+
   // Promotions & Uplift
   async getPromotions(request: FastifyRequest, reply: FastifyReply) {
     const data = await planningService.listPromotions(request.user.tenantId, request.user.plantId);
@@ -388,7 +403,6 @@ export class PlanningController {
   }
 
   // --- Plant Manager Handlers ---
-
   async getSchedules(request: FastifyRequest, reply: FastifyReply) {
     const data = await planningService.listSchedules((request.query as any)?.plantId || request.user.plantId);
     return reply.send(formatSuccess(data));
@@ -463,6 +477,24 @@ export class PlanningController {
       plantId: body.plantId || request.user.plantId,
     });
     return reply.send(formatSuccess(data, "Recovery plan calculated & applied"));
+  }
+
+  // ─── Processing Batches ───────────────────────────────────────────────────
+  async getProcessingBatches(request: FastifyRequest, reply: FastifyReply) {
+    const data = await planningService.getProcessingBatches(request.user.tenantId);
+    return reply.send(formatSuccess(data));
+  }
+
+  async createProcessingBatch(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await planningService.createProcessingBatch(request.user.tenantId, request.user.plantId || "83c90534-4761-495c-b2bf-6a61de2260c4", body);
+    return reply.status(201).send(formatSuccess(data, data.message));
+  }
+
+  async linkBatchToPackagingOrder(request: FastifyRequest, reply: FastifyReply) {
+    const body = (request.body as any) || {};
+    const data = await planningService.linkBatchToPackagingOrder(body.batchId, body.productionOrderId);
+    return reply.send(formatSuccess(data, data.message));
   }
 }
 

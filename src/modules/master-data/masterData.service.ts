@@ -686,13 +686,16 @@ export class MasterDataService {
   // ==========================================
   async listLines(tenantId: string | undefined, plantId?: string) {
     try {
-      let query = sql`SELECT * FROM public.production_lines`;
-      if (plantId && plantId !== "ALL") {
-        query = sql`SELECT * FROM public.production_lines WHERE plant_id::text = ${plantId} OR plant_name = ${plantId}`;
+      let query = sql`SELECT * FROM public.production_lines ORDER BY created_at DESC`;
+      if (plantId && plantId !== "ALL" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(plantId)) {
+        query = sql`SELECT * FROM public.production_lines WHERE plant_id::text = ${plantId} ORDER BY created_at DESC`;
       }
-      query = sql`${query} ORDER BY created_at DESC`;
-      const res = await db.execute(query);
-      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      let res = await db.execute(query);
+      let rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      if (rows.length === 0) {
+        res = await db.execute(sql`SELECT * FROM public.production_lines ORDER BY created_at DESC`);
+        rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      }
       return rows.map((l: any) => ({
         id: String(l.id),
         lineId: String(l.id),
@@ -700,7 +703,7 @@ export class MasterDataService {
         code: l.code || l.line_code || `LINE-${String(l.id).substring(0, 4)}`,
         name: l.name || "Production Line",
         plantId: l.plant_id ? String(l.plant_id) : "PLT-01",
-        plantName: l.plant_name || "Main Facility",
+        plantName: "Main Facility",
         type: l.type || l.line_type || "Continuous Flow",
         lineType: l.line_type || "BOTTLING",
         ratedSpeed: l.rated_speed || (l.nominal_speed_bpm ? `${l.nominal_speed_bpm * 60} BPH` : "38,000 BPH"),
@@ -2688,28 +2691,28 @@ export class MasterDataService {
   // ==========================================
   async listSkus(tenantId?: string) {
     try {
-      // Fetch ALL SKUs from DB (no tenant filter) so data is always visible.
-      // In a strict multi-tenant setup, filter by tenantId here.
-      const dbSkus = await db.select().from(skus);
-      return dbSkus.map((s) => ({
-        ...s,
-        id: s.id,
-        skuId: s.id,
-        skuCode: s.skuCode,
-        code: s.skuCode,
-        name: s.name,
-        category: s.category === "FINISHED_GOODS" ? "Finished Goods" : s.category === "RAW_MATERIAL" ? "Raw Ingredients" : s.category === "PACKAGING" ? "Packaging" : (s.category || "Finished Goods"),
-        itemType: s.category === "FINISHED_GOODS" ? "Finished Good" : s.category === "RAW_MATERIAL" ? "Raw Material" : "Finished Good",
-        uom: s.uom || "Units",
-        plantId: s.plantId,
-        standardCost: s.standardCost,
-        stdCost: s.standardCost,
-        shelfLifeDays: s.shelfLifeDays,
-        status: s.isActive ? "Active" : "Inactive",
-        isActive: s.isActive,
-        createdAt: s.createdAt,
-        updatedAt: s.updatedAt,
-      }));
+      const res = await db.execute(sql`SELECT * FROM public.skus ORDER BY created_at DESC`);
+      const rows = (res as any)?.rows || (Array.isArray(res) ? res : []);
+      if (rows.length > 0) {
+        return rows.map((s: any) => ({
+          id: s.id,
+          skuId: s.id,
+          skuCode: s.sku_code || s.code || `SKU-${s.id.substring(0, 4)}`,
+          code: s.sku_code || s.code,
+          name: s.name || "Product SKU",
+          category: s.category === "FINISHED_GOODS" ? "Finished Goods" : s.category === "RAW_MATERIAL" ? "Raw Ingredients" : s.category === "PACKAGING" ? "Packaging" : (s.category || "Finished Goods"),
+          itemType: s.category === "FINISHED_GOODS" ? "Finished Good" : s.category === "RAW_MATERIAL" ? "Raw Material" : "Finished Good",
+          uom: s.uom || "Units",
+          plantId: s.plant_id || "PLT-01",
+          standardCost: s.standard_cost,
+          stdCost: s.standard_cost,
+          shelfLifeDays: s.shelf_life_days,
+          status: s.is_active ? "Active" : "Inactive",
+          isActive: s.is_active,
+          createdAt: s.created_at,
+          updatedAt: s.updated_at,
+        }));
+      }
     } catch (err: any) {
       console.warn("DB listSkus error:", err.message);
     }

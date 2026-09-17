@@ -108,3 +108,41 @@ export const promotionCampaigns = pgTable("promotion_campaigns", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const pmScheduleVersions = pgTable("pm_schedule_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }),
+  versionId: varchar("version_id", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  status: varchar("status", { length: 50 }).default("Draft").notNull(),
+  createdBy: varchar("created_by", { length: 255 }).default("Elena Rostova (Lead Planner)"),
+  ordersCount: integer("orders_count").default(4),
+  totalPlannedHours: numeric("total_planned_hours", { precision: 8, scale: 2 }).default("80.00"),
+  utilizationPercent: numeric("utilization_percent", { precision: 5, scale: 2 }).default("90.00"),
+  reason: text("reason"),
+  changesDescription: text("changes_description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const serviceRisks = pgTable("service_risks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }).notNull(),
+  plantId: uuid("plant_id").references(() => plants.id, { onDelete: "cascade" }),
+  riskCode: varchar("risk_code", { length: 50 }).notNull(),
+  customer: varchar("customer", { length: 255 }).notNull(),
+  orderRef: varchar("order_ref", { length: 100 }),
+  riskTitle: text("risk_title").notNull(),
+  potentialPenalty: varchar("potential_penalty", { length: 255 }),
+  financialExposure: numeric("financial_exposure", { precision: 12, scale: 2 }).default("0.00"),
+  severity: varchar("severity", { length: 50 }).default("High Risk"),
+  impact: text("impact"),
+  recommendation: text("recommendation"),
+  isMitigated: boolean("is_mitigated").default(false),
+  mitigatedAt: timestamp("mitigated_at"),
+  mitigatedBy: varchar("mitigated_by", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+

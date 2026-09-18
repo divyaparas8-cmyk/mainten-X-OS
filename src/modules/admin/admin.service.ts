@@ -1257,8 +1257,6 @@ export class AdminService {
   // ==========================================
 
   async getRoles(tenantId?: string) {
-    await this.ensurePermissionsSeeded();
-
     try {
       let activeTenantId: string | null = null;
       if (typeof tenantId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tenantId)) {
@@ -1498,39 +1496,7 @@ export class AdminService {
           .returning();
       }
 
-      // 2. Seed standard System Roles ONLY if roles table is completely empty (never re-insert deleted roles)
-      const currentRoles = await db.select().from(roles);
-      if (currentRoles.length === 0) {
-        const standardRoles = [
-          { code: "master_admin", name: "Master Admin", description: "Platform Chief Administrator & SuperAdmin" },
-          { code: "admin", name: "Super Admin / System Administrator", description: "IT & System Configuration Administrator" },
-          { code: "plant_manager", name: "Plant Manager", description: "Plant Director & Operations Lead" },
-          { code: "quality", name: "Quality Manager", description: "Quality Assurance & Food Safety Lead" },
-          { code: "maintenance", name: "Maintenance Manager / Lead", description: "Senior Reliability Technician & Maintenance Lead" },
-          { code: "operator", name: "Line Operator", description: "Certified HMI Line Operator" },
-          { code: "planner", name: "Planner / Scheduler", description: "Lead Production & Demand Scheduler" },
-          { code: "warehouse", name: "Warehouse / Receiver", description: "Warehouse, Receiving & Logistics Manager" },
-          { code: "supervisor", name: "Operations Supervisor", description: "Shift Operations & Workforce Supervisor" },
-          { code: "line_lead", name: "Line Lead", description: "Line Lead - Packaging & Bottling" },
-          { code: "ci_engineer", name: "CI / Engineering", description: "Continuous Improvement & RCA Engineer" },
-          { code: "executive", name: "Executive", description: "Chief Operating Officer & Enterprise Executive" },
-        ];
-
-        for (const r of standardRoles) {
-          const [insertedRole] = await db
-            .insert(roles)
-            .values({
-              tenantId: demoTenant.id,
-              code: r.code,
-              name: r.name,
-              description: r.description,
-              isSystem: true,
-            })
-            .returning();
-          if (insertedRole) currentRoles.push(insertedRole);
-        }
-      }
-
+      // 2. Roles are managed by user and explicit migrations, no auto-reseed here.
       // 3. (REMOVED) Do NOT re-insert deleted users. Deleted users must stay deleted permanently.
 
       // 4. Ensure all 55 Permissions exist

@@ -727,9 +727,33 @@ class MasterAdminService {
         return newPlan;
     }
     async updatePlan(id, updates, actor) {
-        const [existing] = await database_js_1.db.select().from(index_js_1.plans).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).limit(1);
-        if (!existing)
-            throw new AppError_js_1.NotFoundError(`Plan '${id}' not found`);
+        let existing = (await database_js_1.db.select().from(index_js_1.plans).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).limit(1))[0];
+        if (!existing) {
+            const all = await database_js_1.db.select().from(index_js_1.plans);
+            existing = all.find((p) => p.id === id || (updates.name && p.name.toLowerCase() === updates.name.toLowerCase()));
+        }
+        if (!existing) {
+            // Upsert if completely missing
+            const input = {
+                id,
+                name: updates.name || id,
+                subtitle: updates.subtitle || "",
+                priceMonthly: String(updates.priceMonthly || 0),
+                priceAnnual: String(updates.priceAnnual || 0),
+                currency: updates.currency || "CAD",
+                duration: updates.duration || "Unlimited",
+                userLimit: updates.userLimit || 10,
+                accessLevel: updates.accessLevel || "Standard",
+                status: updates.status || "Active",
+                isPopular: !!updates.isPopular,
+                ctaText: updates.ctaText || "Choose Modules",
+                modules: updates.modules || ["produce"],
+                features: updates.features || [],
+            };
+            const [newPlan] = await database_js_1.db.insert(index_js_1.plans).values(input).returning();
+            return newPlan;
+        }
+        const targetId = existing.id;
         const patch = { updatedAt: new Date() };
         if (updates.name)
             patch.name = updates.name;
@@ -751,31 +775,36 @@ class MasterAdminService {
             patch.modules = updates.modules;
         if (updates.features)
             patch.features = updates.features;
-        const [updated] = await database_js_1.db.update(index_js_1.plans).set(patch).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).returning();
+        const [updated] = await database_js_1.db.update(index_js_1.plans).set(patch).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, targetId)).returning();
         await this.writeAudit({
             actor,
             action: "PLAN_UPDATED",
             entityType: "Plan",
-            entityId: id,
+            entityId: targetId,
             oldValues: existing,
             newValues: patch,
         });
         return updated;
     }
     async updatePlanStatus(id, status, actor) {
-        const [existing] = await database_js_1.db.select().from(index_js_1.plans).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).limit(1);
+        let existing = (await database_js_1.db.select().from(index_js_1.plans).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).limit(1))[0];
+        if (!existing) {
+            const all = await database_js_1.db.select().from(index_js_1.plans);
+            existing = all.find((p) => p.id === id);
+        }
         if (!existing)
             throw new AppError_js_1.NotFoundError(`Plan '${id}' not found`);
-        await database_js_1.db.update(index_js_1.plans).set({ status, updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id));
+        const targetId = existing.id;
+        await database_js_1.db.update(index_js_1.plans).set({ status, updatedAt: new Date() }).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, targetId));
         await this.writeAudit({
             actor,
             action: "PLAN_STATUS_UPDATED",
             entityType: "Plan",
-            entityId: id,
+            entityId: targetId,
             oldValues: { status: existing.status },
             newValues: { status },
         });
-        return { id, status };
+        return { id: targetId, status };
     }
     async deletePlan(id, actor) {
         const [existing] = await database_js_1.db.select().from(index_js_1.plans).where((0, drizzle_orm_1.eq)(index_js_1.plans.id, id)).limit(1);

@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+
+# Build Outputs (Leave dist tracked if project runs from prebuilt dist, but ignore node_modules and logs)
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# System & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Database dumps & backups
+maintenx-os*
+maintenxos*
+*.db
+*.dump
+*.tar
+*.sql
+
+# Scratch & temporary scripts
+scratch/
+src/scratch/
+src/check_*
+src/clean_*
+src/test_*
+src/list_all_exceptions.ts
+src/run_pg_restore.ts
+src/sync_exceptions_both_dbs.ts
+src/sync_maintenxos_db.ts
+src/seed_assets.ts
+src/verify_restored_data.ts
+dist/check_*
+dist/clean_*
+dist/test_*
+dist/list_all_exceptions.*
+dist/run_pg_restore.*
+dist/sync_*
+dist/seed_assets.*
+dist/verify_restored_data.*
+
+# Root scratch scripts
+*.cjs
+*.mjs
+add_missing_tables.js
+db_alter.js
+list_tables.js
+scratch_*.js
+check-skus-plant.ts
+query.ts
+seed-suppliers.ts

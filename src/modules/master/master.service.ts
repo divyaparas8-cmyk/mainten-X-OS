@@ -901,9 +901,37 @@ export class MasterAdminService {
   }
 
   async updatePlan(id: string, updates: any, actor?: ActorContext) {
-    const [existing] = await db.select().from(plans).where(eq(plans.id, id)).limit(1);
-    if (!existing) throw new NotFoundError(`Plan '${id}' not found`);
+    let existing: any = (await db.select().from(plans).where(eq(plans.id, id)).limit(1))[0];
+    if (!existing) {
+      const all = await db.select().from(plans);
+      existing = all.find(
+        (p) => p.id === id || (updates.name && p.name.toLowerCase() === updates.name.toLowerCase())
+      );
+    }
 
+    if (!existing) {
+      // Upsert if completely missing
+      const input = {
+        id,
+        name: updates.name || id,
+        subtitle: updates.subtitle || "",
+        priceMonthly: String(updates.priceMonthly || 0),
+        priceAnnual: String(updates.priceAnnual || 0),
+        currency: updates.currency || "CAD",
+        duration: updates.duration || "Unlimited",
+        userLimit: updates.userLimit || 10,
+        accessLevel: updates.accessLevel || "Standard",
+        status: updates.status || "Active",
+        isPopular: !!updates.isPopular,
+        ctaText: updates.ctaText || "Choose Modules",
+        modules: updates.modules || ["produce"],
+        features: updates.features || [],
+      };
+      const [newPlan] = await db.insert(plans).values(input).returning();
+      return newPlan;
+    }
+
+    const targetId = existing.id;
     const patch: any = { updatedAt: new Date() };
     if (updates.name) patch.name = updates.name;
     if (updates.subtitle !== undefined) patch.subtitle = updates.subtitle;
@@ -916,13 +944,13 @@ export class MasterAdminService {
     if (updates.modules) patch.modules = updates.modules;
     if (updates.features) patch.features = updates.features;
 
-    const [updated] = await db.update(plans).set(patch).where(eq(plans.id, id)).returning();
+    const [updated] = await db.update(plans).set(patch).where(eq(plans.id, targetId)).returning();
 
     await this.writeAudit({
       actor,
       action: "PLAN_UPDATED",
       entityType: "Plan",
-      entityId: id,
+      entityId: targetId,
       oldValues: existing,
       newValues: patch,
     });
@@ -931,21 +959,26 @@ export class MasterAdminService {
   }
 
   async updatePlanStatus(id: string, status: string, actor?: ActorContext) {
-    const [existing] = await db.select().from(plans).where(eq(plans.id, id)).limit(1);
+    let existing: any = (await db.select().from(plans).where(eq(plans.id, id)).limit(1))[0];
+    if (!existing) {
+      const all = await db.select().from(plans);
+      existing = all.find((p) => p.id === id);
+    }
     if (!existing) throw new NotFoundError(`Plan '${id}' not found`);
 
-    await db.update(plans).set({ status, updatedAt: new Date() }).where(eq(plans.id, id));
+    const targetId = existing.id;
+    await db.update(plans).set({ status, updatedAt: new Date() }).where(eq(plans.id, targetId));
 
     await this.writeAudit({
       actor,
       action: "PLAN_STATUS_UPDATED",
       entityType: "Plan",
-      entityId: id,
+      entityId: targetId,
       oldValues: { status: existing.status },
       newValues: { status },
     });
 
-    return { id, status };
+    return { id: targetId, status };
   }
 
   async deletePlan(id: string, actor?: ActorContext) {

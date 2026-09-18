@@ -9,12 +9,20 @@ import { runBatchQualityMigration } from "./db/migrate-batch-quality.js";
 import { runQaReleaseMigration } from "./db/migrate-qa-release.js";
 import { runQaDispositionMigration } from "./db/migrate-qa-disposition.js";
 import { runQaGovernanceMigration } from "./db/migrate-qa-governance.js";
+import { runMaintenanceMigration } from "./db/migrate-maintenance.js";
 
 async function start() {
   const app = await buildApp();
 
   // Check database connection
   await checkDatabaseConnection();
+
+  // Ensure Maintenance DB schema (assets columns, spare_parts, pm_schedules, notifications) are verified
+  try {
+    await runMaintenanceMigration();
+  } catch (err: any) {
+    console.warn("⚠️ Maintenance auto-migration check warning:", err.message);
+  }
 
   // Ensure third-party & IoT schema migrations (e.g. machine_telemetry, iot_gateways) are applied
   try {

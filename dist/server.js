@@ -11,10 +11,18 @@ const migrate_batch_quality_js_1 = require("./db/migrate-batch-quality.js");
 const migrate_qa_release_js_1 = require("./db/migrate-qa-release.js");
 const migrate_qa_disposition_js_1 = require("./db/migrate-qa-disposition.js");
 const migrate_qa_governance_js_1 = require("./db/migrate-qa-governance.js");
+const migrate_maintenance_js_1 = require("./db/migrate-maintenance.js");
 async function start() {
     const app = await (0, app_js_1.buildApp)();
     // Check database connection
     await (0, database_js_1.checkDatabaseConnection)();
+    // Ensure Maintenance DB schema (assets columns, spare_parts, pm_schedules, notifications) are verified
+    try {
+        await (0, migrate_maintenance_js_1.runMaintenanceMigration)();
+    }
+    catch (err) {
+        console.warn("⚠️ Maintenance auto-migration check warning:", err.message);
+    }
     // Ensure third-party & IoT schema migrations (e.g. machine_telemetry, iot_gateways) are applied
     try {
         await (0, migrate_integrations_js_1.migrateIntegrations)();

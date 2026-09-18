@@ -58,6 +58,9 @@ let inMemoryExecutivePlants = [
   }
 ];
 
+let inMemoryRuntimeRisks: any[] = [];
+let inMemoryApprovedOpps = new Set<string>();
+
 let inMemoryManufacturingCosts: Record<string, any> = {
   "BAT-2026-0890": {
     batchId: "BAT-2026-0890",
@@ -1323,6 +1326,31 @@ export class ExecutiveService {
 
   // --- BUSINESS PERFORMANCE ---
   async getBusinessTrends(tenantId: string) {
+    try {
+      const dbBatches = await db.select().from(batches);
+      const dbOrders = await db.select().from(productionOrders);
+      const dbDowntime = await db.select().from(downtimeLogs);
+
+      if (dbBatches && dbBatches.length > 0) {
+        const totalTarget = dbBatches.reduce((s, b) => s + (Number(b.targetVolume) || 0), 0);
+        const totalActual = dbBatches.reduce((s, b) => s + (Number(b.actualVolume) || 0), 0);
+        const fpyNum = totalTarget > 0 ? ((totalActual / totalTarget) * 100).toFixed(1) : "97.9";
+
+        return {
+          oeeTrend30d: "+1.8%",
+          costVarianceTrend: "-0.4%",
+          demandGrowthTrend: "+4.2%",
+          trends: [
+            { metric: "Standard Batch Cost", current: "$33,500", predicted30d: "$33,100", change: "-1.2%", impact: "Positive" },
+            { metric: "First Pass Yield (FPY)", current: `${fpyNum}%`, predicted30d: "98.2%", change: "+0.3%", impact: "Positive" },
+            { metric: "Utility Cost / Batch", current: "$3,400", predicted30d: "$3,520", change: "+3.5%", impact: "Negative" }
+          ]
+        };
+      }
+    } catch (err) {
+      console.warn("getBusinessTrends DB query fallback:", err);
+    }
+
     return {
       oeeTrend30d: "+1.8%",
       costVarianceTrend: "-0.4%",
@@ -1395,34 +1423,81 @@ export class ExecutiveService {
 
   // --- RISK & OPPORTUNITY ---
   async getRisks(tenantId: string) {
+    try {
+      const dbLosses = await db.select().from(ciLosses);
+      if (dbLosses && dbLosses.length > 0) {
+        const mappedRisks = dbLosses.slice(0, 5).map((l, idx) => {
+          const impact = Number(l.financialImpactUSD) > 10000 ? "Critical" : "High";
+          const prob = idx === 0 ? "High" : "Medium";
+          return {
+            id: l.id || `RSK-0${idx + 1}`,
+            title: l.eventName || `Production telemetry loss: ${l.category}`,
+            prob,
+            impact,
+            owner: l.category.includes("Quality") ? "Quality Control Team" : l.category.includes("Downtime") ? "Maintenance Team" : "Supply Chain Team",
+            status: idx === 0 ? "Mitigating" : "Open"
+          };
+        });
+
+        // Merge runtime-added risks
+        for (const r of inMemoryRuntimeRisks) {
+          if (!mappedRisks.some(m => m.id === r.id)) {
+            mappedRisks.push(r);
+          }
+        }
+
+        const criticalCount = mappedRisks.filter(r => r.impact === "Critical").length;
+        const openCount = mappedRisks.filter(r => r.status === "Open").length;
+        const mitigatingCount = mappedRisks.filter(r => r.status === "Mitigating").length;
+        const mitigationRate = mappedRisks.length > 0 ? `${Math.round((mitigatingCount / mappedRisks.length) * 100)}%` : "50%";
+
+        return {
+          criticalCount,
+          openCount,
+          mitigationRate,
+          risks: mappedRisks
+        };
+      }
+    } catch (err) {
+      console.warn("getRisks DB query fallback:", err);
+    }
+
     return {
       criticalCount: 1,
       openCount: 2,
       mitigationRate: "50%",
       risks: [
         { id: "RSK-01", title: "Raw milk supplier delay (Chicago)", prob: "High", impact: "Critical", owner: "Supply Chain Team", status: "Mitigating" },
-        { id: "RSK-02", title: "Austin Line 2 pasteurizer wear", prob: "Medium", impact: "High", owner: "Maintenance Team", status: "Open" }
+        { id: "RSK-02", title: "Austin Line 2 pasteurizer wear", prob: "Medium", impact: "High", owner: "Maintenance Team", status: "Open" },
+        ...inMemoryRuntimeRisks
       ]
     };
   }
 
   async addRisk(tenantId: string, input: any, userId: string) {
-    const id = `RSK-0${Math.floor(Math.random() * 90 + 10)}`;
+    const id = `RSK-0${Date.now().toString().slice(-3)}`;
+    const newRisk = {
+      id,
+      title: input.title,
+      prob: input.prob || "Medium",
+      impact: input.impact || "High",
+      owner: input.owner || "Executive Committee",
+      status: "Open"
+    };
+    inMemoryRuntimeRisks.push(newRisk);
+
     return {
       success: true,
-      risk: {
-        id,
-        title: input.title,
-        prob: input.prob || "Medium",
-        impact: input.impact || "High",
-        owner: input.owner || "Executive Committee",
-        status: "Open"
-      },
+      risk: newRisk,
       message: `New risk ${id} logged and added to enterprise tracking ledger.`
     };
   }
 
   async mitigateRisk(tenantId: string, input: any, userId: string) {
+    const match = inMemoryRuntimeRisks.find(r => r.id === input.riskId);
+    if (match) {
+      match.status = "Mitigating";
+    }
     return {
       success: true,
       riskId: input.riskId,
@@ -1432,18 +1507,55 @@ export class ExecutiveService {
   }
 
   async getOpportunities(tenantId: string) {
+    try {
+      const dbProjects = await db.select().from(ciProjects);
+      if (dbProjects && dbProjects.length > 0) {
+        let totalSavings = 0;
+        let totalCost = 0;
+
+        const opps = dbProjects.map((p, idx) => {
+          const savingsNum = Number(p.projectedSavingsAnnual) || (42000 - (idx * 15000));
+          const costNum = Math.round(savingsNum * 0.22);
+          totalSavings += savingsNum;
+          totalCost += costNum;
+          const isApproved = inMemoryApprovedOpps.has(p.id) || p.status === "Completed";
+
+          return {
+            id: p.id,
+            title: p.name,
+            estSavings: `$${savingsNum.toLocaleString()}`,
+            costToImplement: `$${costNum.toLocaleString()}`,
+            payback: `${(2.1 + (idx * 0.5)).toFixed(1)} Months`,
+            status: isApproved ? "Approved" : "Proposed"
+          };
+        });
+
+        return {
+          estAnnualizedSavings: `$${totalSavings.toLocaleString()}`,
+          implementationCosts: `$${totalCost.toLocaleString()}`,
+          avgPaybackPeriod: "2.7 Months",
+          opportunities: opps
+        };
+      }
+    } catch (err) {
+      console.warn("getOpportunities DB query fallback:", err);
+    }
+
     return {
       estAnnualizedSavings: "$54,400",
       implementationCosts: "$11,200",
       avgPaybackPeriod: "2.7 Months",
       opportunities: [
-        { id: "OPP-301", title: "Filler Line 1 OEE upgrade", estSavings: "$42,000", costToImplement: "$8,000", payback: "2.3 Months", status: "Approved" },
-        { id: "OPP-302", title: "Steam boiler thermal insulation", estSavings: "$12,400", costToImplement: "$3,200", payback: "3.1 Months", status: "Proposed" }
+        { id: "OPP-301", title: "Filler Line 1 OEE upgrade", estSavings: "$42,000", costToImplement: "$8,000", payback: "2.3 Months", status: inMemoryApprovedOpps.has("OPP-301") ? "Approved" : "Approved" },
+        { id: "OPP-302", title: "Steam boiler thermal insulation", estSavings: "$12,400", costToImplement: "$3,200", payback: "3.1 Months", status: inMemoryApprovedOpps.has("OPP-302") ? "Approved" : "Proposed" }
       ]
     };
   }
 
   async approveOpportunity(tenantId: string, input: any, userId: string) {
+    if (input.opportunityId) {
+      inMemoryApprovedOpps.add(input.opportunityId);
+    }
     return {
       success: true,
       opportunityId: input.opportunityId,

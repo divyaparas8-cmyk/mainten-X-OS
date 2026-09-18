@@ -41,11 +41,7 @@ let inMemoryInvitations: InvitationRecord[] = [
 ];
 
 let inMemoryUsers: any[] = [
-  { id: "USR-001", name: "Alexander Vance", email: "alexander.vance@flowstate.io", role: "System Administrator", roleCode: "admin", department: "IT & Digital Ops", plant: "Indore Plant", status: "Active", lastLogin: "Just now", createdAt: new Date().toISOString() },
-  { id: "USR-002", name: "Robert Thorne", email: "robert.thorne@flowstate.io", role: "Plant Manager", roleCode: "plant_manager", department: "Operations", plant: "Indore Plant", status: "Suspended", lastLogin: "10 mins ago", createdAt: new Date().toISOString() },
-  { id: "USR-003", name: "Sarah Jenkins", email: "sarah.jenkins@flowstate.io", role: "QA Manager", roleCode: "quality", department: "Quality Assurance", plant: "Indore Plant", status: "Active", lastLogin: "1 hour ago", createdAt: new Date().toISOString() },
-  { id: "USR-004", name: "Marcus Vance", email: "marcus.vance@flowstate.io", role: "Maintenance Lead", roleCode: "maintenance", department: "Maintenance", plant: "Indore Plant", status: "Active", lastLogin: "3 hours ago", createdAt: new Date().toISOString() },
-  { id: "USR-005", name: "David Kim", email: "david.kim@flowstate.io", role: "Production Supervisor", roleCode: "supervisor", department: "Operations", plant: "Indore Plant", status: "Active", lastLogin: "3 days ago", createdAt: new Date().toISOString() },
+  { id: "USR-001", name: "Alexander Vance", email: "admin@maintenx.com", role: "Company Administrator", roleCode: "admin", department: "IT & Digital Ops", plant: "Indore Plant 1", status: "Active", lastLogin: "Just now", createdAt: new Date().toISOString() },
 ];
 
 let inMemoryRoles: any[] = [

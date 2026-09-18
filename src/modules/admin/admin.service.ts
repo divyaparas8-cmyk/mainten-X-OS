@@ -1498,27 +1498,25 @@ export class AdminService {
           .returning();
       }
 
-      // 2. Ensure standard System Roles exist in PostgreSQL
-      const standardRoles = [
-        { code: "master_admin", name: "Master Admin", description: "Platform Chief Administrator & SuperAdmin" },
-        { code: "admin", name: "Super Admin / System Administrator", description: "Indore IT & System Configuration Administrator" },
-        { code: "plant_manager", name: "Plant Manager", description: "Indore Plant Director & Operations Lead" },
-        { code: "quality", name: "Quality Manager", description: "Quality Assurance & Food Safety Lead" },
-        { code: "qa_manager", name: "Quality Manager", description: "Quality Assurance & Food Safety Manager" },
-        { code: "maintenance", name: "Maintenance Manager / Lead", description: "Senior Reliability Technician & Maintenance Lead" },
-        { code: "operator", name: "Line Operator", description: "Certified HMI Line Operator" },
-        { code: "planner", name: "Planner / Scheduler", description: "Lead Production & Demand Scheduler" },
-        { code: "warehouse", name: "Warehouse / Receiver", description: "Warehouse, Receiving & Logistics Manager" },
-        { code: "supervisor", name: "Operations Supervisor", description: "Shift Operations & Workforce Supervisor" },
-        { code: "line_lead", name: "Line Lead", description: "Line Lead - Packaging & Bottling" },
-        { code: "ci_engineer", name: "CI / Engineering", description: "Continuous Improvement & RCA Engineer" },
-        { code: "executive", name: "Executive", description: "Chief Operating Officer & Enterprise Executive" },
-      ];
-
+      // 2. Seed standard System Roles ONLY if roles table is completely empty (never re-insert deleted roles)
       const currentRoles = await db.select().from(roles);
-      for (const r of standardRoles) {
-        const found = currentRoles.find((cr) => cr.code === r.code);
-        if (!found) {
+      if (currentRoles.length === 0) {
+        const standardRoles = [
+          { code: "master_admin", name: "Master Admin", description: "Platform Chief Administrator & SuperAdmin" },
+          { code: "admin", name: "Super Admin / System Administrator", description: "IT & System Configuration Administrator" },
+          { code: "plant_manager", name: "Plant Manager", description: "Plant Director & Operations Lead" },
+          { code: "quality", name: "Quality Manager", description: "Quality Assurance & Food Safety Lead" },
+          { code: "maintenance", name: "Maintenance Manager / Lead", description: "Senior Reliability Technician & Maintenance Lead" },
+          { code: "operator", name: "Line Operator", description: "Certified HMI Line Operator" },
+          { code: "planner", name: "Planner / Scheduler", description: "Lead Production & Demand Scheduler" },
+          { code: "warehouse", name: "Warehouse / Receiver", description: "Warehouse, Receiving & Logistics Manager" },
+          { code: "supervisor", name: "Operations Supervisor", description: "Shift Operations & Workforce Supervisor" },
+          { code: "line_lead", name: "Line Lead", description: "Line Lead - Packaging & Bottling" },
+          { code: "ci_engineer", name: "CI / Engineering", description: "Continuous Improvement & RCA Engineer" },
+          { code: "executive", name: "Executive", description: "Chief Operating Officer & Enterprise Executive" },
+        ];
+
+        for (const r of standardRoles) {
           const [insertedRole] = await db
             .insert(roles)
             .values({
@@ -1533,45 +1531,7 @@ export class AdminService {
         }
       }
 
-      // 3. Ensure test users exist in PostgreSQL for role testing
-      const passwordHash = await bcrypt.hash("Password@123", 10);
-      const testUsers = [
-        { email: "admin@maintenx.com", firstName: "Alexander", lastName: "Vance", roleCode: "admin", isMasterAdmin: true },
-        { email: "plant.manager@maintenx.com", firstName: "Arthur", lastName: "Sterling", roleCode: "plant_manager", isMasterAdmin: false },
-        { email: "qa@maintenx.com", firstName: "Dr. Rachel", lastName: "Thorne", roleCode: "quality", isMasterAdmin: false },
-        { email: "maintenance@maintenx.com", firstName: "Dave", lastName: "Miller", roleCode: "maintenance", isMasterAdmin: false },
-        { email: "operator@maintenx.com", firstName: "Marcus", lastName: "Chen", roleCode: "operator", isMasterAdmin: false },
-      ];
-
-      for (const u of testUsers) {
-        let [existingUser] = await db.select().from(users).where(eq(users.email, u.email)).limit(1);
-        if (!existingUser) {
-          [existingUser] = await db
-            .insert(users)
-            .values({
-              tenantId: demoTenant.id,
-              email: u.email,
-              passwordHash,
-              firstName: u.firstName,
-              lastName: u.lastName,
-              isMasterAdmin: u.isMasterAdmin,
-              status: "ACTIVE",
-            })
-            .returning();
-        }
-
-        const roleObj = currentRoles.find((r) => r.code === u.roleCode);
-        if (existingUser && roleObj) {
-          const [existingUserRole] = await db.select().from(userRoles).where(eq(userRoles.userId, existingUser.id)).limit(1);
-          if (!existingUserRole) {
-            await db.insert(userRoles).values({
-              userId: existingUser.id,
-              roleId: roleObj.id,
-              plantId: demoPlant.id,
-            });
-          }
-        }
-      }
+      // 3. (REMOVED) Do NOT re-insert deleted users. Deleted users must stay deleted permanently.
 
       // 4. Ensure all 55 Permissions exist
       const existingPerms = await db.select().from(permissions);

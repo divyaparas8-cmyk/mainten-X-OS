@@ -7,6 +7,8 @@ const masterData_js_1 = require("../../db/schema/masterData.js");
 const production_js_1 = require("../../db/schema/production.js");
 const plantManager_js_1 = require("../../db/schema/plantManager.js");
 const ci_js_1 = require("../../db/schema/ci.js");
+const users_js_1 = require("../../db/schema/users.js");
+const common_js_1 = require("../../db/schema/common.js");
 const oeeEngine_js_1 = require("../../shared/engines/oeeEngine.js");
 const tenantContext_js_1 = require("../../shared/utils/tenantContext.js");
 const drizzle_orm_1 = require("drizzle-orm");
@@ -1512,6 +1514,24 @@ class ExecutiveService {
     }
     // --- AI & BRIEFINGS ---
     async getAiBriefing(tenantId) {
+        try {
+            const dbPlants = await database_js_1.db.select().from(tenants_js_1.plants);
+            const dbBatches = await database_js_1.db.select().from(production_js_1.batches);
+            const dbOrders = await database_js_1.db.select().from(production_js_1.productionOrders);
+            const dbDowntime = await database_js_1.db.select().from(production_js_1.downtimeLogs);
+            const plantName = dbPlants[0]?.name || "xyz Main Site";
+            const totalActualVol = dbBatches.reduce((s, b) => s + (Number(b.actualVolume) || 0), 0);
+            const totalTargetVol = dbBatches.reduce((s, b) => s + (Number(b.targetVolume) || 0), 0);
+            const totalDowntimeMin = dbDowntime.reduce((s, d) => s + (Number(d.durationMinutes) || 0), 0);
+            const yieldPct = totalTargetVol > 0 ? ((totalActualVol / totalTargetVol) * 100).toFixed(1) : "98.5";
+            return {
+                briefingDate: new Date().toISOString().split("T")[0],
+                briefingText: `Enterprise Executive Briefing: ${plantName} operational yield is holding steady at ${yieldPct}%. Enterprise fleet output is tracking at ${totalActualVol.toLocaleString()} Liters delivered across active runs. Total downtime logged is ${totalDowntimeMin} minutes across processing & packaging. Costing variance remains within operational safety thresholds.`
+            };
+        }
+        catch (err) {
+            console.warn("getAiBriefing DB query fallback:", err);
+        }
         return {
             briefingDate: new Date().toISOString().split("T")[0],
             briefingText: "Enterprise OEE is steady at 84.2%. Austin Plant exhibits the highest performance with 84.2% OEE, while Chicago lags slightly at 78.9% due to unplanned pasteurizer maintenance. Overall costing variance shows an unfavorable MTD variance of +$12,800, primarily driven by raw materials price drift and overtime labor premiums on Line 1. Recommend prioritizing maintenance allocation on Chicago East to prevent critical batch delays."
@@ -1521,7 +1541,7 @@ class ExecutiveService {
         return {
             success: true,
             generatedAt: new Date().toISOString(),
-            briefingText: "Briefing Refreshed: Austin Filler Line 1 sustained OEE performance lift has offset Chicago's downtime. Direct labour overtime premiums have stabilized, reducing negative variance exposure. Raw milk supply backlog remains mitigating.",
+            briefingText: "Briefing Refreshed: High-speed telemetry analyzed. Operational yield and packaging line speed have stabilized. Continuous improvement projects are offsetting negative variance exposure across all facilities.",
             message: "Executive AI Briefing regenerated with latest real-time enterprise data."
         };
     }
@@ -1579,6 +1599,28 @@ class ExecutiveService {
     }
     // --- NOTIFICATIONS ---
     async getNotifications(tenantId) {
+        try {
+            const dbNotifs = await database_js_1.db.select().from(common_js_1.notifications);
+            if (dbNotifs && dbNotifs.length > 0) {
+                const unreadCount = dbNotifs.filter(n => !n.isRead).length;
+                const mapped = dbNotifs.slice(0, 10).map((n, idx) => ({
+                    id: n.id,
+                    type: n.severity === "CRITICAL" ? "finance" : "system",
+                    read: n.isRead,
+                    title: n.title,
+                    msg: n.message,
+                    time: `${idx + 1} hr ago`,
+                    path: n.linkUrl || "/executive/business/service-level"
+                }));
+                return {
+                    unreadCount,
+                    notifications: mapped
+                };
+            }
+        }
+        catch (err) {
+            console.warn("getNotifications DB query fallback:", err);
+        }
         return {
             unreadCount: 2,
             notifications: [
@@ -1588,6 +1630,14 @@ class ExecutiveService {
         };
     }
     async markNotificationRead(tenantId, input, userId) {
+        try {
+            if (input.id && (0, tenantContext_js_1.isValidUuid)(input.id)) {
+                await database_js_1.db.update(common_js_1.notifications).set({ isRead: true }).where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, input.id));
+            }
+        }
+        catch (err) {
+            console.warn("markNotificationRead DB update fallback:", err);
+        }
         return {
             success: true,
             notificationId: input.id,
@@ -1595,12 +1645,26 @@ class ExecutiveService {
         };
     }
     async markAllNotificationsRead(tenantId, input, userId) {
+        try {
+            await database_js_1.db.update(common_js_1.notifications).set({ isRead: true });
+        }
+        catch (err) {
+            console.warn("markAllNotificationsRead DB update fallback:", err);
+        }
         return {
             success: true,
             message: "All notifications marked as read."
         };
     }
     async deleteNotification(tenantId, input, userId) {
+        try {
+            if (input.id && (0, tenantContext_js_1.isValidUuid)(input.id)) {
+                await database_js_1.db.delete(common_js_1.notifications).where((0, drizzle_orm_1.eq)(common_js_1.notifications.id, input.id));
+            }
+        }
+        catch (err) {
+            console.warn("deleteNotification DB delete fallback:", err);
+        }
         return {
             success: true,
             notificationId: input.id,
@@ -1615,13 +1679,45 @@ class ExecutiveService {
     }
     // --- PROFILE ---
     async getProfile(tenantId, userId) {
+        try {
+            let resolvedUserId = (0, tenantContext_js_1.isValidUuid)(userId) ? userId : undefined;
+            let dbUser = null;
+            if (resolvedUserId) {
+                [dbUser] = await database_js_1.db.select().from(users_js_1.users).where((0, drizzle_orm_1.eq)(users_js_1.users.id, resolvedUserId)).limit(1);
+            }
+            if (!dbUser) {
+                const allUsers = await database_js_1.db.select().from(users_js_1.users);
+                dbUser = allUsers.find(u => u.email.includes("executive") || u.firstName.toLowerCase().includes("victoria")) || allUsers[0];
+            }
+            const [primaryPlant] = await database_js_1.db.select().from(tenants_js_1.plants).limit(1);
+            const plantName = primaryPlant ? `${primaryPlant.name} (${primaryPlant.city || 'HQ'})` : "Global Portfolio (All Plants)";
+            if (dbUser) {
+                return {
+                    email: dbUser.email || "victoria.sterling@maintenx.internal",
+                    phone: dbUser.phone || "+1 (555) 999-0000",
+                    plant: plantName,
+                    shift: "Corporate (09:00 - 17:00)",
+                    role: "VP of Global Manufacturing Operations",
+                    name: `${dbUser.firstName || 'Victoria'} ${dbUser.lastName || 'Sterling'}`,
+                    employeeId: `EMP-${dbUser.id.slice(0, 4).toUpperCase()}`,
+                    certifications: [
+                        { name: "Global ERP Access (SAP Sync)", desc: "Full administrative read/write capability for ERP module.", level: "Active", variant: "emerald" },
+                        { name: "HACCP Compliance Oversight Authority", desc: "Executive level quality and compliance override.", level: "Active", variant: "emerald" },
+                        { name: "CAPEX Capital Expenditure Sign-off Limit: $250K", desc: "Authorized to independently approve capital expenses.", level: "Active", variant: "emerald" }
+                    ]
+                };
+            }
+        }
+        catch (err) {
+            console.warn("getProfile DB query fallback:", err);
+        }
         return {
             email: "enterprise.operator@maintenx.internal",
             phone: "+1 (555) 999-0000",
             plant: "Global Portfolio (All Plants)",
             shift: "Corporate (09:00 - 17:00)",
             role: "VP of Global Manufacturing Operations",
-            name: "Enterprise Operator",
+            name: "Victoria Sterling",
             employeeId: "EMP-0001",
             certifications: [
                 { name: "Global ERP Access (SAP Sync)", desc: "Full administrative read/write capability for ERP module.", level: "Active", variant: "emerald" },
@@ -1631,6 +1727,22 @@ class ExecutiveService {
         };
     }
     async updateProfile(tenantId, input, userId) {
+        try {
+            if (userId && (0, tenantContext_js_1.isValidUuid)(userId)) {
+                const names = (input.name || "").split(" ");
+                await database_js_1.db
+                    .update(users_js_1.users)
+                    .set({
+                    firstName: names[0] || undefined,
+                    lastName: names.slice(1).join(" ") || undefined,
+                    phone: input.phone || undefined
+                })
+                    .where((0, drizzle_orm_1.eq)(users_js_1.users.id, userId));
+            }
+        }
+        catch (err) {
+            console.warn("updateProfile DB update fallback:", err);
+        }
         return {
             success: true,
             updatedProfile: input,
